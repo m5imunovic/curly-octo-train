@@ -1,0 +1,17 @@
+# pickle stuff                                                                                                                                                                                             
+*.pickle
+*.pkl
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+  # Unit test / coverage reports                                                                                                                                                                             
+.pytest_cache/
+
+# Project related files
+data/references/**
+!data/references/references.md
+data/vendor/**
+!data/vendor/vendor.md
