@@ -1,0 +1,3 @@
+This document contains basic install instructions for running the project.
+We need to track prerequisites for the installation of binaries in pipeline (e.g. simulators, assemblers)
+In addition the pip requirements file needs to be properly maintained.
