@@ -15,3 +15,4 @@ data/references/**
 !data/references/references.md
 data/vendor/**
 !data/vendor/vendor.md
+outputs/**

@@ -1,0 +1,4 @@
+bio
+hydra-core==1.1
+numpy
+typeguard==2.13.3
