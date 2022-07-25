@@ -7,8 +7,10 @@ name
 ## Repo maintenance
 
 ## Generic Tasks
-### Create utility module for getting the commonly used paths in project
-Use this to avoid hardcoded absolute paths in project
+~~### Create utility module for getting the commonly used paths in project
+Use this to avoid hardcoded absolute paths in project~~
+
+`#PR3:feature/create_util_path_handler`
 
 ## Reference data 
 ### Create reference data simulator
