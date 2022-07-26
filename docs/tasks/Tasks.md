@@ -13,12 +13,14 @@ Use this to avoid hardcoded absolute paths in project~~
 `#PR3:feature/create_util_path_handler`
 
 ## Reference data 
-### Create reference data simulator
+~~### Create reference data simulator
 Save simulated reference data into FASTA file(s)
 Control via config file:
 - chromosomes (name-length dict)
 - GC content (float)
-- name of the simulated species
+- name of the simulated species~~
+
+`#PR4:feature/reference_simulator`
 
 ## Simulation
 ### Create simulation module
