@@ -17,5 +17,14 @@ def get_ref_path() -> Path:
     return get_data_path() / 'references'
 
 
+def get_simulated_data_path() -> Path:
+    return get_data_path() / 'simulated'
+
+
 def get_default_cfg_path() -> Path:
     return get_project_root() / 'config' / 'config.yaml'
+
+
+def project_root_append(path: str):
+    return ph.get_project_root() / path
+
