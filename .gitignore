@@ -13,6 +13,8 @@ __pycache__/
 # Project related files
 data/references/**
 !data/references/references.md
-data/vendor/**
-!data/vendor/vendor.md
+data/simulated/**
+!data/simulated/simulated.md
+vendor/**
+!vendor/vendor.md
 outputs/**

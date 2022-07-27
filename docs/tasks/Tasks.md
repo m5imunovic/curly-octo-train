@@ -30,6 +30,13 @@ Control via config file:
  - installation method
  - simulation parameters
 
+### Improve test
+Add more tests
+Mock complicated functions
+
+### Improve handling of the OmegaConf objects
+Modify the types in the calls of the functions
+
 ## Assembly
 ### Create assembly module
 Based on LJA
