@@ -23,12 +23,14 @@ Control via config file:
 `#PR4:feature/reference_simulator`
 
 ## Simulation
-### Create simulation module
+~~### Create simulation module
 Based on PbSim2
 Installation via script or python
 Control via config file:
  - installation method
- - simulation parameters
+ - simulation parameters~~
+ 
+ `#PR5:feature/read_simulator`
 
 ### Improve test
 Add more tests
