@@ -1,0 +1,13 @@
+name: LJA
+params:
+  long:
+    threads: 8
+  short:
+    k: 501 
+    # K: 2001 # not supported for jumboDBG
+  append:
+    "--compress"
+
+exec: jumboDBG # name of the executable to use (jumboDBG or lja)
+species: random_species
+experiment: experiment_1 # this is the name of the folder where the assembly data is stored

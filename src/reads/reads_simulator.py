@@ -72,8 +72,8 @@ class PbSim2(RSimulator):
     def _construct_exec_cmd(self, ref_path: Path, chr_save_path: Path, prefix: str) -> list[str]:
         assert 'params' in self.cfg, "params must be specified in config"
 
-        suffix = ['.fasta', '.fa'] if 'pattern' not in self.cfg else self.cfg['pattern']
-        read_files = get_read_files(ref_path, suffix=suffix, override=True)
+        suffix = ['.fasta', '.fa'] if 'suffix' not in self.cfg else self.cfg['suffix']
+        read_files = get_read_files(ref_path, suffix=suffix)
         read_params = ' '.join(f'{str(read_file)}' for read_file in read_files)
         option_params = compose_cmd_params(dict(self.cfg['params']))
         prefix_param = f'--prefix {prefix}'
