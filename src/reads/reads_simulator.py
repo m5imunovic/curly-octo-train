@@ -97,7 +97,7 @@ class PbSim2(RSimulator):
                 chr_raw_path.mkdir(parents=True)
                 n_have = 0
             else:
-                n_have = len(get_read_files(chr_raw_path, suffix=list(self.cfg['suffix'])))
+                n_have = len(get_read_files(chr_raw_path, suffix=['.fastq', '.fq']))
             if n_need <= n_have:
                 continue
             else:

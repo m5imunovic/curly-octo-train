@@ -45,6 +45,7 @@ class LaJolla(assembler.Assembler):
     def run(self, reads_path: Path, out_path: Path, *args, **kwargs):
         commands = self._construct_exec_cmd(reads_path, out_path)
         for cmd in commands:
+            print(f"RUN::assembler::\n{cmd}")
             subprocess.run(cmd, shell=True)
 
 
