@@ -15,6 +15,7 @@ from utils.io_utils import compose_cmd_params, get_read_files
 
 OmegaConf.register_new_resolver('project_root', ph.project_root_append)
 
+
 class RSimulator:
     def __init__(self, cfg, vendor_dir: Path):
         self.cfg = cfg
@@ -41,7 +42,7 @@ class RSimulator:
         pass
 
     @abstractmethod
-    def run(self, raw_path: Path, tmp_path: Path, save_path: Path, *args, **kwargs):
+    def run(self, ref_root: Path, simulated_data_root: Path, chr_request: dict, *args, **kwargs):
         pass
 
 
@@ -72,10 +73,10 @@ class PbSim2(RSimulator):
     def _construct_exec_cmd(self, ref_path: Path, chr_save_path: Path, prefix: str) -> list[str]:
         assert 'params' in self.cfg, "params must be specified in config"
 
-        suffix = ['.fasta', '.fa'] if 'suffix' not in self.cfg else self.cfg['suffix']
+        suffix = ['.fasta', '.fa'] if 'suffix' not in self.cfg else OmegaConf.to_container(self.cfg['suffix'])
         read_files = get_read_files(ref_path, suffix=suffix)
         read_params = ' '.join(f'{str(read_file)}' for read_file in read_files)
-        option_params = compose_cmd_params(dict(self.cfg['params']))
+        option_params = compose_cmd_params(self.cfg['params'])
         prefix_param = f'--prefix {prefix}'
 
         return [
@@ -91,7 +92,7 @@ class PbSim2(RSimulator):
         simulation_data = []
         for chrN, n_need in chr_request.items():
             species_name = ref_root.stem
-            chr_raw_path = simulated_data_root / species_name / f'{chrN}' / 'raw'
+            chr_raw_path = simulated_data_root / species_name / f'{chrN}'
             if not chr_raw_path.exists():
                 chr_raw_path.mkdir(parents=True)
                 n_have = 0
@@ -109,7 +110,7 @@ class PbSim2(RSimulator):
                 for i in range(n_diff):
                     idx = n_have + i
                     chr_save_path = chr_raw_path
-                    simulation_data.append((chr_seq_path, chr_save_path, str(idx), '/'.join([str(i), str(n_diff)])))
+                    simulation_data.append((chr_seq_path, chr_save_path, str(idx), '/'.join([str(i+1), str(n_diff)])))
 
             # leave one processor free
             with mp.Pool(os.cpu_count() - 1) as pool:

@@ -30,5 +30,5 @@ def get_default_cfg_path() -> Path:
 
 
 def project_root_append(path: str):
-    return ph.get_project_root() / path
+    return get_project_root() / path
 

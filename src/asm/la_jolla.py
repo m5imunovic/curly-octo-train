@@ -2,6 +2,7 @@ import subprocess
 import shutil
 from pathlib import Path
 
+from omegaconf import OmegaConf
 from typeguard import typechecked
 
 from asm import assembler
@@ -16,7 +17,7 @@ class LaJolla(assembler.Assembler):
             try:
                 print(f'SETUP::generate:: Download La Jolla Assembler')
                 subprocess.run('git clone https://github.com/AntonBankevich/LJA.git', shell=True, cwd=str(vendor_dir))
-                subprocess.run('git checkout develop', shell=True, cwd=str(vendor_dir))
+                subprocess.run('git checkout development', shell=True, cwd=str(assembler_root))
                 subprocess.run('cmake .', shell=True, cwd=str(assembler_root))
                 subprocess.run('make -j 8', shell=True, cwd=str(assembler_root))
             except Exception as ex:
@@ -30,11 +31,11 @@ class LaJolla(assembler.Assembler):
     def _construct_exec_cmd(self, reads_path: Path, output_path: Path) -> list[str]:
         assert 'params' in self.cfg, "params must be specified in config"
 
-        suffix = ['.fastq', '.fq'] if 'suffix' not in self.cfg else self.cfg['suffix']
+        suffix = ['.fastq', '.fq'] if 'suffix' not in self.cfg else OmegaConf.to_container(self.cfg['suffix'])
         read_files = get_read_files(reads_path, suffix=suffix)
         reads_cmd_params = ' '.join([f'--reads {str(read_file)}' for read_file in read_files])
         out_cmd_param = f'-o {str(output_path)}'
-        option_params = compose_cmd_params(dict(self.cfg['params']))
+        option_params = compose_cmd_params(self.cfg['params'])
 
         exec = 'lja' if 'exec' not in self.cfg else self.cfg['exec']
         asm_executable = self.assembler_root / exec

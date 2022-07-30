@@ -10,4 +10,4 @@ params:
 
 exec: jumboDBG # name of the executable to use (jumboDBG or lja)
 species: random_species
-experiment: experiment_1 # this is the name of the folder where the assembly data is stored
+experiment: experiment_2 # this is the name of the folder where the assembly data is stored

@@ -56,9 +56,9 @@ def run(cfg):
     assembler(**kwargs)
 
 
-@hydra.main(version_base=None, config_path='../../config/assembler', config_name='la_jolla')
+@hydra.main(version_base=None, config_path='../../config/asm', config_name='la_jolla')
 def main(cfg):
-    print("Running asssembler step...")
+    print("Running assembler step...")
     run(cfg)
 
 

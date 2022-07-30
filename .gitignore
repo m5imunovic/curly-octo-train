@@ -11,6 +11,8 @@ __pycache__/
 .pytest_cache/
 
 # Project related files
+data/assemblies/**
+!data/assemblies/assemblies.md
 data/references/**
 !data/references/references.md
 data/simulated/**

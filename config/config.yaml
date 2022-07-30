@@ -1,1 +1,5 @@
 # this is top-level default config
+defaults:
+  - reference: random_species
+  - reads: pbsim2
+  - asm: la_jolla
