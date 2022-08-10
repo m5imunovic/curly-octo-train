@@ -3,13 +3,10 @@ from pathlib import Path
 from typing import Optional
 
 import hydra
-# from omegaconf import OmegaConf
 from typeguard import typechecked
 
 from utils import path_helpers as ph
 
-
-# OmegaConf.register_new_resolver('project_root', ph.project_root_append)
 
 class Assembler:
     def __init__(self, cfg: dict, vendor_dir: Path):

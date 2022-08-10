@@ -9,17 +9,22 @@ name
 Modify the types in the calls of the functions that use configuration
 to allow for the use of OmegaConf objects.
 
+### Replace path asserts with icontract decorators
+Establish the existence of the path arguments as a contract
+
 
 ## Generic Tasks
-~~### Create utility module for getting the commonly used paths in project
-Use this to avoid hardcoded absolute paths in project~~
+<s>### Create utility module for getting the commonly used paths in project
+Use this to avoid hardcoded absolute paths in project</s>
 
 `#PR3:feature/create_util_path_handler`
 
-### Create a module for the entire pipeline
+<s>### Create a module for the entire pipeline
 It should contain all implemented steps in the pipeline.
 Use top level config to control the execution.
-Modify the simulation parameters to get the assembler graphs.
+Modify the simulation parameters to get the assembler graphs.</s>
+
+`#PR7:feature/data_pipeline`
 
 ### Handle multiple chromosomes, instances of reads and assemblies
 We should be able to handle multiple simulations of a chromosomes
@@ -36,22 +41,22 @@ if executed from the top level pipeline.
 
 
 ## Reference data 
-~~### Create reference data simulator
+<s>### Create reference data simulator
 Save simulated reference data into FASTA file(s)
 Control via config file:
 - chromosomes (name-length dict)
 - GC content (float)
-- name of the simulated species~~
+- name of the simulated species</s>
 
 `#PR4:feature/reference_simulator`
 
 ## Simulation
-~~### Create simulation module
+<s>### Create simulation module
 Based on PbSim2
 Installation via script or python
 Control via config file:
  - installation method
- - simulation parameters~~
+ - simulation parameters</s>
  
  `#PR5:feature/read_simulator`
 
@@ -60,12 +65,12 @@ Add more tests
 Mock complicated functions
 
 ## Assembly
-~~### Create assembly module
+<s>### Create assembly module
 Based on LJA
 Installation via script or python
 Control via config file:
  - installation method
- - assembly parameters~~
+ - assembly parameters</s>
 
  `#PR5:feature/la_jolla_asm`
 
@@ -75,6 +80,14 @@ Control via config file:
 ## Ground truth data
 
 ## Loading Assembly Graph
+### Load assembly graph from GFA file
+Note that since gfa format was created for storing overlap graphs,
+the representation of DBG there is not straightforward: edges of
+de Bruijn graph are stored as segments. And every vertex v in DBG
+is stored as a set of links in gfa format that represent pairwise
+overlaps between incoming and outgoing edges of v. 
+Use networkx as backend for graph implementation
+
 
 ## Graph feature extraction
 

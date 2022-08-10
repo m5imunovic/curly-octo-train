@@ -1,6 +1,6 @@
 from pathlib import Path
 from typing import Optional
-from omegaconf import OmegaConf
+from omegaconf import DictConfig
 from typeguard import typechecked
 
 
@@ -35,7 +35,7 @@ def get_read_files(read_path: Path, suffix: Optional[list[str]] = None, override
 
 
 @typechecked
-def compose_cmd_params(params: dict | OmegaConf) -> str:
+def compose_cmd_params(params: dict | DictConfig) -> str:
     '''Compose command line parameters from a dictionary.
 
     Args:
