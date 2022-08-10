@@ -1,0 +1,3 @@
+gfa_path: ${project_root:data/assemblies/experiment_3/graph.gfa}
+mult_info_path: ${project_root:data/assemblies/experiment_3/mult.info}
+ref_path: ${project_root:data/references/random_species/chromosomes/chr1.fasta}

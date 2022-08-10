@@ -13,7 +13,7 @@ from utils import path_helpers as ph
 from utils.io_utils import compose_cmd_params, get_read_files
 
 
-OmegaConf.register_new_resolver('project_root', ph.project_root_append)
+OmegaConf.register_new_resolver('project_root', ph.project_root_append, replace=True)
 
 
 class RSimulator:
