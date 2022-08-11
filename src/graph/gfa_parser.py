@@ -1,10 +1,13 @@
 from pathlib import Path
-from typing import Dict, Tuple, Set
+from typing import Any, Dict, Tuple
 from typeguard import typechecked
 
 
+SegmentDict = Dict[str, Dict[str, Any]]
+
+
 @typechecked
-def parse_gfa(path: Path, k=501) -> Tuple[Dict, Dict]:
+def parse_gfa(path: Path, k=501) -> Tuple[SegmentDict, Dict]:
     segments = {}
     links = {}
 
@@ -18,8 +21,13 @@ def parse_gfa(path: Path, k=501) -> Tuple[Dict, Dict]:
         for line in f:
             if line.startswith('S'):
                 _, sid, seq, kc = line.strip().split()
-                kc = kc[len("KC:i:")]
-                segments[sid] = seq
+                kc = int(kc[len("KC:i:")])
+                ln = len(seq)
+                segments[sid] = {
+                    'seq': seq,
+                    'kc': float(kc/(ln-k)),
+                    'ln': ln
+                }
             
             if line.startswith('L'):
                 _, inc_id, inc_sgn, out_id, out_sgn, cigar = line.strip().split()
