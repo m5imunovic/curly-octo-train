@@ -14,7 +14,7 @@ import networkx as nx
 from omegaconf import DictConfig
 from typeguard import typechecked
 
-from graph.gfa_parser import parse_gfa
+from graph.gfa_parser import parse_gfa, SegmentDict
 
 
 @typechecked
@@ -22,7 +22,7 @@ def reverse_complement(seq: str) -> str:
     return seq[::-1].translate(str.maketrans('ACGT', 'TGCA'))
 
 
-def verify_edge_overlaps(segments: dict, links: dict, k: int):
+def verify_edge_overlaps(segments: SegmentDict, links: dict, k: int):
     for _, (inc_id, inc_sgn, out_id, out_sgn) in links.items():
         if inc_sgn == '+':
             inc = segments[inc_id][-k:]
@@ -43,29 +43,33 @@ def verify_edge_overlaps(segments: dict, links: dict, k: int):
 
 
 @typechecked
-def construct_nx_multigraph(segments: Dict[str, str], k: int) -> nx.MultiDiGraph:
+def construct_nx_multigraph(segments: SegmentDict, k: int) -> nx.MultiDiGraph:
 
     g = nx.MultiDiGraph()
-    for sid, seq in segments.items():
-        assert seq is not '*'
+    for sid, attrs in segments.items():
+        assert attrs['seq'] is not '*'
+        seq = attrs.pop('seq', None)
         kmer_start = seq[:k]
         kmer_end = seq[-k:]
-        g.add_edge(kmer_start, kmer_end, **{"sid": sid})
+        attrs.update({'sid': sid})
+        g.add_edge(kmer_start, kmer_end, **attrs)
 
         kmer_rc_start = reverse_complement(kmer_end)
         kmer_rc_end = reverse_complement(kmer_start)
 
-        g.add_edge(kmer_rc_start, kmer_rc_end, **{"sid": '_' + sid})
+        attrs.update({'sid': '_' + sid})
+        g.add_edge(kmer_rc_start, kmer_rc_end, **attrs)
 
     return g
 
 
 @typechecked
-def construct_nx_digraph(segments: Dict[str, str], links: Dict[int, Tuple]) -> nx.DiGraph:
+def construct_nx_digraph(segments: SegmentDict, links: Dict[int, Tuple]) -> nx.DiGraph:
     g = nx.DiGraph()
-    for sid in segments.keys():
-        g.add_node(sid)
-        g.add_node('_' + sid)
+    for sid, attrs in segments.items():
+        attrs.pop('seq', None)
+        g.add_node(sid, **attrs)
+        g.add_node('_' + sid, **attrs)
 
     for (inc_id, inc_sgn, out_id, out_sgn) in links.values():
         vertex_from = inc_id if inc_sgn == '+' else '_' + inc_id
