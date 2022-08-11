@@ -2,13 +2,23 @@ import pytest
 
 from utils.path_helpers import get_project_root
 
-@pytest.fixture()
-def test_reads_root():
-    return get_project_root() / 'test' / 'data' / 'reads'
+
+@pytest.fixture(scope='session')
+def test_data_root():
+    return get_project_root() / 'test' / 'data'
 
 
-@pytest.fixture()
-def test_gfa_root():
-    return get_project_root() / 'test' / 'data' / 'gfa'
+@pytest.fixture(scope='session')
+def test_reads_root(test_data_root):
+    return test_data_root / 'reads'
 
+
+@pytest.fixture(scope='session')
+def test_gfa_root(test_data_root):
+    return test_data_root / 'gfa'
+
+
+@pytest.fixture(scope='session')
+def test_graph_root(test_data_root):
+    return test_data_root / 'graph'
 
