@@ -1,3 +1,5 @@
+name: db_graph
+overwrite: False # set to True if you want to overwrite the existing data
 graph_type: digraph # either digraph or multigraph
 gfa_path: ${project_root:data/assemblies/experiment_1/graph.gfa}
 k: 501

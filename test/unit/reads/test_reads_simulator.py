@@ -1,7 +1,24 @@
 import tempfile
 from pathlib import Path
+from unittest import mock
+
+from omegaconf import OmegaConf
 
 from reads import reads_simulator
+from reads.reads_simulator import PbSim2
+from reads.reads_simulator import run as run_reads_simulator
+
+
+def reads_simulator_cfg(overwrite: bool):
+    return OmegaConf.create({
+            'name': 'pbsim2',
+            'overwrite': overwrite,
+            'params': None,
+            'species': 'test_species',
+            'request': {
+                'chr1': 2
+            }
+    })
 
 
 def test_pbmsim2_construct_exe_cmd(test_reads_root):
@@ -53,3 +70,24 @@ def test_pbmsim2_construct_exe_cmd(test_reads_root):
         ]
         assert cmd[0] == expected_cmd[0]
         assert cmd[1] == expected_cmd[1]
+
+
+@mock.patch.object(PbSim2, 'run')
+@mock.patch('shutil.rmtree', return_value=True)
+def test_reads_simulator_overwrite_data(mock_rmtree, mock_run, tmp_path):
+    cfg = reads_simulator_cfg(overwrite=True)
+    kwargs = {
+        'ref_root': tmp_path / cfg['species'],
+        'simulated_data_root': tmp_path,
+        'chr_request': dict(cfg['request'])
+    }
+    mock_run.return_value = True
+    run_reads_simulator(cfg, **kwargs)
+
+    assert mock_rmtree.call_count == 1
+    assert mock_run.call_count == 1
+
+    cfg = reads_simulator_cfg(overwrite=False)
+    run_reads_simulator(cfg, **kwargs)
+    assert mock_rmtree.call_count == 1
+    assert mock_run.call_count == 2

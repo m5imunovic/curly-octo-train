@@ -47,7 +47,7 @@ def construct_nx_multigraph(segments: SegmentDict, k: int) -> nx.MultiDiGraph:
 
     g = nx.MultiDiGraph()
     for sid, attrs in segments.items():
-        assert attrs['seq'] is not '*'
+        assert attrs['seq'] != '*'
         seq = attrs.pop('seq', None)
         kmer_start = seq[:k]
         kmer_end = seq[-k:]

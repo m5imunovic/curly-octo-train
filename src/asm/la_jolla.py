@@ -45,8 +45,14 @@ class LaJolla(assembler.Assembler):
     def run(self, reads_path: Path, out_path: Path, *args, **kwargs):
         commands = self._construct_exec_cmd(reads_path, out_path)
         for cmd in commands:
-            print(f"RUN::assembler::\n{cmd}")
+            print(f'RUN::assembler::\n{cmd}')
             subprocess.run(cmd, shell=True)
 
-
+    @typechecked
+    def pre_assembly_step(self, out_path: Path, *args, **kwargs):
+        if self.cfg.overwrite:
+            print(f'PRE::assembler:: Remove existing assembly files')
+            if out_path.exists():
+                shutil.rmtree(out_path)
+                out_path.mkdir(parents=True, exist_ok=True)
 
