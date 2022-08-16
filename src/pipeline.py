@@ -1,4 +1,7 @@
+from typing import List
+
 import hydra
+import omegaconf
 from omegaconf import DictConfig
 
 
@@ -22,14 +25,26 @@ def run_reference_step(cfg: DictConfig):
 
 def run(cfg: DictConfig):
     if 'reference' in cfg:
-        run_reference_step(cfg['reference'])
+        run_reference_step(cfg.reference)
 
     if 'reads' in cfg:
-        run_generate_reads_step(cfg['reads'])
+        if 'reference' in cfg and cfg.reference is not None:
+            if 'name' in cfg.reference:
+                cfg.reads.species = cfg.reference.name
+        run_generate_reads_step(cfg.reads)
 
     if 'asm' in cfg:
-        run_assembly_step(cfg['asm'])
+        if 'reference' in cfg and cfg.reference is not None:
+            if 'name' in cfg.reference:
+                cfg.asm.species = cfg.reference.name
+            if 'chromosomes' in cfg.reference:
+                from reference.genome_generator import ref_chromosomes_path
+                # TODO: introduce sweeper to run assembly on multiple chromosomes
+                chr_name = list(cfg.reference.chromosomes)[0]
+                chr_path = ref_chromosomes_path(cfg.reference) / f'{chr_name}.fasta'
+                cfg.asm.params.long.reference = chr_path
 
+        run_assembly_step(cfg.asm)
 
 
 @hydra.main(version_base=None, config_path='../config', config_name='config')

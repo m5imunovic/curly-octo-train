@@ -6,6 +6,7 @@ import numpy as np
 
 from Bio import SeqIO
 from Bio.Seq import Seq
+from omegaconf import DictConfig
 from typeguard import typechecked
 
 from utils import path_helpers as ph
@@ -56,17 +57,26 @@ def save_genome_to_fasta(output_path: Path, genome: Dict[str, str], description:
         save_chr_to_fasta(output_path, chr_name, chr_seq, description, multiline)
 
 
-def run(cfg):
+def species_reference_root(cfg: DictConfig) -> Path:
     # For now use hardcoded root path for storing genome files
     output_path = ph.get_ref_path()
-    species_path = output_path / cfg.name
+    species_root = output_path / cfg.name
+    return species_root
+
+
+def ref_chromosomes_path(cfg: DictConfig) -> Path:
+    return species_reference_root(cfg) / 'chromosomes'
+
+
+def run(cfg):
+    species_path = species_reference_root(cfg)
 
     if species_path.exists() and not cfg.overwrite:
         print(f'Reference genome for {cfg.name} already exists. Skipping.')
         return False
 
     genome = get_random_genome(dict(cfg.chromosomes), cfg.gc_content, cfg.seed)
-    save_genome_to_fasta(species_path / 'chromosomes', genome, multiline=False)
+    save_genome_to_fasta(ref_chromosomes_path(cfg), genome, multiline=False)
 
     return True
 
