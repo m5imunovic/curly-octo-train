@@ -1,4 +1,6 @@
 name: pbsim2
+overwrite: False # set to True if you want to overwrite existing data
+
 params:
   long: # command line params starting with --
     depth: 40

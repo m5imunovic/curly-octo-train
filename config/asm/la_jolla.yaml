@@ -1,4 +1,6 @@
 name: LJA
+overwrite: False # set to True if you want to overwrite existing data
+
 params:
   long:
     threads: 8
