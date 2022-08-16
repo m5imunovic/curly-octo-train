@@ -6,7 +6,7 @@ from abc import abstractmethod
 from pathlib import Path
 
 import hydra
-from omegaconf import OmegaConf
+from omegaconf import DictConfig, OmegaConf
 from typeguard import typechecked
 
 from utils import path_helpers as ph
@@ -17,7 +17,7 @@ OmegaConf.register_new_resolver('project_root', ph.project_root_append, replace=
 
 
 class RSimulator:
-    def __init__(self, cfg, vendor_dir: Path):
+    def __init__(self, cfg: DictConfig, vendor_dir: Path):
         self.cfg = cfg
         if 'install_script' in cfg and cfg['install_script'] is not None:
             assert cfg.exec_root is not None
@@ -85,7 +85,7 @@ class PbSim2(RSimulator):
         ]
 
     @typechecked
-    def run(self, ref_root: Path, simulated_data_root: Path, chr_request: dict, *args, **kwargs):
+    def run(self, ref_root: Path, simulated_data_root: Path, chr_request: dict, *args, **kwargs) -> bool:
         chr_path = ref_root / 'chromosomes'
         assert chr_path.exists(), f'{chr_path} does not exist!'
         assert simulated_data_root.exists(), f'{simulated_data_root} does not exist!'
@@ -116,6 +116,8 @@ class PbSim2(RSimulator):
             with mp.Pool(os.cpu_count() - 1) as pool:
                 pool.starmap(self.simulate_reads_mp, simulation_data)
 
+        return True
+
     @typechecked
     def simulate_reads_mp(self, chr_seq_path: Path, chr_save_path: Path, prefix: str, i: str):
         print(f'Request {i}: Simulating reads from referece:\n --> {chr_seq_path}')
@@ -123,9 +125,16 @@ class PbSim2(RSimulator):
         for cmd in commands:
             subprocess.run(cmd, shell=True)
 
+    @typechecked
+    def pre_simulation_step(self, simulated_data_root: Path, *args, **kwargs):
+        if self.cfg.overwrite:
+            print('PRE::simulate:: Removing existing simulation data')
+            shutil.rmtree(simulated_data_root)
+            simulated_data_root.mkdir(parents=True, exist_ok=True)
+
 
 @typechecked
-def simulator_factory(simulator: str, cfg: dict) -> RSimulator:
+def simulator_factory(simulator: str, cfg: DictConfig) -> RSimulator:
     vendor_dir: Path = ph.get_vendor_path()
     if simulator == 'pbsim2':
         return PbSim2(cfg=cfg, vendor_dir=vendor_dir)
@@ -133,21 +142,24 @@ def simulator_factory(simulator: str, cfg: dict) -> RSimulator:
 
 
 def run(cfg, **kwargs):
-    read_simulator = dict(cfg)
+    read_simulator = cfg
     simulator = simulator_factory(simulator=read_simulator['name'], cfg=read_simulator)
 
-    kwargs = {
-        'ref_root': ph.get_ref_path() / read_simulator['species'],
-        'simulated_data_root': ph.get_simulated_data_path(),
-        'chr_request': dict(cfg['request'])
-    }
+    simulator.pre_simulation_step(**kwargs)
     simulator.run(**kwargs)
 
 
 @hydra.main(version_base=None, config_path='../../config/reads', config_name='pbsim2')
 def main(cfg):
     print("Running read simulator step...")
-    run(cfg)
+
+    kwargs = {
+        'ref_root': ph.get_ref_path() / cfg['species'],
+        'simulated_data_root': ph.get_simulated_data_path(),
+        'chr_request': dict(cfg['request'])
+    }
+
+    run(cfg, **kwargs)
 
 
 if __name__ == '__main__':
