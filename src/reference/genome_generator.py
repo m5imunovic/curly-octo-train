@@ -63,10 +63,12 @@ def run(cfg):
 
     if species_path.exists() and not cfg.overwrite:
         print(f'Reference genome for {cfg.name} already exists. Skipping.')
-        return
+        return False
 
     genome = get_random_genome(dict(cfg.chromosomes), cfg.gc_content, cfg.seed)
     save_genome_to_fasta(species_path / 'chromosomes', genome, multiline=False)
+
+    return True
 
 
 
