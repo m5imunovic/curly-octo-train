@@ -3,13 +3,14 @@ from pathlib import Path
 from typing import Optional
 
 import hydra
+from omegaconf import DictConfig
 from typeguard import typechecked
 
 from utils import path_helpers as ph
 
 
 class Assembler:
-    def __init__(self, cfg: dict, vendor_dir: Path):
+    def __init__(self, cfg: DictConfig, vendor_dir: Path):
         self.cfg = cfg
         self.assembler_root = self._install(vendor_dir)
 
@@ -35,28 +36,28 @@ class Assembler:
         self.post_assembly_step(*args, **kwargs)
 
 
-def assembler_factory(assembler: str, params: Optional[dict] = None) -> Assembler:
+def assembler_factory(assembler: str, params: DictConfig) -> Assembler:
     vendor_dir: Path = ph.get_vendor_path()
     if assembler == 'LJA':
         from asm.la_jolla import LaJolla
         return LaJolla(cfg=params, vendor_dir=vendor_dir)
 
 
-def run(cfg):
-    assembler_cfg = dict(cfg)
-    assembler = assembler_factory(assembler_cfg['name'], assembler_cfg)
-    kwargs = {
-        'reads_path': ph.get_simulated_data_path() / assembler_cfg['species'],
-        'out_path': ph.get_assemblies_path() / assembler_cfg['experiment']
-    }
-
+def run(cfg: DictConfig, **kwargs):
+    assembler = assembler_factory(cfg['name'], cfg)
     assembler(**kwargs)
 
 
 @hydra.main(version_base=None, config_path='../../config/asm', config_name='la_jolla')
 def main(cfg):
     print("Running assembler step...")
-    run(cfg)
+
+    kwargs = {
+        'reads_path': ph.get_simulated_data_path() / cfg.species,
+        'out_path': ph.get_assemblies_path() / cfg.experiment
+    }
+
+    run(cfg, **kwargs)
 
 
 if __name__ == "__main__":
