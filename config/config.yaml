@@ -3,3 +3,13 @@ defaults:
   - reference: random_species
   - reads: pbsim2
   - asm: la_jolla
+  - _self_
+
+
+# combine
+reference:
+  overwrite: False
+reads:
+  overwrite: True
+asm:
+  overwrite: True
