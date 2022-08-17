@@ -142,24 +142,24 @@ def simulator_factory(simulator: str, cfg: DictConfig) -> RSimulator:
 
 
 def run(cfg, **kwargs):
+    exec_args = {
+        'simulated_data_root': ph.get_simulated_data_path(),
+        'ref_root': ph.get_ref_path() / cfg['species'],
+        'chr_request': dict(cfg['request'])
+    }
+    exec_args.update(kwargs)
     read_simulator = cfg
     simulator = simulator_factory(simulator=read_simulator['name'], cfg=read_simulator)
 
-    simulator.pre_simulation_step(**kwargs)
-    simulator.run(**kwargs)
+    simulator.pre_simulation_step(**exec_args)
+    simulator.run(**exec_args)
 
 
 @hydra.main(version_base=None, config_path='../../config/reads', config_name='pbsim2')
 def main(cfg):
     print("Running read simulator step...")
 
-    kwargs = {
-        'ref_root': ph.get_ref_path() / cfg['species'],
-        'simulated_data_root': ph.get_simulated_data_path(),
-        'chr_request': dict(cfg['request'])
-    }
-
-    run(cfg, **kwargs)
+    run(cfg)
 
 
 if __name__ == '__main__':
