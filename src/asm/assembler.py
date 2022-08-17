@@ -48,20 +48,22 @@ def assembly_experiment_path(cfg: DictConfig) -> Path:
 
 
 def run(cfg: DictConfig, **kwargs):
+    exec_args = {
+        'reads_path': ph.get_simulated_data_path() / cfg.species,
+        'out_path': assembly_experiment_path(cfg)
+    }
+
+    exec_args.update(kwargs)
+
     assembler = assembler_factory(cfg['name'], cfg)
-    assembler(**kwargs)
+    assembler(**exec_args)
 
 
 @hydra.main(version_base=None, config_path='../../config/asm', config_name='la_jolla')
 def main(cfg):
     print("Running assembler step...")
 
-    kwargs = {
-        'reads_path': ph.get_simulated_data_path() / cfg.species,
-        'out_path': assembly_experiment_path()
-    }
-
-    run(cfg, **kwargs)
+    run(cfg)
 
 
 if __name__ == "__main__":
