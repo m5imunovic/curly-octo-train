@@ -1,8 +1,12 @@
-from typing import List
 
 import hydra
-import omegaconf
 from omegaconf import DictConfig
+
+
+def run_graph_step(cfg: DictConfig):
+    if cfg is not None:
+        from graph.db_graph import run as run_db_graph
+        run_db_graph(cfg)
 
 
 def run_assembly_step(cfg: DictConfig):
@@ -45,6 +49,12 @@ def run(cfg: DictConfig):
                 cfg.asm.params.long.reference = chr_path
 
         run_assembly_step(cfg.asm)
+
+    if 'graph' in cfg:
+        if 'asm' in cfg and cfg.asm is not None:
+            from asm.assembler import assembly_experiment_path
+            cfg.graph.gfa_path = assembly_experiment_path(cfg.asm) / 'graph.gfa'
+        run_graph_step(cfg.graph)
 
 
 @hydra.main(version_base=None, config_path='../config', config_name='config')
