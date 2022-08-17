@@ -43,6 +43,10 @@ def assembler_factory(assembler: str, params: DictConfig) -> Assembler:
         return LaJolla(cfg=params, vendor_dir=vendor_dir)
 
 
+def assembly_experiment_path(cfg: DictConfig) -> Path:
+    return ph.get_assemblies_path() / cfg.experiment
+
+
 def run(cfg: DictConfig, **kwargs):
     assembler = assembler_factory(cfg['name'], cfg)
     assembler(**kwargs)
@@ -54,7 +58,7 @@ def main(cfg):
 
     kwargs = {
         'reads_path': ph.get_simulated_data_path() / cfg.species,
-        'out_path': ph.get_assemblies_path() / cfg.experiment
+        'out_path': assembly_experiment_path()
     }
 
     run(cfg, **kwargs)
