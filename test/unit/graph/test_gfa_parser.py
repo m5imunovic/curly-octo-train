@@ -24,7 +24,7 @@ def test_parse_gfa(test_gfa_root):
 
 # TODO: parametrize test in order to merge these two into a single function
 def test_parse_lja_gfa(test_gfa_root):
-    example_gfa = test_gfa_root / "lja_graph.gfa"
+    example_gfa = test_gfa_root / 'lja_graph.gfa'
 
     segments, links = parse_gfa(example_gfa, k=501)
 
