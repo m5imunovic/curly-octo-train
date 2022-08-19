@@ -15,6 +15,9 @@ from omegaconf import DictConfig
 from typeguard import typechecked
 
 from graph.gfa_parser import parse_gfa, SegmentDict
+from graph.rolling_hash import RollingHash
+
+DbGraphType = Union[nx.DiGraph, nx.MultiDiGraph]
 
 
 @typechecked
@@ -44,11 +47,14 @@ def verify_edge_overlaps(segments: SegmentDict, links: dict, k: int):
 
 @typechecked
 def construct_nx_multigraph(segments: SegmentDict, k: int) -> nx.MultiDiGraph:
+    labeler = RollingHash(k=k)
 
     g = nx.MultiDiGraph()
     for sid, attrs in segments.items():
-        assert attrs['seq'] != '*'
         seq = attrs.pop('seq', None)
+        if seq is None or seq == '*':
+            raise ValueError(f'Invalid DNA sequence {seq}')
+
         kmer_start = seq[:k]
         kmer_end = seq[-k:]
         attrs.update({'sid': sid})
@@ -57,34 +63,42 @@ def construct_nx_multigraph(segments: SegmentDict, k: int) -> nx.MultiDiGraph:
         kmer_rc_start = reverse_complement(kmer_end)
         kmer_rc_end = reverse_complement(kmer_start)
 
-        attrs.update({'sid': '_' + sid})
+        sid_rc = labeler.hash(reverse_complement(seq))
+        attrs.update({'sid': sid_rc})
         g.add_edge(kmer_rc_start, kmer_rc_end, **attrs)
 
     return g
 
 
 @typechecked
-def construct_nx_digraph(segments: SegmentDict, links: Dict[int, Tuple]) -> nx.DiGraph:
+def construct_nx_digraph(segments: SegmentDict, links: Dict[int, Tuple], k: int) -> nx.DiGraph:
     g = nx.DiGraph()
+    labels_rc = {}
+    labeler = RollingHash(k=k)
+
     for sid, attrs in segments.items():
-        attrs.pop('seq', None)
+        seq = attrs.pop('seq', None)
+        if seq is None or seq == '*':
+            raise ValueError(f'Invalid DNA sequence {seq}')
         g.add_node(sid, **attrs)
-        g.add_node('_' + sid, **attrs)
+        label = labeler.hash(reverse_complement(seq))
+        labels_rc[sid] = label
+        g.add_node(label, **attrs)
 
     for (inc_id, inc_sgn, out_id, out_sgn) in links.values():
-        vertex_from = inc_id if inc_sgn == '+' else '_' + inc_id
-        vertex_to = out_id if out_sgn == '+' else '_' + out_id
+        vertex_from = inc_id if inc_sgn == '+' else labels_rc[inc_id]
+        vertex_to = out_id if out_sgn == '+' else labels_rc[out_id]
         g.add_edge(vertex_from, vertex_to)
 
     return g
 
 
 @typechecked
-def construct_graph(cfg: DictConfig) -> Union[nx.DiGraph, nx.MultiDiGraph]:
+def construct_graph(cfg: DictConfig) -> DbGraphType:
     segments, links = parse_gfa(path=cfg.gfa_path, k=cfg.k)
     if cfg.graph_type == 'multigraph':
         return construct_nx_multigraph(segments, k=cfg.k)
     if cfg.graph_type == 'digraph':
-        return construct_nx_digraph(segments, links)
+        return construct_nx_digraph(segments, links, k=cfg.k)
 
     raise ValueError(f"Unknown graph type {cfg.graph_type}")
