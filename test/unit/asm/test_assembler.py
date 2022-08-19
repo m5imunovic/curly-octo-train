@@ -12,7 +12,8 @@ def assembler_cfg(overwrite: bool):
         'name': 'LJA',
         'overwrite': overwrite,
         'params': None,
-        'experiment': 'test_experiment'
+        'experiment': 'test_experiment',
+        'species': 'test_species'
     })
 
 
