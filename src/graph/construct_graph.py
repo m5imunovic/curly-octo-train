@@ -57,15 +57,13 @@ def construct_nx_multigraph(segments: SegmentDict, k: int) -> nx.MultiDiGraph:
 
         kmer_start = seq[:k]
         kmer_end = seq[-k:]
-        attrs.update({'sid': sid})
-        g.add_edge(kmer_start, kmer_end, **attrs)
+        g.add_edge(kmer_start, kmer_end, key=sid, **attrs)
 
         kmer_rc_start = reverse_complement(kmer_end)
         kmer_rc_end = reverse_complement(kmer_start)
 
         sid_rc = labeler.hash(reverse_complement(seq))
-        attrs.update({'sid': sid_rc})
-        g.add_edge(kmer_rc_start, kmer_rc_end, **attrs)
+        g.add_edge(kmer_rc_start, kmer_rc_end, key=sid_rc, **attrs)
 
     return g
 
