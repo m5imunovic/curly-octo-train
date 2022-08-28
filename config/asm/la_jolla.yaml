@@ -1,5 +1,5 @@
 name: LJA
-overwrite: False # set to True if you want to overwrite existing data
+overwrite: True # set to False if you want to keep existing data
 
 params:
   long:
@@ -11,6 +11,7 @@ params:
   append:
     "--compress"
 
+keep: ["graph.gfa", "mult.info", "ref.info"]
 exec: jumboDBG # name of the executable to use (jumboDBG or lja)
 species: random_species
 experiment: experiment_1 # this is the name of the folder where the assembly data is stored

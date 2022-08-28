@@ -39,14 +39,29 @@ class LaJolla(assembler.Assembler):
 
         exec = 'lja' if 'exec' not in self.cfg else self.cfg['exec']
         asm_executable = self.assembler_root / exec
-        return [f'{asm_executable} {option_params} {reads_cmd_params} {out_cmd_param}']
+        cmds = [f'{asm_executable} {option_params} {reads_cmd_params} {out_cmd_param}']
+        # TODO: This does not work in bin/sh, move this operation to post assmbly step
+        if 'keep' in self.cfg and self.cfg['keep'] is not None:
+            keep_files = ['"' + keep + '"' for keep in self.cfg['keep']]
+            keep_files = "|".join(keep_files)
+            rm_cmd = f'rm -v !({keep_files})'
+            cmds.append(rm_cmd)
+
+        return cmds
+
 
     @typechecked
     def run(self, reads_path: Path, out_path: Path, *args, **kwargs):
-        commands = self._construct_exec_cmd(reads_path, out_path)
-        for cmd in commands:
-            print(f'RUN::assembler::\n{cmd}')
-            subprocess.run(cmd, shell=True)
+        for path in reads_path.iterdir():
+            if path.is_dir():
+                stem = path.stem
+                commands = self._construct_exec_cmd(reads_path / stem, out_path / stem)
+                cwd_path = out_path / stem
+                if not cwd_path.exists():
+                    cwd_path.mkdir(parents=True)
+                for cmd in commands:
+                    print(f'RUN::assembler::\n{cmd}')
+                    subprocess.run(cmd, shell=True, cwd=cwd_path)
 
     @typechecked
     def pre_assembly_step(self, out_path: Path, *args, **kwargs):
