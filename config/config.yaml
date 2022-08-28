@@ -9,10 +9,13 @@ defaults:
 
 # combine
 reference:
-  overwrite: False
+  overwrite: True
+  name: random_species_${now:%m_%d}
 reads:
-  overwrite: True
+  request:
+    chr1: 2
+    chr2: 2
 asm:
-  overwrite: True
+  experiment: random_species_${now:%m_%d}
 graph:
   overwrite: True

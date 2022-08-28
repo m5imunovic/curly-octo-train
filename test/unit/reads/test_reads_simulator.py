@@ -53,7 +53,7 @@ def test_pbmsim2_construct_exe_cmd(test_reads_root):
 
         expected_cmd = [
             f'{str(simulator_root / "src/pbsim")} --depth 30 --prefix {prefix} {str(dummy_ref)}',
-            f'mv {prefix}_0001.* {save_dir}'
+            f'rm {prefix}_0001.ref'
         ]
 
         assert len(cmd) == 2
@@ -66,7 +66,7 @@ def test_pbmsim2_construct_exe_cmd(test_reads_root):
 
         expected_cmd = [
             f'{str(simulator_root / "src/pbsim")}  --prefix {prefix} {str(dummy_ref)}',
-            f'mv {prefix}_0001.* {save_dir}'
+            f'rm {prefix}_0001.ref'
         ]
         assert cmd[0] == expected_cmd[0]
         assert cmd[1] == expected_cmd[1]

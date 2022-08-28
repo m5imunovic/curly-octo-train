@@ -81,7 +81,7 @@ class PbSim2(RSimulator):
 
         return [
             f'{self.simulator_exec} {option_params} {prefix_param} {read_params}',
-            f'mv {prefix}_0001.* {chr_save_path}'
+            f'rm {prefix}_0001.ref',
         ]
 
     @typechecked
@@ -122,15 +122,19 @@ class PbSim2(RSimulator):
     def simulate_reads_mp(self, chr_seq_path: Path, chr_save_path: Path, prefix: str, i: str):
         print(f'Request {i}: Simulating reads from referece:\n --> {chr_seq_path}')
         commands = self._construct_exec_cmd(chr_seq_path, chr_save_path, prefix)
+        cwd_path = chr_save_path / prefix
+        if not cwd_path.exists():
+            cwd_path.mkdir(parents=True)
         for cmd in commands:
-            subprocess.run(cmd, shell=True)
+            subprocess.run(cmd, shell=True, cwd=cwd_path)
 
     @typechecked
     def pre_simulation_step(self, simulated_data_root: Path, *args, **kwargs):
         if self.cfg.overwrite:
             print('PRE::simulate:: Removing existing simulation data')
-            shutil.rmtree(simulated_data_root)
-            simulated_data_root.mkdir(parents=True, exist_ok=True)
+            species_path = simulated_data_root / self.cfg.species
+            if species_path.exists():
+                shutil.rmtree(species_path)
 
 
 @typechecked

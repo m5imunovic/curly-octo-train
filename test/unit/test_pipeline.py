@@ -51,6 +51,7 @@ def test_skipped_reference_and_reads_steps(run_reference_step, run_generate_read
 @mock.patch('pipeline.run_generate_reads_step')
 @mock.patch('pipeline.run_reference_step')
 def test_replaced_config_values(run_reference_step, run_generate_reads_step, run_assembly_step, run_graph_step):
+    # TODO: replace default config with test pipeline config
     cfg_path = get_default_cfg_path()
     with initialize_config_dir(str(cfg_path.parent), version_base=None):
         cfg = compose(str(cfg_path.name), overrides=['reference.name=dummy', 'asm.experiment=dummy_experiment'])
@@ -61,6 +62,6 @@ def test_replaced_config_values(run_reference_step, run_generate_reads_step, run
         assert simulator_cfg.species == 'dummy'
         asm_cfg = run_assembly_step.call_args.args[0]
         assert asm_cfg.species == 'dummy'
-        assert 'dummy/chromosomes/chr1.fasta' in str(asm_cfg.params.long.reference)
+        assert 'dummy/chromosomes/' in str(asm_cfg.params.long.reference)
         graph_cfg = run_graph_step.call_args.args[0]
         assert 'dummy_experiment/graph.gfa' in str(graph_cfg.gfa_path)
