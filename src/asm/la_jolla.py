@@ -40,13 +40,6 @@ class LaJolla(assembler.Assembler):
         exec = 'lja' if 'exec' not in self.cfg else self.cfg['exec']
         asm_executable = self.assembler_root / exec
         cmds = [f'{asm_executable} {option_params} {reads_cmd_params} {out_cmd_param}']
-        # TODO: This does not work in bin/sh, move this operation to post assmbly step
-        if 'keep' in self.cfg and self.cfg['keep'] is not None:
-            keep_files = ['"' + keep + '"' for keep in self.cfg['keep']]
-            keep_files = "|".join(keep_files)
-            rm_cmd = f'rm -v !({keep_files})'
-            cmds.append(rm_cmd)
-
         return cmds
 
 
@@ -70,4 +63,27 @@ class LaJolla(assembler.Assembler):
             if out_path.exists():
                 shutil.rmtree(out_path)
                 out_path.mkdir(parents=True, exist_ok=True)
+
+
+    def post_assembly_step(self, out_path: Path, *args, **kwargs):
+        # Clean up the files
+        if 'keep' in self.cfg and self.cfg['keep'] is not None:
+            keep_files = OmegaConf.to_container(self.cfg['keep'])
+            for path in out_path.glob('**/*'):
+                if not path.is_dir():
+                    if path.name not in keep_files:
+                        path.unlink()
+        # Create files summary and store it to the csv file in raw directory
+        kept_files = []
+        for path in out_path.glob('**/*'):
+            if not path.is_dir():
+                kept_files.append(str(path.relative_to(out_path)))
+        
+        raw_dir = out_path / 'raw'
+        if not raw_dir.exists():
+            raw_dir.mkdir(parents=True)
+        
+        with open(raw_dir / 'files.csv', 'w') as f:
+            f.write('\n'.join(kept_files))
+
 
