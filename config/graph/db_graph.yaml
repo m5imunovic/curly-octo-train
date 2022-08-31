@@ -3,4 +3,5 @@ overwrite: False # set to True if you want to overwrite the existing data
 graph_type: multigraph # either digraph or multigraph
 gfa_path: ${project_root:data/assemblies/experiment_1/graph.gfa}
 mult_info_path: ${project_root:data/assemblies/experiment_1/mult.info}
+experiment: experiment_1
 k: 501

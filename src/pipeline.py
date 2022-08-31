@@ -4,10 +4,10 @@ import hydra
 from omegaconf import DictConfig
 
 
-def run_graph_step(cfg: DictConfig):
+def run_graph_step(cfg: DictConfig, **kwargs):
     if cfg is not None:
         from graph.db_graph import run as run_db_graph
-        run_db_graph(cfg)
+        run_db_graph(cfg, **kwargs)
 
 
 def run_assembly_step(cfg: DictConfig, **kwargs):
@@ -60,14 +60,11 @@ def run(cfg: DictConfig):
 
     if 'graph' in cfg:
         if 'asm' in cfg and cfg.asm is not None:
+            cfg.graph.experiment = cfg.asm.experiment
             from asm.assembler import assembly_experiment_path
             asm_experiment_root = assembly_experiment_path(cfg.asm)
-            chr_paths = list(filter(lambda x: x.is_dir(), asm_experiment_root.iterdir()))
-            exp_paths = [list(filter(lambda x: x.is_dir(), chr_path.iterdir())) for chr_path in chr_paths]
-            for exp_path in chain(*exp_paths):
-                cfg.graph.gfa_path = exp_path / 'graph.gfa'
-                cfg.graph.mult_info_path = exp_path / 'mult.info'
-                run_graph_step(cfg.graph)
+            out_path = ph.get_datasets_path() / cfg.graph.experiment
+            run_graph_step(cfg.graph, **{'assemblies_path': asm_experiment_root, 'out_path': out_path})
         else:
             run_graph_step(cfg.graph)
 
