@@ -86,7 +86,7 @@ def run(cfg: DictConfig, **kwargs):
     processed_files = []
     raw_files = []
 
-    # TODO: parallelize
+    # TODO: parallelize (checko out joblib package)
     for idx, graph_dir in enumerate(graph_dirs):
         # Process raw data
         cfg.mult_info_path = graph_dir / 'mult.info'
@@ -106,6 +106,14 @@ def run(cfg: DictConfig, **kwargs):
         raw_filename = f'{idx}'
         shutil.make_archive(out_raw_path / raw_filename, 'zip', graph_dir)
         raw_files.append((raw_filename, graph_dir))
+
+    with open(out_path / 'processed.csv', 'w') as f:
+        for file in processed_files:
+            f.write(f'{file[0]},{file[1]}\n')
+
+    with open(out_path/ 'raw.csv', 'w') as f:
+        for file in raw_files:
+            f.write(f'{file[0]},{file[1]}\n')
 
 
 @hydra.main(version_base=None, config_path='../../config/graph', config_name='db_graph')
