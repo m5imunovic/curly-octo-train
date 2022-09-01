@@ -25,6 +25,10 @@ def get_assemblies_path() -> Path:
     return get_data_path() / 'assemblies'
 
 
+def get_datasets_path() -> Path:
+    return get_data_path() / 'datasets'
+
+
 def get_default_cfg_path() -> Path:
     return get_project_root() / 'config' / 'config.yaml'
 

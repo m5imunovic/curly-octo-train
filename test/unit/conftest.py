@@ -22,3 +22,7 @@ def test_gfa_root(test_data_root):
 def test_graph_root(test_data_root):
     return test_data_root / 'graph'
 
+
+@pytest.fixture(scope='session')
+def test_datasets_root(test_data_root):
+    return test_data_root / 'datasets'
