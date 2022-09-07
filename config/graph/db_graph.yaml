@@ -1,7 +1,15 @@
 name: db_graph
 overwrite: False # set to True if you want to overwrite the existing data
-graph_type: multigraph # either digraph or multigraph
+graph_type: digraph # either digraph or multigraph
 gfa_path: ${project_root:data/assemblies/experiment_1/graph.gfa}
 mult_info_path: ${project_root:data/assemblies/experiment_1/mult.info}
 experiment: experiment_1
+#supported features for digraph (edge is just a k-mer):
+# ln - length, i.e. number of nucleotides in node
+# kc - coverage
+# in_degree - input degree of nodes
+# out_degree - out degree of nodes
+# pr_N - k-step PageRank where N represent number of hops (supported up to N = 5)
+# For now length and coverage are always added and used
+features: [ln, kc, in_degree, out_degree, pr_1]
 k: 501
