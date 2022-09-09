@@ -5,12 +5,13 @@ from typing import Dict, List, Optional, Union
 import hydra
 import networkx as nx
 import torch
-from omegaconf import DictConfig
+from omegaconf import DictConfig, OmegaConf
 from torch_geometric.data import Data
 from torch_geometric.utils.convert import from_networkx
 from typeguard import typechecked
 
 import utils.path_helpers as ph
+from graph.construct_features import add_features
 from graph.construct_graph import construct_graph, DbGraphType
 from graph.dbg_dataset import DBGDataset
 from graph.mult_info_parser import parse_mult_info
@@ -41,15 +42,14 @@ def convert_to_pyg_multigraph(g: DbGraphType, group_edge_attrs: Optional[Feature
 def convert_to_pyg_digraph(g: DbGraphType, group_node_attrs: Optional[FeatureList] = None, has_mult_info: bool = True) -> Data:
     pyg = from_networkx(g, group_node_attrs=group_node_attrs)
     if has_mult_info:
-        y_idx = pyg.node_attr.shape[1] - 1
-        pyg.y = pyg.node_attr[:, y_idx]
-        pyg.node_attr = pyg.node_attr[:, :y_idx]
+        y_idx = pyg.x.shape[1] - 1
+        pyg.y = pyg.x[:, y_idx]
+        pyg.x = pyg.x[:, :y_idx]
     return pyg
 
 
 @typechecked
-def convert_to_pyg_graph(g: DbGraphType, has_mult_info: bool = False) -> Data:
-    group_attrs = ['kc', 'ln']
+def convert_to_pyg_graph(g: DbGraphType, group_attrs: List,  has_mult_info: bool = False) -> Data:
     if has_mult_info:
         # supervised data available
         group_attrs.append('mult')
@@ -93,11 +93,12 @@ def run(cfg: DictConfig, **kwargs):
         cfg.gfa_path = graph_dir / 'graph.gfa'
 
         g = construct_graph(cfg)
+        g, features = add_features(g, cfg.features)
         print(f'Number of edges {g.number_of_edges()}')
         print(f'Number of nodes {g.number_of_nodes()}')
         mult_info = parse_mult_info(cfg.mult_info_path)
         g = add_mult_info_features(g, mult_info)
-        pyg = convert_to_pyg_graph(g, has_mult_info=True)
+        pyg = convert_to_pyg_graph(g, features, has_mult_info=True)
         pyg_filename = f'{idx}.pt'
         torch.save(pyg, out_processed_path / pyg_filename)
         processed_files.append((pyg_filename, graph_dir))
