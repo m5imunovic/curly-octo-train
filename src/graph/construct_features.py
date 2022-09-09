@@ -1,7 +1,7 @@
 """
 Adds additional features to the graph based on config
 """
-from typing import Sequence, Set
+from typing import List, Sequence, Set, Tuple
 
 import networkx as nx
 import numpy as np
@@ -15,13 +15,16 @@ def supported_digraph_features() -> Set[str]:
     return {'ln', 'kc', 'in_degree', 'out_degree', 'pr_1', 'pr_2', 'pr_3', 'pr_4', 'pr_5'}
 
 
-def add_digraph_features(g, features) -> nx.DiGraph:
+def add_digraph_features(g, features) -> Tuple[nx.DiGraph, List[str]]:
+    available_features = ['kc', 'ln']
     if 'in_degree' in features:
         in_degrees = dict(g.in_degree())
         nx.set_node_attributes(g, in_degrees, 'in_degree')
+        available_features.append('in_degree')
     if 'out_degree' in features:
         out_degrees = dict(g.out_degree())
         nx.set_node_attributes(g, out_degrees, 'out_degree')
+        available_features.append('out_degree')
 
     for feature in features:
         # TODO: Does it makes sense to do this with torch instead and use GPU?
@@ -42,13 +45,15 @@ def add_digraph_features(g, features) -> nx.DiGraph:
             for k_idx in range(k):
                 x = alpha * P.dot(x) + (1-alpha) * pk_0
                 attr = {node: x[idx] for idx, node in enumerate(g.nodes)}
-                nx.set_node_attributes(g, attr, f'pr_{k_idx+1}')
+                feature_name = f'pr_{k_idx+1}'
+                nx.set_node_attributes(g, attr, feature_name)
+                available_features.append(feature_name)
     
-    return g
+    return g, available_features
 
 
 @typechecked
-def add_features(g: DbGraphType, features: Sequence[str]) -> DbGraphType:
+def add_features(g: DbGraphType, features: Sequence[str]) -> Tuple[DbGraphType, List[str]]:
     if isinstance(g, nx.MultiDiGraph):
         raise ValueError('Features are not yet supported for multigraphs')
     elif isinstance(g, nx.DiGraph):
