@@ -21,7 +21,7 @@ def parse_gfa(path: Path, k=501) -> Tuple[SegmentDict, Dict]:
         for line in f:
             if line.startswith('S'):
                 _, sid, seq, kc = line.strip().split()
-                kc = int(kc[len("KC:i:")])
+                kc = int(kc[len("KC:i:"):])
                 ln = len(seq)
                 segments[sid] = {
                     'seq': seq,
