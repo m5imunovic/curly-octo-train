@@ -13,7 +13,6 @@ from typeguard import typechecked
 import utils.path_helpers as ph
 from graph.construct_features import add_features
 from graph.construct_graph import construct_graph, DbGraphType
-from graph.dbg_dataset import DBGDataset
 from graph.mult_info_parser import parse_mult_info
 
 
@@ -21,42 +20,33 @@ FeatureList = Union[List[str], all]
 
 
 def add_mult_info_features(g: DbGraphType, mult_info: Dict[str, int]) -> DbGraphType:
+    # We use a small trick here. As we name this feature 'y' it automatically gets assigned to the y
+    # attribute of the exported pytorch geometric graph and can then be used for learning supervision
     if isinstance(g, nx.MultiDiGraph):
         for edge in g.edges(data=True, keys=True):
             key = edge[2]
-            g.edges[edge[0], edge[1], key]['mult'] = mult_info[key]
+            g.edges[edge[0], edge[1], key]['y'] = mult_info[key]
     else:
-        nx.set_node_attributes(g, mult_info, 'mult')
+        nx.set_node_attributes(g, mult_info, 'y')
     return g
 
 
-def convert_to_pyg_multigraph(g: DbGraphType, group_edge_attrs: Optional[FeatureList] = None, has_mult_info: bool = True) -> Data:
+def convert_to_pyg_multigraph(g: DbGraphType, group_edge_attrs: Optional[FeatureList] = None) -> Data:
     pyg = from_networkx(g, group_edge_attrs=group_edge_attrs)
-    if has_mult_info:
-        y_idx = pyg.edge_attr.shape[1] - 1
-        pyg.y = pyg.edge_attr[:, y_idx]
-        pyg.edge_attr = pyg.edge_attr[:, :y_idx]
     return pyg
 
 
-def convert_to_pyg_digraph(g: DbGraphType, group_node_attrs: Optional[FeatureList] = None, has_mult_info: bool = True) -> Data:
+def convert_to_pyg_digraph(g: DbGraphType, group_node_attrs: Optional[FeatureList] = None) -> Data:
     pyg = from_networkx(g, group_node_attrs=group_node_attrs)
-    if has_mult_info:
-        y_idx = pyg.x.shape[1] - 1
-        pyg.y = pyg.x[:, y_idx]
-        pyg.x = pyg.x[:, :y_idx]
     return pyg
 
 
 @typechecked
-def convert_to_pyg_graph(g: DbGraphType, group_attrs: List,  has_mult_info: bool = False) -> Data:
-    if has_mult_info:
-        # supervised data available
-        group_attrs.append('mult')
+def convert_to_pyg_graph(g: DbGraphType, group_attrs: List) -> Data:
     if isinstance(g, nx.MultiDiGraph):
-        return convert_to_pyg_multigraph(g, group_edge_attrs=group_attrs, has_mult_info=has_mult_info)
+        return convert_to_pyg_multigraph(g, group_edge_attrs=group_attrs)
     if isinstance(g, nx.DiGraph):
-        return convert_to_pyg_digraph(g, group_node_attrs=group_attrs, has_mult_info=has_mult_info)
+        return convert_to_pyg_digraph(g, group_node_attrs=group_attrs)
 
     raise KeyError(f'Graph type {type(g)} not supported')
 
@@ -98,7 +88,7 @@ def run(cfg: DictConfig, **kwargs):
         print(f'Number of nodes {g.number_of_nodes()}')
         mult_info = parse_mult_info(cfg.mult_info_path)
         g = add_mult_info_features(g, mult_info)
-        pyg = convert_to_pyg_graph(g, features, has_mult_info=True)
+        pyg = convert_to_pyg_graph(g, features)
         pyg_filename = f'{idx}.pt'
         torch.save(pyg, out_processed_path / pyg_filename)
         processed_files.append((pyg_filename, graph_dir))
