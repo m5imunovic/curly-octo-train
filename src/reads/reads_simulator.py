@@ -1,8 +1,10 @@
 import multiprocessing as mp
 import os
+import random
 import shutil
 import subprocess
 from abc import abstractmethod
+from datetime import datetime
 from pathlib import Path
 
 import hydra
@@ -78,9 +80,13 @@ class PbSim2(RSimulator):
         read_params = ' '.join(f'{str(read_file)}' for read_file in read_files)
         option_params = compose_cmd_params(self.cfg['params'])
         prefix_param = f'--prefix {prefix}'
+        # TODO: document this or export through config
+        random.seed(datetime.now().timestamp())
+        seed_nr = random.randint(0, 1000000)
+        seed_param = f'--seed {seed_nr + int(prefix)}'
 
         return [
-            f'{self.simulator_exec} {option_params} {prefix_param} {read_params}',
+            f'{self.simulator_exec} {option_params} {prefix_param} {read_params} {seed_param}',
             f'rm {prefix}_0001.ref',
         ]
 
