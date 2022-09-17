@@ -16,7 +16,7 @@ class ModuleDiGraph(nn.Module):
         self.W1 = nn.Linear(node_features, hidden_features, bias=True, device=device)
         self.W2 = nn.Linear(hidden_features, hidden_features, bias=True, device=device)
 
-        self.gate = ResGatedGraphConv(hidden_features, hidden_features)
+        self.gate = ResGatedGraphConv(hidden_features, hidden_features).to(device)
 
         self.scorer = nn.Linear(hidden_features, out_features=1, bias=True, device=device)
 
@@ -44,7 +44,7 @@ if __name__ == '__main__':
     # from torch_geometric.transforms import NormalizeFeatures
     import torch_geometric.transforms as T
 
-    path = (Path(__file__).parent / '../../data/datasets/random_species_09_10').resolve()
+    path = (Path(__file__).parent / '../../data/datasets/random_species_09_14').resolve()
     dataset = DBGDataset(root=path, transform=T.NormalizeFeatures(attrs=['x']))
 
     sigmoid = nn.Sigmoid()
