@@ -1,7 +1,7 @@
-from itertools import chain
-
 import hydra
 from omegaconf import DictConfig
+
+import utils.path_helpers as ph
 
 
 def run_graph_step(cfg: DictConfig, **kwargs):
@@ -42,8 +42,8 @@ def run(cfg: DictConfig):
         if 'reference' in cfg and cfg.reference is not None:
             if 'name' in cfg.reference:
                 cfg.asm.species = cfg.reference.name
-            if 'chromosomes' in cfg.reference:
-                import utils.path_helpers as ph
+            # TODO: overwrite should be inspected in run command to see if anything should be skipped
+            if 'chromosomes' in cfg.reference and cfg.asm.overwrite:
                 from asm.assembler import assembly_experiment_path
                 from reference.genome_generator import ref_chromosomes_path
 
