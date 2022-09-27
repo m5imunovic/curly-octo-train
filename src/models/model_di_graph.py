@@ -16,9 +16,10 @@ class ModuleDiGraph(nn.Module):
         self.W1 = nn.Linear(node_features, hidden_features, bias=True, device=device)
         self.W2 = nn.Linear(hidden_features, hidden_features, bias=True, device=device)
 
-        self.gate = ResGatedGraphConv(hidden_features, hidden_features).to(device)
+        self.gate_fw = ResGatedGraphConv(hidden_features, hidden_features, flow='source_to_target').to(device)
+        self.gate_bw = ResGatedGraphConv(hidden_features, hidden_features, flow='target_to_source').to(device)
 
-        self.scorer = nn.Linear(hidden_features, out_features=1, bias=True, device=device)
+        self.scorer = nn.Linear(2*hidden_features, out_features=1, bias=True, device=device)
 
         self.reset_parameters()
 
@@ -32,8 +33,9 @@ class ModuleDiGraph(nn.Module):
         h = self.W1(x)
         h = torch.relu(h)
         h = self.W2(h)
-        h = self.gate(h, edge_index)
-        score = self.scorer(h)
+        h_fw = self.gate_fw(h, edge_index)
+        h_bw = self.gate_bw(h, edge_index)
+        score = self.scorer(torch.cat([h_fw, h_bw], dim=1))
 
         return score
 
