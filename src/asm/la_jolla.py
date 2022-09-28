@@ -1,6 +1,7 @@
 import subprocess
 import shutil
 from pathlib import Path
+from typing import List
 
 from omegaconf import OmegaConf
 from typeguard import typechecked
@@ -28,7 +29,7 @@ class LaJolla(assembler.Assembler):
         return assembler_root / 'bin'
 
     @typechecked
-    def _construct_exec_cmd(self, reads_path: Path, output_path: Path) -> list[str]:
+    def _construct_exec_cmd(self, reads_path: Path, output_path: Path) -> List[str]:
         assert 'params' in self.cfg, "params must be specified in config"
 
         suffix = ['.fastq', '.fq'] if 'suffix' not in self.cfg else OmegaConf.to_container(self.cfg['suffix'])

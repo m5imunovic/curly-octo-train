@@ -3,5 +3,6 @@ Follow the instructions on official [website](https://pytorch-geometric.readthed
 detailed instructions. The pip installation command will look something like this:
 
 ```bash
-pip install torch-scatter torch-sparse torch-cluster torch-spline-conv torch-geometric -f https://data.pyg.org/whl/torch-1.11.0+cu113.html
+pip install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cu113
+pip install torch-scatter torch-sparse torch-cluster torch-spline-conv torch-geometric -f https://data.pyg.org/whl/torch-1.12.1+cu113.html
 ```
