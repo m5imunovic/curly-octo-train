@@ -6,6 +6,7 @@ import subprocess
 from abc import abstractmethod
 from datetime import datetime
 from pathlib import Path
+from typing import List
 
 import hydra
 from omegaconf import DictConfig, OmegaConf
@@ -72,7 +73,7 @@ class PbSim2(RSimulator):
         raise NotImplementedError('Installation from script is not implemented!')
 
     @typechecked
-    def _construct_exec_cmd(self, ref_path: Path, chr_save_path: Path, prefix: str) -> list[str]:
+    def _construct_exec_cmd(self, ref_path: Path, chr_save_path: Path, prefix: str) -> List[str]:
         assert 'params' in self.cfg, "params must be specified in config"
 
         suffix = ['.fasta', '.fa'] if 'suffix' not in self.cfg else OmegaConf.to_container(self.cfg['suffix'])

@@ -1,11 +1,11 @@
 from pathlib import Path
-from typing import Optional
+from typing import Dict, List, Optional, Union
 from omegaconf import DictConfig
 from typeguard import typechecked
 
 
 @typechecked
-def get_read_files(read_path: Path, suffix: Optional[list[str]] = None, override: bool = True) -> list[Path]:
+def get_read_files(read_path: Path, suffix: Optional[List[str]] = None, override: bool = True) -> List[Path]:
     '''Get all files in the read_path with the given suffix.
 
     Args:
@@ -35,7 +35,7 @@ def get_read_files(read_path: Path, suffix: Optional[list[str]] = None, override
 
 
 @typechecked
-def compose_cmd_params(params: dict | DictConfig) -> str:
+def compose_cmd_params(params: Union[Dict, DictConfig]) -> str:
     '''Compose command line parameters from a dictionary.
 
     Args:
