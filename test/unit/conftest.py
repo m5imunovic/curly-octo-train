@@ -1,6 +1,11 @@
 import pytest
 
-from utils.path_helpers import get_project_root
+from omegaconf import OmegaConf
+
+from utils.path_helpers import get_project_root, project_root_append
+
+
+OmegaConf.register_new_resolver('project_root', project_root_append, replace=True)
 
 
 @pytest.fixture(scope='session')
@@ -26,3 +31,8 @@ def test_graph_root(test_data_root):
 @pytest.fixture(scope='session')
 def test_datasets_root(test_data_root):
     return test_data_root / 'datasets'
+
+
+@pytest.fixture(scope='session')
+def test_cfg_path(test_data_root):
+    return test_data_root / 'config' / 'config.yaml'

@@ -1,3 +1,4 @@
+import os
 import tempfile
 from pathlib import Path
 from unittest import mock
@@ -21,7 +22,8 @@ def reads_simulator_cfg(overwrite: bool):
     })
 
 
-def test_pbmsim2_construct_exe_cmd(test_reads_root):
+@mock.patch('random.randint', return_value=22)
+def test_pbmsim2_construct_exe_cmd(mock_randint, test_reads_root):
     cfg1 = {
         'name': 'pbsim2',
         'params': {
@@ -38,7 +40,7 @@ def test_pbmsim2_construct_exe_cmd(test_reads_root):
         }
     }
 
-    with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as tmp_dir:
+    with tempfile.TemporaryDirectory() as tmp_dir:
         vendor_dir = Path(tmp_dir) / 'vendor'
         vendor_dir.mkdir(exist_ok=True)
         simulator_root = vendor_dir / 'pbsim2'
@@ -46,13 +48,13 @@ def test_pbmsim2_construct_exe_cmd(test_reads_root):
 
         dummy_ref = test_reads_root / 'dummy' / 'dummy.fa'
         save_dir = Path("/tmp/save")
-        prefix = 'prefix'
-
+        prefix = '1'
         pbsim = reads_simulator.PbSim2(cfg1, vendor_dir)
         cmd = pbsim._construct_exec_cmd(dummy_ref, save_dir, prefix)
+        seed = mock_randint.return_value + int(prefix)
 
         expected_cmd = [
-            f'{str(simulator_root / "src/pbsim")} --depth 30 --prefix {prefix} {str(dummy_ref)}',
+            f'{str(simulator_root / "src/pbsim")} --depth 30 --prefix {prefix} {str(dummy_ref)} --seed {seed}',
             f'rm {prefix}_0001.ref'
         ]
 
@@ -65,7 +67,7 @@ def test_pbmsim2_construct_exe_cmd(test_reads_root):
         assert len(cmd) == 2
 
         expected_cmd = [
-            f'{str(simulator_root / "src/pbsim")}  --prefix {prefix} {str(dummy_ref)}',
+            f'{str(simulator_root / "src/pbsim")}  --prefix {prefix} {str(dummy_ref)} --seed {seed}',
             f'rm {prefix}_0001.ref'
         ]
         assert cmd[0] == expected_cmd[0]
@@ -82,8 +84,9 @@ def test_reads_simulator_overwrite_data(mock_rmtree, mock_run, tmp_path):
         'chr_request': dict(cfg['request'])
     }
     mock_run.return_value = True
-    run_reads_simulator(cfg, **kwargs)
 
+    os.mkdir(str(tmp_path / cfg['species']))
+    run_reads_simulator(cfg, **kwargs)
     assert mock_rmtree.call_count == 1
     assert mock_run.call_count == 1
 

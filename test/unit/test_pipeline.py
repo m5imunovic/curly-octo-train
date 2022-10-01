@@ -4,7 +4,6 @@ from hydra import compose, initialize_config_dir
 from omegaconf import OmegaConf
 
 from pipeline import run as run_pipeline
-from utils.path_helpers import get_default_cfg_path
 
 
 @mock.patch('pipeline.run_graph_step')
@@ -50,11 +49,9 @@ def test_skipped_reference_and_reads_steps(run_reference_step, run_generate_read
 @mock.patch('pipeline.run_assembly_step')
 @mock.patch('pipeline.run_generate_reads_step')
 @mock.patch('pipeline.run_reference_step')
-def test_replaced_config_values(run_reference_step, run_generate_reads_step, run_assembly_step, run_graph_step):
-    # TODO: replace default config with test pipeline config
-    cfg_path = get_default_cfg_path()
-    with initialize_config_dir(str(cfg_path.parent), version_base=None):
-        cfg = compose(str(cfg_path.name), overrides=['reference.name=dummy', 'asm.experiment=dummy_experiment'])
+def test_replaced_config_values(run_reference_step, run_generate_reads_step, run_assembly_step, run_graph_step, test_cfg_path):
+    with initialize_config_dir(str(test_cfg_path.parent), version_base=None):
+        cfg = compose(str(test_cfg_path.name), overrides=['reference.name=dummy', 'asm.experiment=dummy_experiment'])
         run_pipeline(cfg)
         reference_cfg = run_reference_step.call_args.args[0]
         assert reference_cfg.name == 'dummy'
@@ -64,4 +61,4 @@ def test_replaced_config_values(run_reference_step, run_generate_reads_step, run
         assert asm_cfg.species == 'dummy'
         assert 'dummy/chromosomes/' in str(asm_cfg.params.long.reference)
         graph_cfg = run_graph_step.call_args.args[0]
-        assert 'dummy_experiment/graph.gfa' in str(graph_cfg.gfa_path)
+        assert 'dummy_experiment' in str(graph_cfg.experiment)
