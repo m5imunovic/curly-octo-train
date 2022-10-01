@@ -1,0 +1,11 @@
+# This is a template config for generating random reference genome
+# Generated data is saved to $PROJECT_ROOT/data/refrence/${name}.
+# Each chromosome is saved in separate file, eg. chr1.fasta, chr2.fasta...
+name: random_species
+overwrite: False # set to True if you want to overwrite existing data
+chromosomes:
+  chr1: 100000
+
+gc_content: 0.44 # Percentage of G and C bases. Specify as float in range [0., 1.).
+real_data: # set to True if this is config describing non-simulated dataset
+seed: # Specify integer seed for reproducibility

@@ -1,0 +1,17 @@
+# this is top-level default config
+defaults:
+  - reference: random_species
+  - reads: pbsim2
+  - asm: la_jolla
+  - graph: db_graph
+  - _self_
+
+
+# combine
+reference:
+  overwrite: False
+  name: random_species
+reads:
+  overwrite: True
+  request:
+    chr1: 1

@@ -18,7 +18,7 @@ def test_la_jolla_construct_exe_cmd(test_reads_root):
         }
     }
 
-    with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as tmp_dir:
+    with tempfile.TemporaryDirectory() as tmp_dir:
         vendor_dir = Path(tmp_dir) / 'vendor'
         vendor_dir.mkdir(exist_ok=True)
         assembler_root = vendor_dir / 'LJA'
