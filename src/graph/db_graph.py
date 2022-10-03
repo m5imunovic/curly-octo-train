@@ -16,7 +16,7 @@ from graph.construct_graph import construct_graph, DbGraphType
 from graph.mult_info_parser import parse_mult_info
 
 
-FeatureList = Union[List[str], all]
+FeatureDict = Union[Dict[str, Optional[List]], all]
 
 
 def add_mult_info_features(g: DbGraphType, mult_info: Dict[str, int]) -> DbGraphType:
@@ -31,22 +31,22 @@ def add_mult_info_features(g: DbGraphType, mult_info: Dict[str, int]) -> DbGraph
     return g
 
 
-def convert_to_pyg_multigraph(g: DbGraphType, group_edge_attrs: Optional[FeatureList] = None) -> Data:
-    pyg = from_networkx(g, group_edge_attrs=group_edge_attrs)
+def convert_to_pyg_multigraph(g: DbGraphType, group_attrs: Optional[FeatureDict] = None) -> Data:
+    pyg = from_networkx(g, group_node_attrs=group_attrs['node'], group_edge_attrs=group_attrs['edge'])
     return pyg
 
 
-def convert_to_pyg_digraph(g: DbGraphType, group_node_attrs: Optional[FeatureList] = None) -> Data:
-    pyg = from_networkx(g, group_node_attrs=group_node_attrs)
+def convert_to_pyg_digraph(g: DbGraphType, group_attrs: Optional[FeatureDict] = None) -> Data:
+    pyg = from_networkx(g, group_node_attrs=group_attrs['node'], group_edge_attrs=group_attrs['edge'])
     return pyg
 
 
 @typechecked
-def convert_to_pyg_graph(g: DbGraphType, group_attrs: List) -> Data:
+def convert_to_pyg_graph(g: DbGraphType, features: Optional[FeatureDict] = None) -> Data:
     if isinstance(g, nx.MultiDiGraph):
-        return convert_to_pyg_multigraph(g, group_edge_attrs=group_attrs)
+        return convert_to_pyg_multigraph(g, group_attrs=features)
     if isinstance(g, nx.DiGraph):
-        return convert_to_pyg_digraph(g, group_node_attrs=group_attrs)
+        return convert_to_pyg_digraph(g, group_attrs=features)
 
     raise KeyError(f'Graph type {type(g)} not supported')
 
