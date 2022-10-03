@@ -55,6 +55,8 @@ def add_multidigraph_features(g: nx.MultiDiGraph, features: Sequence[str]) -> Tu
                 nx.set_node_attributes(g, attr, feature_name)
                 available_node_features.append(feature_name)
 
+    available_node_features = available_node_features or None
+
     return g, {'edge': available_edge_features, 'node': available_node_features}
 
 
@@ -93,7 +95,7 @@ def add_digraph_features(g: nx.DiGraph, features: Sequence[str]) -> Tuple[nx.DiG
                 nx.set_node_attributes(g, attr, feature_name)
                 available_node_features.append(feature_name)
     
-    return g, {'edge': [], 'node': available_node_features}
+    return g, {'node': available_node_features, 'edge': None}
 
 
 @typechecked

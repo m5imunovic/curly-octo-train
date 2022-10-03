@@ -16,7 +16,7 @@ from graph.construct_graph import construct_graph, DbGraphType
 from graph.mult_info_parser import parse_mult_info
 
 
-FeatureDict = Union[Dict[str, List], all]
+FeatureDict = Union[Dict[str, Optional[List]], all]
 
 
 def add_mult_info_features(g: DbGraphType, mult_info: Dict[str, int]) -> DbGraphType:
@@ -42,7 +42,7 @@ def convert_to_pyg_digraph(g: DbGraphType, group_attrs: Optional[FeatureDict] = 
 
 
 @typechecked
-def convert_to_pyg_graph(g: DbGraphType, features: Dict[str, List]) -> Data:
+def convert_to_pyg_graph(g: DbGraphType, features: Optional[FeatureDict] = None) -> Data:
     if isinstance(g, nx.MultiDiGraph):
         return convert_to_pyg_multigraph(g, group_attrs=features)
     if isinstance(g, nx.DiGraph):
