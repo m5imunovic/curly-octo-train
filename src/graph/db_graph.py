@@ -5,18 +5,15 @@ from typing import Dict, List, Optional, Union
 import hydra
 import networkx as nx
 import torch
-from omegaconf import DictConfig, OmegaConf
+from omegaconf import DictConfig
 from torch_geometric.data import Data
 from torch_geometric.utils.convert import from_networkx
 from typeguard import typechecked
 
 import utils.path_helpers as ph
-from graph.construct_features import add_features
+from graph.construct_features import add_features, FeatureDict
 from graph.construct_graph import construct_graph, DbGraphType
 from graph.mult_info_parser import parse_mult_info
-
-
-FeatureDict = Union[Dict[str, Optional[List]], all]
 
 
 def add_mult_info_features(g: DbGraphType, mult_info: Dict[str, int]) -> DbGraphType:
