@@ -8,6 +8,7 @@ and with the +/- defined as
 if incoming edge + use last kmer of the edge else from RC of the edge
 if outgoing edge + use first kmer of the edge else from RC of the edge
 """
+from copy import deepcopy
 from typing import Dict, Tuple, Union
 
 import networkx as nx
@@ -100,3 +101,13 @@ def construct_graph(cfg: DictConfig) -> DbGraphType:
         return construct_nx_digraph(segments, links, k=cfg.k)
 
     raise ValueError(f"Unknown graph type {cfg.graph_type}")
+
+
+@typechecked
+def construct_graphs(cfg: DictConfig) -> Dict[str, DbGraphType]:
+    segments, links = parse_gfa(path=cfg.gfa_path, k=cfg.k)
+    graphs = {}
+    segments_ = deepcopy(segments)
+    graphs['digraph'] = construct_nx_digraph(segments_, links, k=cfg.k)
+    graphs['multidigraph'] = construct_nx_multigraph(segments, k=cfg.k)
+    return graphs

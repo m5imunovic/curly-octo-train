@@ -1,9 +1,9 @@
 name: db_graph
 overwrite: False # set to True if you want to overwrite the existing data
-graph_type: digraph # either digraph or multigraph
-gfa_path: ${project_root:data/assemblies/experiment_1/graph.gfa}
-mult_info_path: ${project_root:data/assemblies/experiment_1/mult.info}
+graph_type: # either digraph or multigraph, currently ignored an creating both types
 experiment: experiment_1
+mult_info_path: # Placeholder
+gfa_path: # Placeholder
 #supported features for digraph (edge is just a k-mer):
 # kc - coverage
 # ln - length, i.e. number of nucleotides in node
