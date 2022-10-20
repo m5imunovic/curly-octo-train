@@ -4,5 +4,4 @@ hydra-core==1.2
 icontract==2.6.1
 networkx==2.8
 numpy==1.22.2
-pytorch_lightning==1.7.6
 typeguard==2.13.3
