@@ -152,7 +152,7 @@ def simulator_factory(simulator: str, cfg: DictConfig) -> RSimulator:
     raise ValueError(f"Unknown simulator name {simulator}")
 
 
-def run(cfg, **kwargs):
+def run(cfg: DictConfig, **kwargs):
     exec_args = {
         'simulated_data_root': ph.get_simulated_data_path(),
         'ref_root': ph.get_ref_path() / cfg['species'],

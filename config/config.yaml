@@ -1,22 +1,21 @@
 # this is top-level default config
 defaults:
-  - reference: random_species
+  - hydra: hydra
+  - paths: paths
+  - reference: reference
   - reads: pbsim2
-  - asm: la_jolla
-  - graph: db_graph
+#  - asm: la_jolla
+#  - graph: db_graph
   - _self_
 
+species_name: random_species
+seed: 42
 
 # combine
 reference:
   overwrite: True
-  name: random_species
-reads:
-  request:
-    chr1: 2
-    chr2: 2
 asm:
-  experiment: random_species_${now:%m_%d}
+  experiment: ${species_name}_${now:%m_%d}
 graph:
-  experiment: random_species_${now:%m_%d}
+  experiment: ${species_name}_${now:%m_%d}
   overwrite: True
