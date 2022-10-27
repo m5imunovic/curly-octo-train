@@ -30,12 +30,11 @@ def run_reference_step(cfg: DictConfig):
 
 def run(cfg: DictConfig):
     if 'reference' in cfg:
-        run_reference_step(cfg.reference)
+        run_reference_step(cfg)
 
     if 'reads' in cfg:
-        if 'reference' in cfg and cfg.reference is not None:
-            if 'name' in cfg.reference:
-                cfg.reads.species = cfg.reference.name
+        if 'species_name' in cfg:
+            cfg.reads.species = cfg.species_name
         run_generate_reads_step(cfg.reads)
 
     if 'asm' in cfg:
@@ -69,7 +68,7 @@ def run(cfg: DictConfig):
             run_graph_step(cfg.graph)
 
 
-@hydra.main(version_base=None, config_path='../config', config_name='config')
+@hydra.main(version_base="1.2", config_path='../config', config_name='config')
 def main(cfg: DictConfig):
     run(cfg)
 

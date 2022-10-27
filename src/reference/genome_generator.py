@@ -58,10 +58,9 @@ def save_genome_to_fasta(output_path: Path, genome: Dict[str, str], description:
 
 
 def species_reference_root(cfg: DictConfig) -> Path:
-    # For now use hardcoded root path for storing genome files
-    output_path = ph.get_ref_path()
-    species_root = output_path / cfg.name
-    return species_root
+    references_dir = Path(cfg.paths.ref_dir)
+    species_root_dir = references_dir / cfg.species_name
+    return species_root_dir
 
 
 def ref_chromosomes_path(cfg: DictConfig) -> Path:
@@ -71,21 +70,21 @@ def ref_chromosomes_path(cfg: DictConfig) -> Path:
 def run(cfg):
     species_path = species_reference_root(cfg)
 
-    if species_path.exists() and not cfg.overwrite:
-        print(f'Reference genome for {cfg.name} already exists. Skipping.')
+    if species_path.exists() and not cfg.reference.overwrite:
+        print(f'Reference genome for species `{cfg.species_name}` already exists. Skipping.')
         return False
 
-    genome = get_random_genome(dict(cfg.chromosomes), cfg.gc_content, cfg.seed)
+    genome = get_random_genome(dict(cfg.reference.chromosomes), cfg.reference.gc_content, cfg.seed)
     save_genome_to_fasta(ref_chromosomes_path(cfg), genome, multiline=False)
 
     return True
 
 
 
-@hydra.main(version_base=None, config_path="../../config/reference", config_name="random_species")
+@hydra.main(version_base="1.2", config_path="../../config")
 def main(cfg):
     print("Running random species generator step...")
-    run(cfg)
+    run(cfg.reference)
 
 
 if __name__ == '__main__':
