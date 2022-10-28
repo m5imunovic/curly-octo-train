@@ -1,0 +1,16 @@
+name: pbsim3
+overwrite: True # set to False if you want to keep existing data
+species:
+
+params:
+  long: # command line params starting with --
+    depth: 20
+    strategy: wgs
+    method: errhmm
+    errhmm: ${project_root:vendor}/pbsim3/data/ERRHMM-RSII.model # either use absolute path or use ${project_root} resolver
+    accuracy-mean: 0.99
+  
+suffix: ['.fa', '.fasta'] # list of file suffixes to match when searching for reference
+
+request: # request number of simulations for specific chromosomes in reference
+  chr1: 1

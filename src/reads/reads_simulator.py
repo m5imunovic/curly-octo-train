@@ -22,6 +22,7 @@ OmegaConf.register_new_resolver('project_root', ph.project_root_append, replace=
 class RSimulator:
     def __init__(self, cfg: DictConfig, vendor_dir: Path):
         self.cfg = cfg
+        self.name = self.cfg.name
         if 'install_script' in cfg and cfg['install_script'] is not None:
             assert cfg.exec_root is not None
             self._install_from_script(Path(cfg.script_path))
@@ -76,20 +77,31 @@ class PbSim2(RSimulator):
     def _construct_exec_cmd(self, ref_path: Path, chr_save_path: Path, prefix: str) -> List[str]:
         assert 'params' in self.cfg, "params must be specified in config"
 
-        suffix = ['.fasta', '.fa'] if 'suffix' not in self.cfg else OmegaConf.to_container(self.cfg['suffix'])
-        read_files = get_read_files(ref_path, suffix=suffix)
-        read_params = ' '.join(f'{str(read_file)}' for read_file in read_files)
+        read_params = self._construct_read_params(ref_path)
         option_params = compose_cmd_params(self.cfg['params'])
         prefix_param = f'--prefix {prefix}'
         # TODO: document this or export through config
         random.seed(datetime.now().timestamp())
         seed_nr = random.randint(0, 1000000)
         seed_param = f'--seed {seed_nr + int(prefix)}'
+        read_params = self._prefix_read_params(read_params)
 
         return [
             f'{self.simulator_exec} {option_params} {prefix_param} {read_params} {seed_param}',
             f'rm {prefix}_0001.ref',
         ]
+
+    @typechecked
+    def _construct_read_params(self, ref_path: Path):
+        suffix = ['.fasta', '.fa'] if 'suffix' not in self.cfg else OmegaConf.to_container(self.cfg['suffix'])
+        read_files = get_read_files(ref_path, suffix=suffix)
+        read_params = ' '.join(f'{str(read_file)}' for read_file in read_files)
+        self._prefix_read_params(read_params)
+        return read_params
+
+    @typechecked
+    def _prefix_read_params(self, read_params: str):
+        return read_params
 
     @typechecked
     def run(self, ref_root: Path, simulated_data_root: Path, chr_request: dict, *args, **kwargs) -> bool:
@@ -144,11 +156,37 @@ class PbSim2(RSimulator):
                 shutil.rmtree(species_path)
 
 
+class PbSim3(PbSim2):
+    @typechecked
+    def _install(self, vendor_dir: Path) -> Path:
+        simulator_root = vendor_dir / 'pbsim3'
+        if not simulator_root.exists():
+            try:
+                print(f'SETUP::generate:: Download PbSim3')
+                subprocess.run('git clone https://github.com/yukiteruono/pbsim3.git', shell=True, cwd=vendor_dir)
+                subprocess.run(f'./configure', shell=True, cwd=simulator_root)
+                subprocess.run(f'make', shell=True, cwd=simulator_root)
+            except Exception as ex:
+                print(f'SETUP::generate:: Error: {ex}')
+                shutil.rmtree(simulator_root)
+                raise ex
+        else:
+            print(f'SETUP::generate:: Use existing PbSim3')
+
+        return simulator_root / 'src' / 'pbsim'
+
+    @typechecked
+    def _prefix_read_params(self, read_params: str):
+        return f'--genome {read_params}'
+
+
 @typechecked
 def simulator_factory(simulator: str, cfg: DictConfig) -> RSimulator:
     vendor_dir: Path = ph.get_vendor_path()
     if simulator == 'pbsim2':
         return PbSim2(cfg=cfg, vendor_dir=vendor_dir)
+    elif simulator == 'pbsim3':
+        return PbSim3(cfg=cfg, vendor_dir=vendor_dir)
     raise ValueError(f"Unknown simulator name {simulator}")
 
 
