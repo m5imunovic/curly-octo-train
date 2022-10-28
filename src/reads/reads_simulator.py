@@ -144,7 +144,7 @@ class PbSim2(RSimulator):
         if not cwd_path.exists():
             cwd_path.mkdir(parents=True)
         for cmd in commands:
-            subprocess.run(cmd, shell=True)
+            subprocess.run(cmd, shell=True, cwd=cwd_path)
 
     @typechecked
     def pre_simulation_step(self, simulated_species_path: Path, *args, **kwargs):

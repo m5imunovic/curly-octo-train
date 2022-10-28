@@ -80,7 +80,6 @@ def run(cfg):
     return True
 
 
-
 @hydra.main(version_base="1.2", config_path="../../config")
 def main(cfg):
     print("Running random species generator step...")

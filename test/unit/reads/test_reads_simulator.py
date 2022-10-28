@@ -10,7 +10,7 @@ from reads.reads_simulator import PbSim2
 from reads.reads_simulator import run as run_reads_simulator
 
 
-def reads_simulator_cfg(overwrite: bool):
+def reads_simulator_cfg(overwrite: bool, tmp_dir: Path):
     return OmegaConf.create({
             'reads': {
                 'name': 'pbsim2',
@@ -19,6 +19,10 @@ def reads_simulator_cfg(overwrite: bool):
                 'request': {
                     'chr1': 2
                 }
+            },
+            'paths': {
+                'ref_dir': str(tmp_dir / 'ref'),
+                'simulated_data_dir': str(tmp_dir / 'simulated'),
             },
             'species_name': 'test_species',
     })
@@ -79,20 +83,21 @@ def test_pbmsim2_construct_exe_cmd(mock_randint, test_reads_root):
 @mock.patch.object(PbSim2, 'run')
 @mock.patch('shutil.rmtree', return_value=True)
 def test_reads_simulator_overwrite_data(mock_rmtree, mock_run, tmp_path):
-    cfg = reads_simulator_cfg(overwrite=True)
-    kwargs = {
-        'ref_root': tmp_path / cfg.species_name,
-        'simulated_data_root': tmp_path,
-        'chr_request': dict(cfg.reads.request)
-    }
-    mock_run.return_value = True
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        cfg = reads_simulator_cfg(overwrite=True, tmp_dir=Path(tmp_dir))
+        kwargs = {
+            'ref_root': tmp_path / cfg.species_name,
+            'simulated_species_path': tmp_path,
+            'chr_request': dict(cfg.reads.request)
+        }
+        mock_run.return_value = True
 
-    os.mkdir(str(tmp_path / cfg.species_name))
-    run_reads_simulator(cfg, **kwargs)
-    assert mock_rmtree.call_count == 1
-    assert mock_run.call_count == 1
+        os.mkdir(str(tmp_path / cfg.species_name))
+        run_reads_simulator(cfg, **kwargs)
+        assert mock_rmtree.call_count == 1
+        assert mock_run.call_count == 1
 
-    cfg = reads_simulator_cfg(overwrite=False)
-    run_reads_simulator(cfg, **kwargs)
-    assert mock_rmtree.call_count == 1
-    assert mock_run.call_count == 2
+        cfg = reads_simulator_cfg(overwrite=False, tmp_dir=Path(tmp_dir))
+        run_reads_simulator(cfg, **kwargs)
+        assert mock_rmtree.call_count == 1
+        assert mock_run.call_count == 2
