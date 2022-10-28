@@ -9,6 +9,5 @@ params:
   
 suffix: ['.fa', '.fasta'] # list of file suffixes to match when searching for reference
 
-species: random_species # name of the reference species
 request: # request number of simulations for specific chromosomes in reference
   chr1: 1

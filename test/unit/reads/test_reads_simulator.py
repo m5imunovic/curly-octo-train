@@ -12,13 +12,15 @@ from reads.reads_simulator import run as run_reads_simulator
 
 def reads_simulator_cfg(overwrite: bool):
     return OmegaConf.create({
-            'name': 'pbsim2',
-            'overwrite': overwrite,
-            'params': None,
-            'species': 'test_species',
-            'request': {
-                'chr1': 2
-            }
+            'reads': {
+                'name': 'pbsim2',
+                'overwrite': overwrite,
+                'params': None,
+                'request': {
+                    'chr1': 2
+                }
+            },
+            'species_name': 'test_species',
     })
 
 
@@ -79,13 +81,13 @@ def test_pbmsim2_construct_exe_cmd(mock_randint, test_reads_root):
 def test_reads_simulator_overwrite_data(mock_rmtree, mock_run, tmp_path):
     cfg = reads_simulator_cfg(overwrite=True)
     kwargs = {
-        'ref_root': tmp_path / cfg['species'],
+        'ref_root': tmp_path / cfg.species_name,
         'simulated_data_root': tmp_path,
-        'chr_request': dict(cfg['request'])
+        'chr_request': dict(cfg.reads.request)
     }
     mock_run.return_value = True
 
-    os.mkdir(str(tmp_path / cfg['species']))
+    os.mkdir(str(tmp_path / cfg.species_name))
     run_reads_simulator(cfg, **kwargs)
     assert mock_rmtree.call_count == 1
     assert mock_run.call_count == 1

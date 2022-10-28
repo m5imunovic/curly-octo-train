@@ -33,9 +33,7 @@ def run(cfg: DictConfig):
         run_reference_step(cfg)
 
     if 'reads' in cfg:
-        if 'species_name' in cfg:
-            cfg.reads.species = cfg.species_name
-        run_generate_reads_step(cfg.reads)
+        run_generate_reads_step(cfg)
 
     if 'asm' in cfg:
         if 'reference' in cfg and cfg.reference is not None:

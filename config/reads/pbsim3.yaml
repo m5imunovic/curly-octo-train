@@ -1,6 +1,5 @@
 name: pbsim3
 overwrite: True # set to False if you want to keep existing data
-species:
 
 params:
   long: # command line params starting with --
