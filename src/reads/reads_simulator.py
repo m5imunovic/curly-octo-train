@@ -23,7 +23,7 @@ class RSimulator:
     def __init__(self, cfg: DictConfig, vendor_dir: Path):
         self.cfg = cfg
         self.name = self.cfg.name
-        if 'install_script' in cfg and cfg['install_script'] is not None:
+        if 'install_script' in cfg and cfg.install_script is not None:
             assert cfg.exec_root is not None
             self._install_from_script(Path(cfg.script_path))
             self.simulator_exec = Path(cfg.exec_root)
@@ -78,7 +78,7 @@ class PbSim2(RSimulator):
         assert 'params' in self.cfg, "params must be specified in config"
 
         read_params = self._construct_read_params(ref_path)
-        option_params = compose_cmd_params(self.cfg['params'])
+        option_params = compose_cmd_params(self.cfg.params)
         prefix_param = f'--prefix {prefix}'
         # TODO: document this or export through config
         random.seed(datetime.now().timestamp())
@@ -104,14 +104,13 @@ class PbSim2(RSimulator):
         return read_params
 
     @typechecked
-    def run(self, ref_root: Path, simulated_data_root: Path, chr_request: dict, *args, **kwargs) -> bool:
+    def run(self, ref_root: Path, simulated_species_path: Path, chr_request: dict, *args, **kwargs) -> bool:
         chr_path = ref_root / 'chromosomes'
         assert chr_path.exists(), f'{chr_path} does not exist!'
-        assert simulated_data_root.exists(), f'{simulated_data_root} does not exist!'
+        assert simulated_species_path.exists(), f'{simulated_species_path} does not exist!'
         simulation_data = []
         for chrN, n_need in chr_request.items():
-            species_name = ref_root.stem
-            chr_raw_path = simulated_data_root / species_name / f'{chrN}'
+            chr_raw_path = simulated_species_path / f'{chrN}'
             if not chr_raw_path.exists():
                 chr_raw_path.mkdir(parents=True)
                 n_have = 0
@@ -148,13 +147,13 @@ class PbSim2(RSimulator):
             subprocess.run(cmd, shell=True, cwd=cwd_path)
 
     @typechecked
-    def pre_simulation_step(self, simulated_data_root: Path, *args, **kwargs):
+    def pre_simulation_step(self, simulated_species_path: Path, *args, **kwargs):
         if self.cfg.overwrite:
             print('PRE::simulate:: Removing existing simulation data')
-            species_path = simulated_data_root / self.cfg.species
-            if species_path.exists():
-                shutil.rmtree(species_path)
-
+            if simulated_species_path.exists():
+                shutil.rmtree(simulated_species_path)
+        # ensure that the directory exists
+        simulated_species_path.mkdir(exist_ok=True, parents=False)
 
 class PbSim3(PbSim2):
     @typechecked
@@ -192,13 +191,12 @@ def simulator_factory(simulator: str, cfg: DictConfig) -> RSimulator:
 
 def run(cfg: DictConfig, **kwargs):
     exec_args = {
-        'simulated_data_root': ph.get_simulated_data_path(),
-        'ref_root': ph.get_ref_path() / cfg['species'],
-        'chr_request': dict(cfg['request'])
+        'simulated_species_path': Path(cfg.paths.simulated_data_dir) / cfg.species_name,
+        'ref_root': Path(cfg.paths.ref_dir) / cfg.species_name,
+        'chr_request': dict(cfg.reads.request)
     }
     exec_args.update(kwargs)
-    read_simulator = cfg
-    simulator = simulator_factory(simulator=read_simulator['name'], cfg=read_simulator)
+    simulator = simulator_factory(simulator=cfg.reads.name, cfg=cfg.reads)
 
     simulator.pre_simulation_step(**exec_args)
     simulator.run(**exec_args)

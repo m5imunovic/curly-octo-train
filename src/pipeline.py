@@ -1,5 +1,5 @@
 import hydra
-from omegaconf import DictConfig
+from omegaconf import DictConfig, OmegaConf
 
 import utils.path_helpers as ph
 
@@ -33,9 +33,7 @@ def run(cfg: DictConfig):
         run_reference_step(cfg)
 
     if 'reads' in cfg:
-        if 'species_name' in cfg:
-            cfg.reads.species = cfg.species_name
-        run_generate_reads_step(cfg.reads)
+        run_generate_reads_step(cfg)
 
     if 'asm' in cfg:
         if 'reference' in cfg and cfg.reference is not None:
@@ -67,9 +65,21 @@ def run(cfg: DictConfig):
         else:
             run_graph_step(cfg.graph)
 
+def adjust_cfg_paths(cfg: DictConfig):
+    project_root = ph.get_project_root()
+    OmegaConf.resolve(cfg.paths)
+    for key, value in cfg.paths.items():
+        if isinstance(value, str):
+            cfg.paths[key] = project_root / value
+        elif isinstance(value, list):
+            cfg.paths[key] = [project_root / path for path in value]
+        else:
+            raise ValueError(f'Unknown type for path {key}: {type(value)}')
+
 
 @hydra.main(version_base="1.2", config_path='../config', config_name='config')
 def main(cfg: DictConfig):
+    adjust_cfg_paths(cfg)
     run(cfg)
 
 
