@@ -110,7 +110,6 @@ class PbSim2(RSimulator):
         assert simulated_species_path.exists(), f'{simulated_species_path} does not exist!'
         simulation_data = []
         for chrN, n_need in chr_request.items():
-            species_name = ref_root.stem
             chr_raw_path = simulated_species_path / f'{chrN}'
             if not chr_raw_path.exists():
                 chr_raw_path.mkdir(parents=True)
@@ -145,7 +144,7 @@ class PbSim2(RSimulator):
         if not cwd_path.exists():
             cwd_path.mkdir(parents=True)
         for cmd in commands:
-            subprocess.run(cmd, shell=True, cwd=cwd_path)
+            subprocess.run(cmd, shell=True)
 
     @typechecked
     def pre_simulation_step(self, simulated_species_path: Path, *args, **kwargs):
@@ -192,8 +191,8 @@ def simulator_factory(simulator: str, cfg: DictConfig) -> RSimulator:
 
 def run(cfg: DictConfig, **kwargs):
     exec_args = {
-        'simulated_species_path': ph.get_simulated_data_path() / cfg.species_name,
-        'ref_root': ph.get_ref_path() / cfg.species_name,
+        'simulated_species_path': Path(cfg.paths.simulated_data_dir) / cfg.species_name,
+        'ref_root': Path(cfg.paths.ref_dir) / cfg.species_name,
         'chr_request': dict(cfg.reads.request)
     }
     exec_args.update(kwargs)
