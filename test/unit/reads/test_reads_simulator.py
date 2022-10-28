@@ -24,7 +24,7 @@ def reads_simulator_cfg(overwrite: bool):
 
 @mock.patch('random.randint', return_value=22)
 def test_pbmsim2_construct_exe_cmd(mock_randint, test_reads_root):
-    cfg1 = {
+    cfg1 = OmegaConf.create({
         'name': 'pbsim2',
         'params': {
             'long': {
@@ -32,13 +32,13 @@ def test_pbmsim2_construct_exe_cmd(mock_randint, test_reads_root):
             },
             'pattern': None
         }
-    }
+    })
 
-    cfg2 = {
+    cfg2 = OmegaConf.create({
         'name': 'pbsim2',
         'params': {
         }
-    }
+    })
 
     with tempfile.TemporaryDirectory() as tmp_dir:
         vendor_dir = Path(tmp_dir) / 'vendor'
