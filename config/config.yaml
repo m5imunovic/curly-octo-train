@@ -3,7 +3,7 @@ defaults:
   - hydra: hydra
   - paths: paths
   - reference: reference
-  - reads: pbsim2
+  - reads: pbsim3
 #  - asm: la_jolla
 #  - graph: db_graph
   - _self_
@@ -12,10 +12,10 @@ species_name: random_species
 seed: 42
 
 # combine
-reference:
-  overwrite: True
-asm:
-  experiment: ${species_name}_${now:%m_%d}
-graph:
-  experiment: ${species_name}_${now:%m_%d}
-  overwrite: True
+#reference:
+#  overwrite: True
+#asm:
+#  experiment: ${species_name}_${now:%m_%d}
+#graph:
+#  experiment: ${species_name}_${now:%m_%d}
+#  overwrite: True
