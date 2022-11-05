@@ -1,0 +1,10 @@
+# this is top-level default config for sequencing simulation
+defaults:
+  - _self_
+  - hydra: hydra
+  - paths: paths
+  - species_name@_global_: random_species
+  - reference: ${species_name@_global_}
+
+
+seed: 42
