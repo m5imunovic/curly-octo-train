@@ -59,10 +59,10 @@ def run(cfg: DictConfig):
             cfg.graph.experiment = cfg.asm.experiment
             from asm.assembler import assembly_experiment_path
             asm_experiment_root = assembly_experiment_path(cfg)
-            out_path = ph.get_datasets_path() / cfg.graph.experiment
-            run_graph_step(cfg.graph, **{'assemblies_path': asm_experiment_root, 'out_path': out_path})
+            out_path = cfg.paths.datasets_dir / cfg.graph.experiment
+            run_graph_step(cfg, **{'assemblies_path': asm_experiment_root, 'out_path': out_path})
         else:
-            run_graph_step(cfg.graph)
+            run_graph_step(cfg)
 
 def adjust_cfg_paths(cfg: DictConfig):
     project_root = ph.get_project_root()

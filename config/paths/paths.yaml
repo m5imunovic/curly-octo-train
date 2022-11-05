@@ -15,6 +15,8 @@ ref_dir: ${paths.root_dir}/data/references/
 simulated_data_dir: ${paths.root_dir}/data/simulated
 # path to results of genome assembly
 assemblies_dir: ${paths.root_dir}/data/assemblies
+# path to ML datasets
+datasets_dir : ${paths.root_dir}/data/datasets
 
 # path for storing the outputs of the specific run
 # see hydra config for the exact format used
