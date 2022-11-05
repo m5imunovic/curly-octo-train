@@ -36,26 +36,26 @@ class Assembler:
         self.post_assembly_step(*args, **kwargs)
 
 
-def assembler_factory(assembler: str, params: DictConfig) -> Assembler:
-    vendor_dir: Path = ph.get_vendor_path()
+def assembler_factory(assembler: str, cfg: DictConfig) -> Assembler:
+    vendor_dir: Path = cfg.paths.vendor_dir
     if assembler == 'LJA':
         from asm.la_jolla import LaJolla
-        return LaJolla(cfg=params, vendor_dir=vendor_dir)
+        return LaJolla(cfg=cfg.asm, vendor_dir=vendor_dir)
 
 
 def assembly_experiment_path(cfg: DictConfig) -> Path:
-    return ph.get_assemblies_path() / cfg.experiment
+    return Path(cfg.paths.assemblies_dir) / cfg.asm.experiment
 
 
 def run(cfg: DictConfig, **kwargs):
     exec_args = {
-        'reads_path': ph.get_simulated_data_path() / cfg.species,
+        'reads_path': Path(cfg.paths.simulated_data_dir) / cfg.species_name,
         'out_path': assembly_experiment_path(cfg)
     }
 
     exec_args.update(kwargs)
 
-    assembler = assembler_factory(cfg['name'], cfg)
+    assembler = assembler_factory(cfg.asm.name, cfg)
     assembler(**exec_args)
 
 

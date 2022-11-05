@@ -19,6 +19,11 @@ data/references/**
 !data/references/references.md
 data/simulated/**
 !data/simulated/simulated.md
+data/real/**
 vendor/**
 !vendor/vendor.md
 outputs/**
+logs/**
+
+
+.vscode/launch.json

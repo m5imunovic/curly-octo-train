@@ -33,7 +33,8 @@ def test_run_pipeline(run_reference_step, run_generate_reads_step, run_assembly_
 @mock.patch('pipeline.run_reference_step')
 def test_skipped_reference_and_reads_steps(run_reference_step, run_generate_reads_step, run_assembly_step, run_graph_step):
     cfg  = OmegaConf.create({
-        'asm': None
+        'asm': None,
+        'species_name': 'test',
     })
 
 
