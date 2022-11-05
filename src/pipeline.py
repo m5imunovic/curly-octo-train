@@ -36,7 +36,6 @@ def run(cfg: DictConfig):
         run_generate_reads_step(cfg)
 
     if 'asm' in cfg:
-        cfg.asm.species = cfg.species_name
         if 'reference' in cfg and cfg.reference is not None:
             # TODO: overwrite should be inspected in run command to see if anything should be skipped
             if 'chromosomes' in cfg.reference and cfg.asm.overwrite:

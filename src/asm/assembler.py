@@ -44,7 +44,7 @@ def assembler_factory(assembler: str, cfg: DictConfig) -> Assembler:
 
 
 def assembly_experiment_path(cfg: DictConfig) -> Path:
-    return cfg.paths.assemblies_dir / cfg.asm.experiment
+    return Path(cfg.paths.assemblies_dir) / cfg.asm.experiment
 
 
 def run(cfg: DictConfig, **kwargs):
