@@ -1,5 +1,7 @@
 from pathlib import Path
 
+from omegaconf import DictConfig, OmegaConf
+
 
 def get_project_root() -> Path:
     return Path(__file__).parent.parent.parent
@@ -36,3 +38,14 @@ def get_default_cfg_path() -> Path:
 def project_root_append(path: str):
     return get_project_root() / path
 
+
+def adjust_cfg_paths(cfg: DictConfig):
+    project_root = get_project_root()
+    OmegaConf.resolve(cfg.paths)
+    for key, value in cfg.paths.items():
+        if isinstance(value, str):
+            cfg.paths[key] = project_root / value
+        elif isinstance(value, list):
+            cfg.paths[key] = [project_root / path for path in value]
+        else:
+            raise ValueError(f'Unknown type for path {key}: {type(value)}')

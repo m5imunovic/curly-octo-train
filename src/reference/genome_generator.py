@@ -1,3 +1,6 @@
+import json
+import shutil
+from datetime import datetime
 from pathlib import Path
 from typing import Dict, Optional, Sequence
 
@@ -59,8 +62,8 @@ def save_genome_to_fasta(output_path: Path, genome: Dict[str, str], description:
 
 def species_reference_root(cfg: DictConfig) -> Path:
     references_dir = Path(cfg.paths.ref_dir)
-    species_root_dir = references_dir / cfg.species_name
-    return species_root_dir
+    species_name = str(cfg.species_name)
+    return references_dir / species_name
 
 
 def ref_chromosomes_path(cfg: DictConfig) -> Path:
@@ -70,20 +73,43 @@ def ref_chromosomes_path(cfg: DictConfig) -> Path:
 def run(cfg):
     species_path = species_reference_root(cfg)
 
-    if species_path.exists() and not cfg.reference.overwrite:
-        print(f'Reference genome for species `{cfg.species_name}` already exists. Skipping.')
+    if species_path.exists():
+        print(f'Reference genome for species `{cfg.species_name}` already exists at location: \n{species_path}')
+        print('Skipping...')
         return False
 
-    genome = get_random_genome(dict(cfg.reference.chromosomes), cfg.reference.gc_content, cfg.seed)
-    save_genome_to_fasta(ref_chromosomes_path(cfg), genome, multiline=False)
+    try:
+        print(cfg)
+        species_path.mkdir(parents=True)
+
+        species_info = {
+            'species_name': cfg.species_name,
+            'chromosomes': dict(cfg.reference.chromosomes),
+            'gc_content': cfg.reference.gc_content,
+            'seed': cfg.seed,
+            'created': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        }
+
+        with open(species_path / 'species_info.json', 'w') as handle:
+            json.dump(species_info, handle, indent=4)
+
+            genome = get_random_genome(dict(cfg.reference.chromosomes), cfg.reference.gc_content, cfg.seed)
+            save_genome_to_fasta(ref_chromosomes_path(cfg), genome, multiline=False)
+
+    except Exception as e:
+        shutil.rmtree(species_path)
+        print(f'Error while generating reference genome for species `{cfg.species_name}`: {e}')
+        return False
 
     return True
 
 
 @hydra.main(version_base="1.2", config_path="../../config")
 def main(cfg):
-    print("Running random species generator step...")
+    # TODO: use logger instead
+    print("Starting random species generator step...")
     run(cfg.reference)
+    print("Finished species generator step.")
 
 
 if __name__ == '__main__':
