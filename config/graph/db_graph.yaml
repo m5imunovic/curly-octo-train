@@ -1,5 +1,4 @@
 name: db_graph
-overwrite: False # set to True if you want to overwrite the existing data
 graph_type: # either digraph or multigraph, currently ignored an creating both types
 experiment: experiment_1
 mult_info_path: # Placeholder
@@ -13,3 +12,4 @@ gfa_path: # Placeholder
 # For now coverage (col0) and length (col1) are always added and used
 features: [kc, ln, in_degree, out_degree, pr_2]
 k: 501
+debug: True # if true outputs the graph in GML format for visualization purposes

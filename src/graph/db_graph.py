@@ -51,8 +51,8 @@ def convert_to_pyg_graph(g: DbGraphType, features: Optional[FeatureDict] = None)
 
 def run(cfg: DictConfig, **kwargs):
     exec_args = {
-        'assemblies_path': ph.get_assemblies_path() / cfg.experiment,
-        'out_path': ph.get_datasets_path() / cfg.experiment
+        'assemblies_path': cfg.paths.assemblies_dir / cfg.asm.experiment,
+        'out_path': cfg.paths.datasets_dir / cfg.graph.experiment
     }
 
     exec_args.update(kwargs)
@@ -66,15 +66,21 @@ def run(cfg: DictConfig, **kwargs):
     out_path = exec_args['out_path']
     out_raw_paths = {}
     out_processed_paths = {}
+    out_debug_paths = {}
     for g_type in ['digraph', 'multidigraph']:
         out_raw_path = out_path / g_type / 'raw'
         out_processed_path = out_path / g_type / 'processed'
+        out_debug_path = out_path / g_type / 'debug'
+
         if not out_raw_path.exists():
             out_raw_path.mkdir(parents=True)
         if not out_processed_path.exists():
             out_processed_path.mkdir(parents=True)
+        if not out_debug_path.exists():
+            out_debug_path.mkdir(parents=True)
         out_raw_paths[g_type] = out_raw_path
         out_processed_paths[g_type] = out_processed_path
+        out_debug_paths[g_type] = out_debug_path
 
     processed_files = defaultdict(list)
     raw_files = defaultdict(list)
@@ -82,16 +88,19 @@ def run(cfg: DictConfig, **kwargs):
     # TODO: parallelize (checko out joblib package)
     for idx, graph_dir in enumerate(graph_dirs):
         # Process raw data
-        cfg.mult_info_path = graph_dir / 'mult.info'
-        cfg.gfa_path = graph_dir / 'graph.gfa'
+        cfg.graph.mult_info_path = graph_dir / 'mult.info'
+        cfg.graph.gfa_path = graph_dir / 'graph.gfa'
 
-        all_graphs = construct_graphs(cfg)
+        all_graphs = construct_graphs(cfg.graph)
         for g_type, g in all_graphs.items():
-            g, features = add_features(g, cfg.features)
+            g, features = add_features(g, cfg.graph.features)
             print(f'Number of edges {g.number_of_edges()}')
             print(f'Number of nodes {g.number_of_nodes()}')
-            mult_info = parse_mult_info(cfg.mult_info_path)
+            mult_info = parse_mult_info(cfg.graph.mult_info_path)
             g = add_mult_info_features(g, mult_info)
+            if cfg.graph.debug:
+                nx.write_gml(g, out_debug_paths[g_type] / f'{idx}.gml')
+                
             pyg = convert_to_pyg_graph(g, features)
             pyg_filename = f'{idx}.pt'
             torch.save(pyg, out_processed_paths[g_type] / pyg_filename)
