@@ -64,21 +64,10 @@ def run(cfg: DictConfig):
         else:
             run_graph_step(cfg)
 
-def adjust_cfg_paths(cfg: DictConfig):
-    project_root = ph.get_project_root()
-    OmegaConf.resolve(cfg.paths)
-    for key, value in cfg.paths.items():
-        if isinstance(value, str):
-            cfg.paths[key] = project_root / value
-        elif isinstance(value, list):
-            cfg.paths[key] = [project_root / path for path in value]
-        else:
-            raise ValueError(f'Unknown type for path {key}: {type(value)}')
-
 
 @hydra.main(version_base="1.2", config_path='../config', config_name='config')
 def main(cfg: DictConfig):
-    adjust_cfg_paths(cfg)
+    ph.adjust_cfg_paths(cfg)
     run(cfg)
 
 
