@@ -40,6 +40,8 @@ def project_root_append(path: str):
 
 
 def adjust_cfg_paths(cfg: DictConfig):
+    assert 'paths' in cfg, 'Config must contain a "paths" section'
+
     project_root = get_project_root()
     OmegaConf.resolve(cfg.paths)
     for key, value in cfg.paths.items():

@@ -1,5 +1,6 @@
 name: pbsim3
-overwrite: True # set to False if you want to keep existing data
+overwrite: True # set to True if you want to overwrite existing data
+threads: 7 # set if you want to override (default is os.cpu_count() - 1)
 
 params:
   long: # command line params starting with --
@@ -11,5 +12,4 @@ params:
   
 suffix: ['.fa', '.fasta'] # list of file suffixes to match when searching for reference
 
-request: # request number of simulations for specific chromosomes in reference
-  chr1: 1
+# exclude: # list of chromosome that should be excluded from simulation

@@ -1,14 +1,12 @@
 import multiprocessing as mp
 import os
-import random
 import shutil
 import subprocess
+import yaml
 from abc import abstractmethod
-from datetime import datetime
 from pathlib import Path
 from typing import List
 
-import hydra
 from omegaconf import DictConfig, OmegaConf
 from typeguard import typechecked
 
@@ -23,6 +21,7 @@ class RSimulator:
     def __init__(self, cfg: DictConfig, vendor_dir: Path):
         self.cfg = cfg
         self.name = self.cfg.name
+        self.seed = self.cfg.params.long.seed or 42
         if 'install_script' in cfg and cfg.install_script is not None:
             assert cfg.exec_root is not None
             self._install_from_script(Path(cfg.script_path))
@@ -46,7 +45,7 @@ class RSimulator:
         pass
 
     @abstractmethod
-    def run(self, ref_root: Path, simulated_data_root: Path, chr_request: dict, *args, **kwargs):
+    def run(self, ref_root: Path, simulated_data_root: Path, *args, **kwargs):
         pass
 
 
@@ -80,14 +79,10 @@ class PbSim2(RSimulator):
         read_params = self._construct_read_params(ref_path)
         option_params = compose_cmd_params(self.cfg.params)
         prefix_param = f'--prefix {prefix}'
-        # TODO: document this or export through config
-        random.seed(datetime.now().timestamp())
-        seed_nr = random.randint(0, 1000000)
-        seed_param = f'--seed {seed_nr + int(prefix)}'
         read_params = self._prefix_read_params(read_params)
 
         return [
-            f'{self.simulator_exec} {option_params} {prefix_param} {read_params} {seed_param}',
+            f'{self.simulator_exec} {option_params} {prefix_param} {read_params}',
             f'rm {prefix}_0001.ref',
         ]
 
@@ -104,43 +99,30 @@ class PbSim2(RSimulator):
         return read_params
 
     @typechecked
-    def run(self, ref_root: Path, simulated_species_path: Path, chr_request: dict, *args, **kwargs) -> bool:
+    def run(self, ref_root: Path, simulated_species_path: Path, *args, **kwargs) -> bool:
         chr_path = ref_root / 'chromosomes'
         assert chr_path.exists(), f'{chr_path} does not exist!'
-        assert simulated_species_path.exists(), f'{simulated_species_path} does not exist!'
+
+        ref_suffix = list(self.cfg.suffix) or ['.fasta', '.fa']
+        ref_fasta_files = get_read_files(chr_path, suffix=ref_suffix)
         simulation_data = []
-        for chrN, n_need in chr_request.items():
-            chr_raw_path = simulated_species_path / f'{chrN}'
-            if not chr_raw_path.exists():
-                chr_raw_path.mkdir(parents=True)
-                n_have = 0
-            else:
-                n_have = len(get_read_files(chr_raw_path, suffix=['.fastq', '.fq']))
-            if n_need <= n_have:
-                continue
-            else:
-                n_diff = n_need - n_have
-                print(f'SETUP::simulate:: Simulate {n_diff} datasets for {chrN}')
-                # Simulate reads for chrN n_diff times
-
-                # TODO: use get_read_files() and check if the respective chromosome reference exists
-                chr_seq_path = chr_path / f'{chrN}.fasta'
-                for i in range(n_diff):
-                    idx = n_have + i
-                    chr_save_path = chr_raw_path
-                    simulation_data.append((chr_seq_path, chr_save_path, str(idx), '/'.join([str(i+1), str(n_diff)])))
-
-            # leave one processor free
-            with mp.Pool(os.cpu_count() - 1) as pool:
-                pool.starmap(self.simulate_reads_mp, simulation_data)
+        for ref_fasta_file in ref_fasta_files:
+            simulated_fastq_file = simulated_species_path / f'{ref_fasta_file.stem}.fastq'
+            simulation_data.append([ref_fasta_file, simulated_fastq_file, f'{ref_fasta_file.stem}'])
+        
+        print(f'SETUP::simulate:: Simulate {simulated_fastq_file} datasets from {ref_fasta_file}')
+        # leave one processor free
+        threads = self.cfg.threads or (os.cpu_count() - 1)
+        with mp.Pool(threads) as pool:
+            pool.starmap(self.simulate_reads_mp, simulation_data)
 
         return True
 
     @typechecked
-    def simulate_reads_mp(self, chr_seq_path: Path, chr_save_path: Path, prefix: str, i: str):
-        print(f'Request {i}: Simulating reads from referece:\n --> {chr_seq_path}')
+    def simulate_reads_mp(self, chr_seq_path: Path, chr_save_path: Path, prefix: str):
+        print(f'Simulating reads from referece:\n --> {chr_seq_path}')
         commands = self._construct_exec_cmd(chr_seq_path, chr_save_path, prefix)
-        cwd_path = chr_save_path / prefix
+        cwd_path = chr_save_path.parent 
         if not cwd_path.exists():
             cwd_path.mkdir(parents=True)
         for cmd in commands:
@@ -148,12 +130,16 @@ class PbSim2(RSimulator):
 
     @typechecked
     def pre_simulation_step(self, simulated_species_path: Path, *args, **kwargs):
-        if self.cfg.overwrite:
-            print('PRE::simulate:: Removing existing simulation data')
-            if simulated_species_path.exists():
+        if simulated_species_path.exists():
+            if self.cfg.overwrite:
+                print('PRE::simulate:: Removing existing simulation data')
                 shutil.rmtree(simulated_species_path)
-        # ensure that the directory exists
-        simulated_species_path.mkdir(exist_ok=True, parents=False)
+                # ensure that the directory exists
+            else:
+                err = f'PRE::simulate:: {simulated_species_path} already exists! Set overwrite to True to overwrite existing data!'
+                raise FileExistsError(err)
+        
+        simulated_species_path.mkdir(parents=True)
 
 class PbSim3(PbSim2):
     @typechecked
@@ -190,10 +176,13 @@ def simulator_factory(simulator: str, cfg: DictConfig) -> RSimulator:
 
 
 def run(cfg: DictConfig, **kwargs):
+    output_path = Path(cfg.paths.simulated_data_dir) / cfg.species_name / cfg.date_mm_dd / f'S{cfg.seed}'
     exec_args = {
-        'simulated_species_path': Path(cfg.paths.simulated_data_dir) / cfg.species_name,
+        # Top level output path
+        'simulated_species_path': output_path,
+        # Path to the reference genome directory (can contain one or multiple fasta files)
         'ref_root': Path(cfg.paths.ref_dir) / cfg.species_name,
-        'chr_request': dict(cfg.reads.request)
+        'experiment': cfg.experiment,
     }
     exec_args.update(kwargs)
     simulator = simulator_factory(simulator=cfg.reads.name, cfg=cfg.reads)
@@ -201,13 +190,11 @@ def run(cfg: DictConfig, **kwargs):
     simulator.pre_simulation_step(**exec_args)
     simulator.run(**exec_args)
 
+    metadata_path = output_path.parent / 'metadata'
+    metadata_path.mkdir(parents=True, exist_ok=True)
 
-@hydra.main(version_base=None, config_path='../../config/reads', config_name='pbsim2')
-def main(cfg):
-    print("Running read simulator step...")
-
-    run(cfg)
-
-
-if __name__ == '__main__':
-    main()
+    with open(metadata_path / f'S{cfg.seed}.yaml', 'w') as f:
+        OmegaConf.resolve(cfg)
+        cfg_cont = OmegaConf.to_container(cfg)
+        cfg_cont.pop('paths', None)
+        yaml.dump(cfg_cont, f)
