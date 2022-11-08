@@ -14,4 +14,4 @@ params:
 keep: ["graph.gfa", "mult.info", "ref.info"]
 exec: jumboDBG # name of the executable to use (jumboDBG or lja)
 
-dir_filter: 11_07/S42/chr10 # regex expression to filter out non-matching reads
+dir_filter: # regex expression to filter out non-matching reads
