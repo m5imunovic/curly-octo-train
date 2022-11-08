@@ -1,9 +1,7 @@
 from abc import abstractmethod
 from pathlib import Path
-from typing import Optional
 
-import hydra
-from omegaconf import DictConfig
+from omegaconf import DictConfig, OmegaConf
 from typeguard import typechecked
 
 from utils import path_helpers as ph
@@ -44,27 +42,18 @@ def assembler_factory(assembler: str, cfg: DictConfig) -> Assembler:
 
 
 def assembly_experiment_path(cfg: DictConfig) -> Path:
-    return Path(cfg.paths.assemblies_dir) / cfg.asm.experiment
+    return Path(cfg.paths.assemblies_dir) / cfg.experiment
 
 
 def run(cfg: DictConfig, **kwargs):
     exec_args = {
         'reads_path': Path(cfg.paths.simulated_data_dir) / cfg.species_name,
-        'out_path': assembly_experiment_path(cfg)
+        'ref_path': Path(cfg.paths.ref_dir) / cfg.species_name / 'chromosomes',
+        'out_path': assembly_experiment_path(cfg),
+        'suffix': OmegaConf.to_container(cfg.suffix)
     }
 
     exec_args.update(kwargs)
 
     assembler = assembler_factory(cfg.asm.name, cfg)
     assembler(**exec_args)
-
-
-@hydra.main(version_base=None, config_path='../../config/asm', config_name='la_jolla')
-def main(cfg):
-    print("Running assembler step...")
-
-    run(cfg)
-
-
-if __name__ == "__main__":
-    main()

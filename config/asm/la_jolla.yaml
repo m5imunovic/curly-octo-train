@@ -3,8 +3,8 @@ overwrite: True # set to False if you want to keep existing data
 
 params:
   long:
-    threads: 8
-    reference: ${project_root:data/references/random_species/chromosomes/chr1.fasta}
+    threads: 15
+    reference: # ${paths.ref_dir}/${species_name}/
   short:
     k: 501 
     # K: 2001 # not supported for jumboDBG
@@ -13,5 +13,5 @@ params:
 
 keep: ["graph.gfa", "mult.info", "ref.info"]
 exec: jumboDBG # name of the executable to use (jumboDBG or lja)
-species: random_species
-experiment: experiment_1 # this is the name of the folder where the assembly data is stored
+
+dir_filter: 11_07/S42/chr10 # regex expression to filter out non-matching reads

@@ -12,6 +12,7 @@ data_dir: ${paths.root_dir}/data/
 # path to genome references
 ref_dir: ${paths.root_dir}/data/references/
 # path to simulated reads
+# TODO: rename this to `reads_dir`
 simulated_data_dir: ${paths.root_dir}/data/simulated
 # path to results of genome assembly
 assemblies_dir: ${paths.root_dir}/data/assemblies

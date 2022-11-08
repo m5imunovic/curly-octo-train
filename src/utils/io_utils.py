@@ -1,3 +1,4 @@
+import re
 from pathlib import Path
 from typing import Dict, List, Optional, Union
 from omegaconf import DictConfig
@@ -5,7 +6,7 @@ from typeguard import typechecked
 
 
 @typechecked
-def get_read_files(read_path: Path, suffix: Optional[List[str]] = None, override: bool = True) -> List[Path]:
+def get_read_files(read_path: Path, suffix: Optional[List[str]] = None, override: bool = True, regex: Optional[str] = None) -> List[Path]:
     '''Get all files in the read_path with the given suffix.
 
     Args:
@@ -26,13 +27,16 @@ def get_read_files(read_path: Path, suffix: Optional[List[str]] = None, override
         assert suffix is not None, 'Pattern must be specified when override is True'
         default_suffixes = suffix
 
+    results = []
     if read_path.is_file() and read_path.suffix in set(default_suffixes):
-        return [read_path]
+        results = [read_path]
     elif read_path.is_dir():
-        return sorted([p.resolve() for p in read_path.glob('**/*') if p.suffix in set(default_suffixes)])
+        results = sorted([p.resolve() for p in read_path.glob('**/*') if p.suffix in set(default_suffixes)])
 
-    return []
+    if regex is not None:
+        results = [p for p in results if re.search(regex, str(p))]
 
+    return results
 
 @typechecked
 def compose_cmd_params(params: Union[Dict, DictConfig]) -> str:
