@@ -38,6 +38,5 @@ PROJECT_ROOT="./" python src/sequencing.py
 The assembly is going to be created for all sequencing experiments of the species specified with `species_name` parameter. Currently it is expected that the reference and reads are per chromosome (i.e. one reference file for
 chromosome and one reads file for that chromosome per sequencing experiment). The file is saved into the `assemblies/species_name/path_experiment_name` directory where path_experiment_name corresponds to the part of
 the path of the reads file before the filename and after the root directory of the reads for that species.
-```
 One can limit the assembly to a specific set of paths using the cfg.asm.dir_filter config option as regex pattern.
 All the files not matching the pattern will be filtered out. By default, all files are included, i.e. regex is left empty.
