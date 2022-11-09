@@ -3,7 +3,6 @@ from collections import defaultdict
 from itertools import chain
 from typing import Dict, Optional
 
-import hydra
 import networkx as nx
 import torch
 from omegaconf import DictConfig
@@ -11,10 +10,10 @@ from torch_geometric.data import Data
 from torch_geometric.utils.convert import from_networkx
 from typeguard import typechecked
 
-import utils.path_helpers as ph
 from graph.construct_features import add_features, FeatureDict
 from graph.construct_graph import construct_graphs, DbGraphType
 from graph.mult_info_parser import parse_mult_info
+from utils.io_utils import get_read_files
 
 
 def add_mult_info_features(g: DbGraphType, mult_info: Dict[str, int]) -> DbGraphType:
@@ -50,18 +49,17 @@ def convert_to_pyg_graph(g: DbGraphType, features: Optional[FeatureDict] = None)
 
 
 def run(cfg: DictConfig, **kwargs):
+
     exec_args = {
-        'assemblies_path': cfg.paths.assemblies_dir / cfg.asm.experiment,
-        'out_path': cfg.paths.datasets_dir / cfg.graph.experiment
+        'assemblies_path': cfg.paths.assemblies_dir / cfg.species_name,
+        'out_path':  cfg.paths.datasets_dir / f'{cfg.species_name}_{cfg.date_mm_dd}' / cfg.graph.set.name
     }
 
     exec_args.update(kwargs)
 
     # Iterate over experiment directory to find individual assemblies
     assemblies_path = exec_args['assemblies_path']
-    chr_dirs = list(filter(lambda x: x.is_dir(), assemblies_path.iterdir()))
-    graph_dirs = [list(filter(lambda x: x.is_dir() and x.stem.isdigit(), chr_dir.iterdir())) for chr_dir in chr_dirs]
-    graph_dirs = chain(*graph_dirs)
+    graph_dirs = [p.parent for p in get_read_files(assemblies_path, suffix=['.gfa'], regex=cfg.graph.set.dir_filter)]
 
     out_path = exec_args['out_path']
     out_raw_paths = {}
@@ -121,12 +119,3 @@ def run(cfg: DictConfig, **kwargs):
         with open(out_path / g_type / 'raw.csv', 'w') as f:
             for file in r_files:
                 f.write(f'{file[0]},{file[1]}\n')
-
-
-@hydra.main(version_base=None, config_path='../../config/graph', config_name='db_graph')
-def main(cfg: DictConfig):
-    run(cfg)
-
-
-if __name__ == '__main__':
-    main()
