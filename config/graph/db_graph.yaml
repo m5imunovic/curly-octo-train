@@ -1,6 +1,8 @@
 name: db_graph
 graph_type: # either digraph or multigraph, currently ignored an creating both types
-experiment: experiment_1
+set:
+  name: # designator that is going to be appended to experiment directory
+  dir_filter: # regex filter to match the assemblies projects that should go into this training set
 mult_info_path: # Placeholder
 gfa_path: # Placeholder
 #supported features for digraph (edge is just a k-mer):
