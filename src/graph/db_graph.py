@@ -97,7 +97,7 @@ def run(cfg: DictConfig, **kwargs):
             mult_info = parse_mult_info(cfg.graph.mult_info_path)
             g = add_mult_info_features(g, mult_info)
             if cfg.graph.debug:
-                nx.write_gml(g, out_debug_paths[g_type] / f'{idx}.gml')
+                nx.write_graphml(g, out_debug_paths[g_type] / f'{idx}.graphml')
                 
             pyg = convert_to_pyg_graph(g, features)
             pyg_filename = f'{idx}.pt'
