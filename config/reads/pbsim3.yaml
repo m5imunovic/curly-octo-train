@@ -1,15 +1,15 @@
 name: pbsim3
 overwrite: True # set to True if you want to overwrite existing data
-threads: 7 # set if you want to override (default is os.cpu_count() - 1)
+threads: 15 # set if you want to override (default is os.cpu_count() - 1)
 
 params:
   long: # command line params starting with --
-    depth: 20
+    depth: 30
     strategy: wgs
     method: errhmm
     errhmm: ${project_root:vendor}/pbsim3/data/ERRHMM-RSII.model # either use absolute path or use ${project_root} resolver
-    accuracy-mean: 0.99
+    accuracy-mean: 1.00
   
 suffix: ['.fa', '.fasta'] # list of file suffixes to match when searching for reference
 
-# exclude: # list of chromosome that should be excluded from simulation
+# exclude: # list of chromosome that should be excluded from simulationa
