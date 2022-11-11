@@ -81,10 +81,22 @@ class PbSim2(RSimulator):
         prefix_param = f'--prefix {prefix}'
         read_params = self._prefix_read_params(read_params)
 
-        return [
+        cmds = []
+        if self.cfg.profile_path and self.cfg.params.long["sample-profile-id"]:
+            profile_id = self.cfg.params.long["sample-profile-id"]
+            profile_file = Path(self.cfg.profile_path) / f'sample_profile_{profile_id}.fastq'
+            stats_file = Path(self.cfg.profile_path) / f'sample_profile_{profile_id}.stats'
+            assert profile_file.exists(), f'Profile file {profile_file} does not exist!'
+            assert stats_file.exists(), f'Stats file {stats_file} does not exist!'
+            cmds.append(f'ln -s {profile_file} {profile_file.name}')
+            cmds.append(f'ln -s {stats_file} {stats_file.name}')
+
+        cmds.extend([
             f'{self.simulator_exec} {option_params} {prefix_param} {read_params}',
             f'rm {prefix}_0001.ref',
-        ]
+        ])
+
+        return cmds
 
     @typechecked
     def _construct_read_params(self, ref_path: Path):

@@ -24,6 +24,7 @@ vendor/**
 !vendor/vendor.md
 outputs/**
 logs/**
+pf/**
 
 
 .vscode/launch.json
