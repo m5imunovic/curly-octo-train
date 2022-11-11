@@ -1,0 +1,15 @@
+name: pbsim3
+overwrite: True # set to True if you want to overwrite existing data
+threads: 15 # set if you want to override (default is os.cpu_count() - 1)
+
+params:
+  long: # command line params starting with --
+    depth: 30
+    strategy: wgs
+    method: sample
+    sample-profile-id: pf1 # make sure that the id matches one in the profile path
+
+suffix: ['.fa', '.fasta'] # list of file suffixes to match when searching for reference
+profile_path: ${project_root:pf}
+
+# exclude: # list of chromosome that should be excluded from simulationa
