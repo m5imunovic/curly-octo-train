@@ -96,6 +96,10 @@ class PbSim2(RSimulator):
             f'rm {prefix}_0001.ref',
         ])
 
+        if self.cfg.profile_path and self.cfg.params.long["sample-profile-id"]:
+            cmds.append(f'rm {profile_file.name}')
+            cmds.append(f'rm {stats_file.name}')
+
         return cmds
 
     @typechecked
