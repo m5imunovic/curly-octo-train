@@ -14,12 +14,12 @@ from typeguard import typechecked
 
 from utils import path_helpers as ph
 
+rng = np.random.default_rng(12345)
 
 @typechecked
 def get_random_chromosome(sequence_length: int, base_p: Optional[Sequence[float]] = None, seed: Optional[int] = None) -> str:
     if seed:
         np.random.seed(seed)
-    rng = np.random.default_rng(12345)
     bases = rng.choice(['A', 'C', 'G', 'T'], size=sequence_length, p=base_p)
     return ''.join(bases)
 
