@@ -30,9 +30,13 @@ def get_random_genome(chromosomes: Dict[str, int], gc_content: Optional[float] =
     base_p = [(1-gc_content)/2, gc_content/2, gc_content/2, (1-gc_content)/2] if gc_content else None
 
     genome = {}
+    seed_chr_offset = 0
+
     for chr_name, chr_length in chromosomes.items():
-        chr_seq = get_random_chromosome(chr_length, base_p, seed)
+        chr_seq = get_random_chromosome(chr_length, base_p, seed + seed_chr_offset)
+
         genome[chr_name] = chr_seq
+        seed_chr_offset += 1
 
     return genome
 
