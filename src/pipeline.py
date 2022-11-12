@@ -48,7 +48,7 @@ def run(cfg: DictConfig):
                 chr_paths = [ref_chromosomes_path(cfg) / f'{chr_name}.fasta' for chr_name in chr_names]
                 for chr_path in chr_paths:
                     cfg.asm.params.long.reference = chr_path
-                    reads_path = cfg.paths.simulated_data_dir/ cfg.species_name / chr_path.stem
+                    reads_path = cfg.paths.reads_dir/ cfg.species_name / chr_path.stem
                     out_path = assembly_experiment_path(cfg) / chr_path.stem
                     run_assembly_step(cfg, **{'reads_path': reads_path, 'out_path': out_path})
         else:

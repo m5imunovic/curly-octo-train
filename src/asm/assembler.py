@@ -47,7 +47,7 @@ def assembly_experiment_path(cfg: DictConfig) -> Path:
 
 def run(cfg: DictConfig, **kwargs):
     exec_args = {
-        'reads_path': Path(cfg.paths.simulated_data_dir) / cfg.species_name,
+        'reads_path': Path(cfg.paths.reads_dir) / cfg.species_name,
         'ref_path': Path(cfg.paths.ref_dir) / cfg.species_name / 'chromosomes',
         'out_path': assembly_experiment_path(cfg),
         'suffix': OmegaConf.to_container(cfg.suffix)

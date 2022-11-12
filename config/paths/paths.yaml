@@ -11,9 +11,9 @@ vendor_dir: ${paths.root_dir}/vendor
 data_dir: ${paths.root_dir}/data/
 # path to genome references
 ref_dir: ${paths.root_dir}/data/references/
-# path to simulated reads
+# path to sequencing reads
 # TODO: rename this to `reads_dir`
-simulated_data_dir: ${paths.root_dir}/data/simulated
+reads_dir: ${paths.root_dir}/data/reads
 # path to results of genome assembly
 assemblies_dir: ${paths.root_dir}/data/assemblies
 # path to ML datasets

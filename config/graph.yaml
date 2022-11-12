@@ -1,8 +1,4 @@
-# this is top-level default config for assembly step
-# We need to provide the reads as well as the reference data in order to 
-# be able to generate all the output files required for the downstream tasks
-# The reference path is constructed from paths.ref_dir and species name
-# Reads paths is constructed from simulated_data_dir and species name
+# This is top-level default config for graph conversion step
 
 defaults:
   - hydra: hydra
@@ -11,11 +7,11 @@ defaults:
   - graph: db_graph
   - _self_
 
-
 date_mm_dd: ${now:%m_%d}
 experiment: ${species_name}
 graph: 
   set:
     name: train
     dir_filter:
+
 tags: # list of tags that describe additionaly the experiment

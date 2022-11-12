@@ -192,7 +192,7 @@ def simulator_factory(simulator: str, cfg: DictConfig) -> RSimulator:
 
 
 def run(cfg: DictConfig, **kwargs):
-    output_path = Path(cfg.paths.simulated_data_dir) / cfg.species_name / cfg.date_mm_dd / f'S{cfg.seed}'
+    output_path = Path(cfg.paths.reads_dir) / cfg.species_name / cfg.date_mm_dd / f'S{cfg.seed}'
     exec_args = {
         # Top level output path
         'simulated_species_path': output_path,
