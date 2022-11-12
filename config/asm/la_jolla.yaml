@@ -11,7 +11,7 @@ params:
   append:
     "--compress"
 
-keep: ["graph.gfa", "mult.info", "ref.info"]
+keep: ["graph.gfa", "mult.info", "ref.info", "disjointigs.fasta", "graph.dot"]
 exec: jumboDBG # name of the executable to use (jumboDBG or lja)
 
 dir_filter: # regex expression to filter out non-matching reads
