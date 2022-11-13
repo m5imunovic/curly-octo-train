@@ -88,6 +88,7 @@ def run(cfg: DictConfig, **kwargs):
         # Process raw data
         cfg.graph.mult_info_path = graph_dir / 'mult.info'
         cfg.graph.gfa_path = graph_dir / 'graph.gfa'
+        print(f"Processing {cfg.graph.gfa_path}")
 
         all_graphs = construct_graphs(cfg.graph)
         for g_type, g in all_graphs.items():
@@ -101,6 +102,7 @@ def run(cfg: DictConfig, **kwargs):
                 
             pyg = convert_to_pyg_graph(g, features)
             pyg_filename = f'{idx}.pt'
+            print(f"Saving {out_processed_paths[g_type] / pyg_filename }")
             torch.save(pyg, out_processed_paths[g_type] / pyg_filename)
             processed_files[g_type].append((pyg_filename, graph_dir))
 
