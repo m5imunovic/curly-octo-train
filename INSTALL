@@ -1,3 +1,17 @@
 This document contains basic install instructions for running the project.
 We need to track prerequisites for the installation of binaries in pipeline (e.g. simulators, assemblers)
 In addition the pip requirements file needs to be properly maintained.
+
+# Installation
+
+We recommend the usage of mamba for setting up Python environment:
+
+```bash
+## Install mamba
+conda install mamba -n base -c conda-forge
+conda update mamba -c conda-forge
+mamba init
+
+## Create new environment
+mamba env create --file=environment.yaml
+```
