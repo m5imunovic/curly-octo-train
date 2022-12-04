@@ -15,11 +15,11 @@ FeatureDict = Union[Dict[str, Optional[List]], all]
 
 
 def supported_digraph_features() -> Set[str]:
-    return {'ln', 'kc', 'in_degree', 'out_degree', 'pr_1', 'pr_2', 'pr_3', 'pr_4', 'pr_5'}
+    return {'ln', 'kc', 'in_degree', 'out_degree'}
 
 
 def supported_multidigraph_features() -> Set[str]:
-    return {'ln', 'kc', 'in_degree', 'out_degree', 'pr_1', 'pr_2', 'pr_3', 'pr_4', 'pr_5'}
+    return {'ln', 'kc', 'in_degree', 'out_degree'}
 
 
 @typechecked
@@ -34,29 +34,6 @@ def add_multidigraph_features(g: nx.MultiDiGraph, features: Sequence[str]) -> Tu
         out_degrees = dict(g.out_degree())
         nx.set_node_attributes(g, out_degrees, 'out_degree')
         available_node_features.append('out_degree')
-
-    for feature in features:
-        # TODO: Does it makes sense to do this with torch instead and use GPU?
-        if feature.startswith('pr_'):
-            # get number of hops
-            k = int(feature.split('_')[1])
-            assert k > 0 and k < 6, f'Invalid number of hops {k}'
-            # get adjacency matrix
-            n = g.number_of_nodes()
-            A = nx.linalg.adjacency_matrix(g)
-            D = A.sum(axis=1)
-            Dinv = 1./ (D+1e-9); Dinv[D<1e-9] = 0 # take care of nodes without outgoing edges
-            Dinv = sparse.diags(np.squeeze(np.asarray(Dinv)), dtype=float) # D^-1
-            P = (Dinv @ A).T
-            pk_0 = np.ones(n) / n
-            x = pk_0.copy()
-            alpha = 0.95
-            for k_idx in range(k):
-                x = alpha * P.dot(x) + (1-alpha) * pk_0
-                attr = {node: x[idx] for idx, node in enumerate(g.nodes)}
-                feature_name = f'pr_{k_idx+1}'
-                nx.set_node_attributes(g, attr, feature_name)
-                available_node_features.append(feature_name)
 
     available_node_features = available_node_features or None
 
@@ -74,29 +51,6 @@ def add_digraph_features(g: nx.DiGraph, features: Sequence[str]) -> Tuple[nx.DiG
         out_degrees = dict(g.out_degree())
         nx.set_node_attributes(g, out_degrees, 'out_degree')
         available_node_features.append('out_degree')
-
-    for feature in features:
-        # TODO: Does it makes sense to do this with torch instead and use GPU?
-        if feature.startswith('pr_'):
-            # get number of hops
-            k = int(feature.split('_')[1])
-            assert k > 0 and k < 6, f'Invalid number of hops {k}'
-            # get adjacency matrix
-            n = g.number_of_nodes()
-            A = nx.linalg.adjacency_matrix(g)
-            D = A.sum(axis=1)
-            Dinv = 1./ (D+1e-9); Dinv[D<1e-9] = 0 # take care of nodes without outgoing edges
-            Dinv = sparse.diags(np.squeeze(np.asarray(Dinv)), dtype=float) # D^-1 
-            P = (Dinv @ A).T 
-            pk_0 = np.ones(n) / n
-            x = pk_0.copy()
-            alpha = 0.95 
-            for k_idx in range(k):
-                x = alpha * P.dot(x) + (1-alpha) * pk_0
-                attr = {node: x[idx] for idx, node in enumerate(g.nodes)}
-                feature_name = f'pr_{k_idx+1}'
-                nx.set_node_attributes(g, attr, feature_name)
-                available_node_features.append(feature_name)
     
     return g, {'node': available_node_features, 'edge': None}
 

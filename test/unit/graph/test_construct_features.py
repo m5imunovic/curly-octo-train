@@ -48,38 +48,6 @@ def test_add_features_in_degree_out_degree_multigraph(simple_multidigraph):
         assert expected_out_degree == attrs['out_degree']
 
 
-def test_add_features_pr(simple_digraph):
-    g, _ = add_features(simple_digraph, ['pr_1'])
-    expected_pr1 = {0: 0.005555, 1: 0.058333, 2: 0.058333, 3: 0.058333, 4: 0.058333, 5: 0.058333, 6: 0.058333, 7: 0.216666, 8: 0.216666}
-    for node_with_data in g.nodes(data=True):
-        nid, attrs = node_with_data
-        assert pytest.approx(expected_pr1[nid], rel=1e-3) == attrs['pr_1']
-
-    g, _ = add_features(simple_digraph, ['pr_4'])
-    for node_with_data in g.nodes(data=True):
-        _, attrs = node_with_data
-        assert 'pr_1' in attrs
-        assert 'pr_2' in attrs
-        assert 'pr_3' in attrs
-        assert 'pr_4' in attrs
-
-
-def test_add_features_pr_multidigraph(simple_multidigraph):
-    g, _ = add_features(simple_multidigraph, ['pr_1'])
-    expected_pr1 = {0: 0.005555, 1: 0.075925, 2: 0.040740, 3: 0.040740, 4: 0.075925, 5: 0.058333, 6: 0.058333, 7: 0.216666, 8: 0.216666}
-    for node_with_data in g.nodes(data=True):
-        nid, attrs = node_with_data
-        assert pytest.approx(expected_pr1[nid], rel=1e-3) == attrs['pr_1']
-
-    g, _ = add_features(simple_multidigraph, ['pr_4'])
-    for node_with_data in g.nodes(data=True):
-        _, attrs = node_with_data
-        assert 'pr_1' in attrs
-        assert 'pr_2' in attrs
-        assert 'pr_3' in attrs
-        assert 'pr_4' in attrs
-
-
 #@pytest.mark.parametrize('graph_type', ['digraph', 'multigraph'])
 def test_add_features_lja_graph(test_gfa_root): #, graph_type):
     graph_type = 'digraph'
@@ -90,14 +58,10 @@ def test_add_features_lja_graph(test_gfa_root): #, graph_type):
     })
 
     g = construct_graph(cfg)
-    g, _ = add_features(g, features=['ln', 'kc', 'pr_4', 'in_degree', 'out_degree'])
+    g, _ = add_features(g, features=['ln', 'kc', 'in_degree', 'out_degree'])
     for node_with_data in g.nodes(data=True):
         _, attrs = node_with_data
         assert 'ln' in attrs
         assert 'kc' in attrs
-        assert 'pr_1' in attrs
-        assert 'pr_2' in attrs
-        assert 'pr_3' in attrs
-        assert 'pr_4' in attrs
         assert 'in_degree' in attrs
         assert 'out_degree' in attrs

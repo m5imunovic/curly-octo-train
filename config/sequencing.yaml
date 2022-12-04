@@ -6,7 +6,6 @@ defaults:
   - reads: pbsim3_pf
   - _self_
 
-
 seed: 42 # if multirun mode seed is used to as a range parameter
 date_mm_dd: ${now:%m_%d}
 experiment: 
