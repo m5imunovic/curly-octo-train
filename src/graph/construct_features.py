@@ -15,27 +15,17 @@ FeatureDict = Union[Dict[str, Optional[List]], all]
 
 
 def supported_digraph_features() -> Set[str]:
-    return {'ln', 'kc', 'in_degree', 'out_degree'}
+    return {'ln', 'kc'}
 
 
 def supported_multidigraph_features() -> Set[str]:
-    return {'ln', 'kc', 'in_degree', 'out_degree'}
+    return {'ln', 'kc'}
 
 
 @typechecked
 def add_multidigraph_features(g: nx.MultiDiGraph, features: Sequence[str]) -> Tuple[nx.MultiDiGraph, FeatureDict]:
     available_edge_features = ['kc', 'ln']
-    available_node_features = []
-    if 'in_degree' in features:
-        in_degrees = dict(g.in_degree())
-        nx.set_node_attributes(g, in_degrees, 'in_degree')
-        available_node_features.append('in_degree')
-    if 'out_degree' in features:
-        out_degrees = dict(g.out_degree())
-        nx.set_node_attributes(g, out_degrees, 'out_degree')
-        available_node_features.append('out_degree')
-
-    available_node_features = available_node_features or None
+    available_node_features = None
 
     return g, {'edge': available_edge_features, 'node': available_node_features}
 
@@ -43,14 +33,6 @@ def add_multidigraph_features(g: nx.MultiDiGraph, features: Sequence[str]) -> Tu
 @typechecked
 def add_digraph_features(g: nx.DiGraph, features: Sequence[str]) -> Tuple[nx.DiGraph, FeatureDict]:
     available_node_features = ['kc', 'ln']
-    if 'in_degree' in features:
-        in_degrees = dict(g.in_degree())
-        nx.set_node_attributes(g, in_degrees, 'in_degree')
-        available_node_features.append('in_degree')
-    if 'out_degree' in features:
-        out_degrees = dict(g.out_degree())
-        nx.set_node_attributes(g, out_degrees, 'out_degree')
-        available_node_features.append('out_degree')
     
     return g, {'node': available_node_features, 'edge': None}
 

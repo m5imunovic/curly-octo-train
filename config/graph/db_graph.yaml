@@ -8,9 +8,7 @@ gfa_path: # Placeholder
 #supported features for digraph (edge is just a k-mer):
 # kc - coverage
 # ln - length, i.e. number of nucleotides in node
-# in_degree - input degree of nodes
-# out_degree - out degree of nodes
 # For now coverage (col0) and length (col1) are always added and used
-features: [kc, ln, in_degree, out_degree]
+features: [kc, ln]
 k: 501
 debug: True # if true outputs the graph in GML format for visualization purposes
