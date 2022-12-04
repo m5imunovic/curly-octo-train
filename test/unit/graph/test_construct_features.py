@@ -24,30 +24,6 @@ def simple_multidigraph() -> nx.MultiDiGraph:
     return nx.MultiDiGraph(incoming_graph_data=edges)
 
 
-def test_add_features_in_degree_out_degree(simple_digraph):
-    g, _ = add_features(simple_digraph, ['in_degree', 'out_degree'])
-    expected_in_degrees = dict(g.in_degree())
-    expected_out_degrees = dict(g.out_degree())
-    for node_with_data in g.nodes(data=True):
-        nid, attrs = node_with_data
-        expected_in_degree = expected_in_degrees[nid]
-        expected_out_degree = expected_out_degrees[nid]
-        assert expected_in_degree == attrs['in_degree']
-        assert expected_out_degree == attrs['out_degree']
-
-
-def test_add_features_in_degree_out_degree_multigraph(simple_multidigraph):
-    g, _ = add_features(simple_multidigraph, ['in_degree', 'out_degree'])
-    expected_in_degrees = dict(g.in_degree())
-    expected_out_degrees = dict(g.out_degree())
-    for node_with_data in g.nodes(data=True):
-        nid, attrs = node_with_data
-        expected_in_degree = expected_in_degrees[nid]
-        expected_out_degree = expected_out_degrees[nid]
-        assert expected_in_degree == attrs['in_degree']
-        assert expected_out_degree == attrs['out_degree']
-
-
 #@pytest.mark.parametrize('graph_type', ['digraph', 'multigraph'])
 def test_add_features_lja_graph(test_gfa_root): #, graph_type):
     graph_type = 'digraph'
@@ -58,10 +34,8 @@ def test_add_features_lja_graph(test_gfa_root): #, graph_type):
     })
 
     g = construct_graph(cfg)
-    g, _ = add_features(g, features=['ln', 'kc', 'in_degree', 'out_degree'])
+    g, _ = add_features(g, features=['ln', 'kc'])
     for node_with_data in g.nodes(data=True):
         _, attrs = node_with_data
         assert 'ln' in attrs
         assert 'kc' in attrs
-        assert 'in_degree' in attrs
-        assert 'out_degree' in attrs
