@@ -10,8 +10,7 @@ gfa_path: # Placeholder
 # ln - length, i.e. number of nucleotides in node
 # in_degree - input degree of nodes
 # out_degree - out degree of nodes
-# pr_N - k-step PageRank where N represent number of hops (supported up to N = 5)
 # For now coverage (col0) and length (col1) are always added and used
-features: [kc, ln, in_degree, out_degree, pr_2]
+features: [kc, ln, in_degree, out_degree]
 k: 501
 debug: True # if true outputs the graph in GML format for visualization purposes

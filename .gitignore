@@ -19,7 +19,9 @@ data/references/**
 !data/references/references.md
 data/simulated/**
 !data/simulated/simulated.md
+data/reads/**
 data/real/**
+dataset/**
 vendor/**
 !vendor/vendor.md
 outputs/**
