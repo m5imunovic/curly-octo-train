@@ -1,5 +1,5 @@
 name: db_graph
-graph_type: # either digraph or multigraph, currently ignored an creating both types
+graph_type: # either digraph or multidigraph, currently ignored an creating both types
 set:
   name: # designator that is going to be appended to experiment directory
   dir_filter: # regex filter to match the assemblies projects that should go into this training set

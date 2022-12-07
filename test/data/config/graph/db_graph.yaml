@@ -1,6 +1,6 @@
 name: db_graph
 overwrite: False # set to True if you want to overwrite the existing data
-graph_type: multigraph # either digraph or multigraph
+graph_type: multidigraph # either digraph or multidigraph
 experiment: experiment_1
 #supported features for digraph (edge is just a k-mer):
 # kc - coverage
