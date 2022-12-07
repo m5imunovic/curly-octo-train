@@ -47,9 +47,10 @@ def verify_edge_overlaps(segments: SegmentDict, links: dict, k: int):
 
 
 @typechecked
-def construct_nx_multigraph(segments: SegmentDict, k: int) -> nx.MultiDiGraph:
+def construct_nx_multigraph(segments: SegmentDict, k: int) -> Tuple[nx.MultiDiGraph, Dict]:
     labeler = RollingHash(k=k)
 
+    label_rc = {}
     g = nx.MultiDiGraph()
     for sid, attrs in segments.items():
         seq = attrs.pop('seq', None)
@@ -64,13 +65,15 @@ def construct_nx_multigraph(segments: SegmentDict, k: int) -> nx.MultiDiGraph:
         kmer_rc_end = reverse_complement(kmer_start)
 
         sid_rc = labeler.hash(reverse_complement(seq))
+        label_rc[sid] = sid_rc
         g.add_edge(kmer_rc_start, kmer_rc_end, key=sid_rc, **attrs)
 
-    return g
+
+    return g, label_rc
 
 
 @typechecked
-def construct_nx_digraph(segments: SegmentDict, links: Dict[int, Tuple], k: int) -> nx.DiGraph:
+def construct_nx_digraph(segments: SegmentDict, links: Dict[int, Tuple], k: int) -> Tuple[nx.DiGraph, Dict]:
     g = nx.DiGraph()
     labels_rc = {}
     labeler = RollingHash(k=k)
@@ -92,13 +95,13 @@ def construct_nx_digraph(segments: SegmentDict, links: Dict[int, Tuple], k: int)
         vertex_to_rc = inc_id if inc_sgn == '-' else labels_rc[inc_id]
         g.add_edge(vertex_from_rc, vertex_to_rc)
 
-    return g
+    return g, labels_rc
 
 
 @typechecked
-def construct_graph(cfg: DictConfig) -> DbGraphType:
+def construct_graph(cfg: DictConfig) -> Tuple[DbGraphType, Dict]:
     segments, links = parse_gfa(path=cfg.gfa_path, k=cfg.k)
-    if cfg.graph_type == 'multigraph':
+    if cfg.graph_type == 'multidigraph':
         return construct_nx_multigraph(segments, k=cfg.k)
     if cfg.graph_type == 'digraph':
         return construct_nx_digraph(segments, links, k=cfg.k)
@@ -107,10 +110,11 @@ def construct_graph(cfg: DictConfig) -> DbGraphType:
 
 
 @typechecked
-def construct_graphs(cfg: DictConfig) -> Dict[str, DbGraphType]:
+def construct_graphs(cfg: DictConfig) -> Tuple[Dict[str, DbGraphType], Dict]:
     segments, links = parse_gfa(path=cfg.gfa_path, k=cfg.k)
     graphs = {}
+    labels = {}
     segments_ = deepcopy(segments)
-    graphs['digraph'] = construct_nx_digraph(segments_, links, k=cfg.k)
-    graphs['multidigraph'] = construct_nx_multigraph(segments, k=cfg.k)
-    return graphs
+    graphs['digraph'], labels['digraph'] = construct_nx_digraph(segments_, links, k=cfg.k)
+    graphs['multidigraph'], labels['multidigraph'] = construct_nx_multigraph(segments, k=cfg.k)
+    return graphs, labels

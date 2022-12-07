@@ -1,3 +1,4 @@
+import json
 import shutil
 from collections import defaultdict
 from itertools import chain
@@ -48,6 +49,19 @@ def convert_to_pyg_graph(g: DbGraphType, features: Optional[FeatureDict] = None)
     raise KeyError(f'Graph type {type(g)} not supported')
 
 
+def export_ids(g: DbGraphType, out_path: str) -> None:
+    id_map = {}
+    if isinstance(g, nx.MultiDiGraph):
+        for idx, edge in enumerate(g.edges(keys=True)):
+            id_map[idx] = edge[2]
+    else:
+        for idx, node in enumerate(g.nodes()):
+            id_map[idx] = node
+
+    with open(out_path, 'w') as handle:
+        json.dump(id_map, handle, indent=4)
+
+
 def run(cfg: DictConfig, **kwargs):
 
     exec_args = {
@@ -90,7 +104,7 @@ def run(cfg: DictConfig, **kwargs):
         cfg.graph.gfa_path = graph_dir / 'graph.gfa'
         print(f"Processing {cfg.graph.gfa_path}")
 
-        all_graphs = construct_graphs(cfg.graph)
+        all_graphs, all_labels = construct_graphs(cfg.graph)
         for g_type, g in all_graphs.items():
             g, features = add_features(g, cfg.graph.features)
             print(f'Number of edges {g.number_of_edges()}')
@@ -99,10 +113,15 @@ def run(cfg: DictConfig, **kwargs):
             g = add_mult_info_features(g, mult_info)
             if cfg.graph.debug:
                 nx.write_graphml(g, out_debug_paths[g_type] / f'{idx}.graphml')
+
+            with open(out_debug_paths[g_type] / f'{idx}.rcmap', 'w') as f:
+                json.dump(all_labels[g_type], f, indent=4)
                 
             pyg = convert_to_pyg_graph(g, features)
             pyg_filename = f'{idx}.pt'
             print(f"Saving {out_processed_paths[g_type] / pyg_filename }")
+
+            export_ids(g, out_debug_paths[g_type] / f'{idx}.idmap')
             torch.save(pyg, out_processed_paths[g_type] / pyg_filename)
             processed_files[g_type].append((pyg_filename, graph_dir))
 

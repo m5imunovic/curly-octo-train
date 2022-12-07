@@ -1,10 +1,10 @@
 import pytest
 
 from omegaconf import OmegaConf
-from graph.construct_graph import construct_graph
+from graph.construct_graph import construct_graphs
 
 
-@pytest.mark.parametrize('graph_type', ['digraph', 'multigraph'])
+@pytest.mark.parametrize('graph_type', ['digraph', 'multidigraph'])
 def test_construct_example1_graph(test_gfa_root, graph_type):
     cfg = OmegaConf.create({
         'graph_type': graph_type, 
@@ -12,19 +12,18 @@ def test_construct_example1_graph(test_gfa_root, graph_type):
         'k': 10
     })
 
-    with pytest.raises(ValueError):
-        construct_graph(cfg)
+    with pytest.raises(ValueError) as e:
+        construct_graphs(cfg)
 
-
-@pytest.mark.parametrize('graph_type', ['digraph', 'multigraph'])
-def test_construct_lja_graph(test_gfa_root, graph_type, expected_lja):
+def test_construct_lja_graph(test_gfa_root, expected_lja_dict):
     cfg = OmegaConf.create({
-        'graph_type': graph_type, 
         'gfa_path': test_gfa_root / 'lja_graph.gfa',
         'k': 501
     })
 
-    g = construct_graph(cfg)
-    assert isinstance(g, expected_lja['instance'])
-    assert g.number_of_nodes() == expected_lja['number_of_nodes']
-    assert g.number_of_edges() == expected_lja['number_of_edges']
+    g, labels = construct_graphs(cfg)
+    for g_type in ['digraph', 'multidigraph']:
+        assert g_type in g
+        assert g_type in labels
+        assert g[g_type].number_of_nodes() == expected_lja_dict[g_type]['number_of_nodes']
+        assert g[g_type].number_of_edges() == expected_lja_dict[g_type]['number_of_edges']
