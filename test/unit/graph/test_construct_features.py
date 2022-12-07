@@ -24,8 +24,7 @@ def simple_multidigraph() -> nx.MultiDiGraph:
     return nx.MultiDiGraph(incoming_graph_data=edges)
 
 
-#@pytest.mark.parametrize('graph_type', ['digraph', 'multigraph'])
-def test_add_features_lja_graph(test_gfa_root): #, graph_type):
+def test_add_features_lja_graph(test_gfa_root):
     graph_type = 'digraph'
     cfg = OmegaConf.create({
         'graph_type': graph_type, 
