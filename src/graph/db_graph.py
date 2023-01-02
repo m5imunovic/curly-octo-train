@@ -1,7 +1,9 @@
+import os
 import json
+import multiprocessing as mp
 import shutil
 from collections import defaultdict
-from itertools import chain
+from pathlib import Path
 from typing import Dict, Optional
 
 import networkx as nx
@@ -62,6 +64,42 @@ def export_ids(g: DbGraphType, out_path: str) -> None:
         json.dump(id_map, handle, indent=4)
 
 
+def process_graph_mp(idx: int, graph_dir: Path, cfg: DictConfig,
+                     out_processed_paths: Path, out_raw_paths: Path, out_debug_paths: Path):
+    # Process raw data
+    mult_info_path = graph_dir / 'mult.info'
+    gfa_path = graph_dir / 'graph.gfa'
+    print(f"Processing {gfa_path}")
+
+    all_graphs, all_labels = construct_graphs(gfa_path=gfa_path, k=cfg.graph.k)
+    for g_type, g in all_graphs.items():
+        g, features = add_features(g, cfg.graph.features)
+        print(f'{idx}: Number of edges {g.number_of_edges()}')
+        print(f'{idx}: Number of nodes {g.number_of_nodes()}')
+        mult_info = parse_mult_info(mult_info_path)
+        g = add_mult_info_features(g, mult_info)
+        if cfg.graph.debug:
+            nx.write_graphml(g, out_debug_paths[g_type] / f'{idx}.graphml')
+
+        with open(out_debug_paths[g_type] / f'{idx}.rcmap', 'w') as f:
+            json.dump(all_labels[g_type], f, indent=4)
+
+        pyg = convert_to_pyg_graph(g, features)
+        pyg_filename = f'{idx}.pt'
+        print(f"Saving {out_processed_paths[g_type] / pyg_filename }")
+
+        export_ids(g, out_debug_paths[g_type] / f'{idx}.idmap')
+        torch.save(pyg, out_processed_paths[g_type] / pyg_filename)
+
+        # Save raw data
+        raw_filename = f'{idx}'
+        shutil.make_archive(out_raw_paths[g_type] / raw_filename, 'zip', graph_dir)
+
+        # Metadata stored in common csv file
+        return {"processed_files": {g_type: (pyg_filename, graph_dir)},
+                "raw_files": {g_type: (raw_filename, graph_dir)}}
+
+
 def run(cfg: DictConfig, **kwargs):
 
     exec_args = {
@@ -94,42 +132,24 @@ def run(cfg: DictConfig, **kwargs):
         out_processed_paths[g_type] = out_processed_path
         out_debug_paths[g_type] = out_debug_path
 
+    # Prepare multiprocessing data
+    mp_data = []
+    threads = cfg.graph.threads or (os.cpu_count() - 1)
+    for idx, graph_dir in enumerate(graph_dirs):
+        mp_data.append([idx, graph_dir, cfg, out_processed_paths, out_raw_paths, out_debug_paths])
+
+    print(f'Processing {len(mp_data)} graphs with {threads} threads')
+    with mp.Pool(threads) as pool:
+        processed_results = pool.starmap(process_graph_mp, mp_data)
+
+    # Merge results
     processed_files = defaultdict(list)
     raw_files = defaultdict(list)
-
-    # TODO: parallelize (checko out joblib package)
-    for idx, graph_dir in enumerate(graph_dirs):
-        # Process raw data
-        cfg.graph.mult_info_path = graph_dir / 'mult.info'
-        cfg.graph.gfa_path = graph_dir / 'graph.gfa'
-        print(f"Processing {cfg.graph.gfa_path}")
-
-        all_graphs, all_labels = construct_graphs(cfg.graph)
-        for g_type, g in all_graphs.items():
-            g, features = add_features(g, cfg.graph.features)
-            print(f'Number of edges {g.number_of_edges()}')
-            print(f'Number of nodes {g.number_of_nodes()}')
-            mult_info = parse_mult_info(cfg.graph.mult_info_path)
-            g = add_mult_info_features(g, mult_info)
-            if cfg.graph.debug:
-                nx.write_graphml(g, out_debug_paths[g_type] / f'{idx}.graphml')
-
-            with open(out_debug_paths[g_type] / f'{idx}.rcmap', 'w') as f:
-                json.dump(all_labels[g_type], f, indent=4)
-                
-            pyg = convert_to_pyg_graph(g, features)
-            pyg_filename = f'{idx}.pt'
-            print(f"Saving {out_processed_paths[g_type] / pyg_filename }")
-
-            export_ids(g, out_debug_paths[g_type] / f'{idx}.idmap')
-            torch.save(pyg, out_processed_paths[g_type] / pyg_filename)
-            processed_files[g_type].append((pyg_filename, graph_dir))
-
-            # Save raw data
-            raw_filename = f'{idx}'
-            shutil.make_archive(out_raw_paths[g_type] / raw_filename, 'zip', graph_dir)
-            raw_files[g_type].append((raw_filename, graph_dir))
-
+    for result in processed_results:
+        for g_type, p_files in result['processed_files'].items():
+            processed_files[g_type].append(p_files)
+        for g_type, r_files in result['raw_files'].items():
+            raw_files[g_type].append(r_files)
 
     for g_type, p_files in processed_files.items():
         with open(out_path / g_type / 'processed.csv', 'w') as f:

@@ -3,12 +3,11 @@ graph_type: # either digraph or multidigraph, currently ignored an creating both
 set:
   name: # designator that is going to be appended to experiment directory
   dir_filter: # regex filter to match the assemblies projects that should go into this training set
-mult_info_path: # Placeholder
-gfa_path: # Placeholder
 #supported features for digraph (edge is just a k-mer):
 # kc - coverage
 # ln - length, i.e. number of nucleotides in node
 # For now coverage (col0) and length (col1) are always added and used
 features: [kc, ln]
 k: 501
+threads: 1
 debug: True # if true outputs the graph in GML format for visualization purposes
