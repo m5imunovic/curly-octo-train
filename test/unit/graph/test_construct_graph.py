@@ -13,7 +13,7 @@ def test_construct_example1_graph(test_gfa_root, graph_type):
     })
 
     with pytest.raises(ValueError) as e:
-        construct_graphs(cfg)
+        construct_graphs(cfg.gfa_path, cfg.k)
 
 def test_construct_lja_graph(test_gfa_root, expected_lja_dict):
     cfg = OmegaConf.create({
@@ -21,7 +21,7 @@ def test_construct_lja_graph(test_gfa_root, expected_lja_dict):
         'k': 501
     })
 
-    g, labels = construct_graphs(cfg)
+    g, labels = construct_graphs(cfg.gfa_path, cfg.k)
     for g_type in ['digraph', 'multidigraph']:
         assert g_type in g
         assert g_type in labels
