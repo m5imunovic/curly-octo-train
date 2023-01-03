@@ -71,7 +71,9 @@ def process_graph_mp(idx: int, graph_dir: Path, cfg: DictConfig,
     gfa_path = graph_dir / 'graph.gfa'
     print(f"Processing {gfa_path}")
 
+    result = {"processed_files": defaultdict(tuple), "raw_files": defaultdict(tuple)}
     all_graphs, all_labels = construct_graphs(gfa_path=gfa_path, k=cfg.graph.k)
+
     for g_type, g in all_graphs.items():
         g, features = add_features(g, cfg.graph.features)
         print(f'{idx}: Number of edges {g.number_of_edges()}')
@@ -87,6 +89,7 @@ def process_graph_mp(idx: int, graph_dir: Path, cfg: DictConfig,
         pyg = convert_to_pyg_graph(g, features)
         pyg_filename = f'{idx}.pt'
         print(f"Saving {out_processed_paths[g_type] / pyg_filename }")
+        result["processed_files"][g_type] = (pyg_filename, graph_dir)
 
         export_ids(g, out_debug_paths[g_type] / f'{idx}.idmap')
         torch.save(pyg, out_processed_paths[g_type] / pyg_filename)
@@ -94,10 +97,10 @@ def process_graph_mp(idx: int, graph_dir: Path, cfg: DictConfig,
         # Save raw data
         raw_filename = f'{idx}'
         shutil.make_archive(out_raw_paths[g_type] / raw_filename, 'zip', graph_dir)
+        result["raw_files"][g_type] = (raw_filename, graph_dir)
 
-        # Metadata stored in common csv file
-        return {"processed_files": {g_type: (pyg_filename, graph_dir)},
-                "raw_files": {g_type: (raw_filename, graph_dir)}}
+    return result
+
 
 
 def run(cfg: DictConfig, **kwargs):
