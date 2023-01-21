@@ -38,9 +38,23 @@ class LaJolla(assembler.Assembler):
         out_cmd_param = f'-o {str(output_path)}'
         option_params = compose_cmd_params(self.cfg['params'])
 
+
         exec = 'lja' if 'exec' not in self.cfg else self.cfg['exec']
         asm_executable = self.assembler_root / exec
         cmds = [f'{asm_executable} {option_params} {reads_cmd_params} {out_cmd_param}']
+
+        if self.cfg['full_asm']:
+            lja_executable = self.assembler_root / 'lja'
+            full_asm_subdir = self.cfg['full_asm']
+            params = OmegaConf.to_container(self.cfg['params'])
+            params['long'].pop('reference', None)
+            params['append'] = params['append'].replace('--compress', '')
+            params['short'].update({'K': 5001})
+
+            option_params = compose_cmd_params(params)
+            out_cmd_param = f'-o {str(output_path / full_asm_subdir)}'
+
+            cmds.append(f'{lja_executable} {option_params} {reads_cmd_params} {out_cmd_param}')
         return cmds
 
 
@@ -65,9 +79,11 @@ class LaJolla(assembler.Assembler):
                     [fastq_stems[fastq_stem]], fasta_stems[fastq_stem], out_path / group / fastq_stem
                 )
             
-                cwd_path = out_path / group/ fastq_stem
+                cwd_path = out_path / group / fastq_stem
                 if not cwd_path.exists():
                     cwd_path.mkdir(parents=True)
+                if self.cfg['full_asm']:
+                    (cwd_path / self.cfg['full_asm']).mkdir(parents=True)
                 for cmd in commands:
                     print(f'RUN::assembler::\n{cmd}')
                     subprocess.run(cmd, shell=True, cwd=cwd_path)
