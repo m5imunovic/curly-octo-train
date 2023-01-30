@@ -19,9 +19,11 @@ class LaJolla(assembler.Assembler):
             try:
                 print(f'SETUP::generate:: Download La Jolla Assembler')
                 subprocess.run('git clone https://github.com/AntonBankevich/LJA.git', shell=True, cwd=str(vendor_dir))
-                subprocess.run('git checkout development', shell=True, cwd=str(assembler_root))
+                subprocess.run('git checkout -t anton_development', shell=True, cwd=str(assembler_root))
                 subprocess.run('cmake .', shell=True, cwd=str(assembler_root))
-                subprocess.run('make -j 8', shell=True, cwd=str(assembler_root))
+                subprocess.run('make -j 8 lja', shell=True, cwd=str(assembler_root))
+                subprocess.run('make -j 8 jumboDBG', shell=True, cwd=str(assembler_root))
+                subprocess.run('make -j 8 align_and_print', shell=True, cwd=str(assembler_root))
             except Exception as ex:
                 print(f'SETUP::generate:: Error: {ex}')
                 shutil.rmtree(assembler_root)
