@@ -51,12 +51,31 @@ class LaJolla(assembler.Assembler):
             params = OmegaConf.to_container(self.cfg['params'])
             params['long'].pop('reference', None)
             params['append'] = params['append'].replace('--compress', '')
-            params['short'].update({'K': 5001})
+            k = params['short'].pop('k', None)
+            params['short'].pop('K', None)
 
             option_params = compose_cmd_params(params)
-            out_cmd_param = f'-o {str(output_path / full_asm_subdir)}'
+            full_asm_path = output_path / full_asm_subdir
+            out_cmd_param = f'-o {str(full_asm_path)}'
 
             cmds.append(f'{lja_executable} {option_params} {reads_cmd_params} {out_cmd_param}')
+
+            align_and_print_executable = self.assembler_root / 'align_and_print'
+            params = {
+                'short': {
+                    'k': k,
+                },
+                'long': {
+                    'dbg': str(full_asm_path / '00_CoverageBasedCorrection' / 'initial_dbg.gfa'),
+                    'paths': str(full_asm_path / '01_TopologyBasedCorrection' / 'corrected_reads.fasta')
+                }
+            }
+            option_params = compose_cmd_params(params)
+            out_cmd_param = f'-o {str(output_path / "eval_01")}'
+
+            # command for generating alignments
+            cmds.append(f'{align_and_print_executable} {option_params} {out_cmd_param}')
+
         return cmds
 
 
@@ -105,6 +124,9 @@ class LaJolla(assembler.Assembler):
             keep_files = OmegaConf.to_container(self.cfg['keep'])
             for path in out_path.glob('**/*'):
                 if not path.is_dir():
+                    if self.cfg['full_asm']:
+                        if 'full_asm' in str(path):
+                            continue
                     if path.name not in keep_files:
                         path.unlink()
         # Create files summary and store it to the csv file in raw directory
