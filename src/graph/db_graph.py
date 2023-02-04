@@ -13,9 +13,9 @@ from torch_geometric.data import Data
 from torch_geometric.utils.convert import from_networkx
 from typeguard import typechecked
 
+from asm.mult_info_parser import parse_mult_info
 from graph.construct_features import add_features, FeatureDict
 from graph.construct_graph import construct_graphs, DbGraphType
-from graph.mult_info_parser import parse_mult_info
 from utils.io_utils import get_read_files
 
 
