@@ -31,9 +31,12 @@ def get_datasets_path() -> Path:
     return get_data_path() / 'datasets'
 
 
-def get_default_cfg_path() -> Path:
-    return get_project_root() / 'config' / 'config.yaml'
+def get_config_root() -> Path:
+    return get_project_root() / 'config'
 
+
+def get_default_cfg_path() -> Path:
+    return get_config_root() / 'config.yaml'
 
 def project_root_append(path: str):
     return get_project_root() / path

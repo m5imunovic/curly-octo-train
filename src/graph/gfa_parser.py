@@ -7,7 +7,7 @@ SegmentDict = Dict[str, Dict[str, Any]]
 
 
 @typechecked
-def parse_gfa(path: Path, k=501) -> Tuple[SegmentDict, Dict]:
+def parse_gfa(path: Path, k=501, skip_links=False) -> Tuple[SegmentDict, Dict]:
     segments = {}
     links = {}
 
@@ -28,14 +28,17 @@ def parse_gfa(path: Path, k=501) -> Tuple[SegmentDict, Dict]:
                     'kc': float(kc/(ln-k)),
                     'ln': ln
                 }
-            
-            if line.startswith('L'):
-                _, inc_id, inc_sgn, out_id, out_sgn, cigar = line.strip().split()
-                assert cigar == expected_cigar
-                links[node_id] = (inc_id, inc_sgn, out_id, out_sgn)
-                node_id += 2
+            if not skip_links:
+                if line.startswith('L'):
+                    _, inc_id, inc_sgn, out_id, out_sgn, cigar = line.strip().split()
+                    assert cigar == expected_cigar
+                    links[node_id] = (inc_id, inc_sgn, out_id, out_sgn)
+                    node_id += 2
 
     print(f'Loaded {len(segments)} segments')
-    print(f'Loaded {len(links)} links')
+    if not skip_links:
+        print(f'Loaded {len(links)} links')
+    else:
+        print('Skipped links loading')
 
     return segments, links

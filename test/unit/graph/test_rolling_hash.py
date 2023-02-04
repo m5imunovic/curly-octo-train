@@ -1,6 +1,6 @@
+from asm.mult_info_parser import parse_mult_info
 from graph.construct_graph import reverse_complement
 from graph.gfa_parser import parse_gfa
-from graph.mult_info_parser import parse_mult_info
 from graph.rolling_hash import RollingHash
 
 
