@@ -13,7 +13,6 @@ class RollingHash:
         self.hbase = hbase
         self.d = {'A': 0, 'C': 1, 'G': 2, 'T': 3}
 
-    @typechecked
     def hash_pair(self, sequence: str, pos: int) -> Tuple[int, int]:
         h = 0
         for i in range(pos, pos + self.k):
@@ -29,7 +28,6 @@ class RollingHash:
 
         return h, h_rc
 
-    @typechecked
     def hash(self, sequence: str, pos: int = 0) -> str:
         h, h_rc = self.hash_pair(sequence, pos)
         if h <= h_rc:

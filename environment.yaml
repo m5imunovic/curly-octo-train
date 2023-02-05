@@ -51,4 +51,5 @@ dependencies:
 
   - pip:
       - hydra-colorlog==1.2.0
+      - more-itertools==9.0.0
       - networkx==2.8.8
