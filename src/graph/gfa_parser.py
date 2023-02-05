@@ -7,7 +7,21 @@ SegmentDict = Dict[str, Dict[str, Any]]
 
 
 @typechecked
-def parse_gfa(path: Path, k=501, skip_links=False) -> Tuple[SegmentDict, Dict]:
+def parse_gfa(path: Path, k=501, skip_links=False) -> Tuple:
+    """_summary_
+
+    Args:
+        path (Path):
+            Path to GFA file containing LaJolla de Bruijn graph.
+        k (int, optional):
+            K-mer size used in JumboDBG stage. Defaults to 501.
+        skip_links (bool, optional):
+            Do not load links. Defaults to False.
+
+    Returns:
+        Tuple[SegmentDict, Dict]:
+            Tuple of segments and links dictionaries.
+    """
     segments = {}
     links = {}
 

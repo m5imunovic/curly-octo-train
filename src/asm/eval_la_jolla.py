@@ -1,6 +1,7 @@
 """Evaluates the corrected reads producesd by La Jolla Assembler. More specifically, it evaluates
 the corrected reads produced by the second step of the pipeline (i.e. the topology-based correction).
 """
+import os
 import json
 from pathlib import Path
 from typing import Dict
@@ -10,34 +11,9 @@ from omegaconf import DictConfig
 from typeguard import typechecked
 
 import utils.path_helpers as ph
+from asm.lja_rc_map import get_rc_map_mp_pool_batch
 from asm.mult_info_parser import parse_mult_info, partition_mult_info_edges
-from graph.gfa_parser import parse_gfa
-from graph.rolling_hash import RollingHash
 
-
-
-@typechecked
-def reverse_complement(seq: str) -> str:
-    # TODO: unify this and the one in construct_graph.py
-    return seq[::-1].translate(str.maketrans('ACGT', 'TGCA'))
-
-
-@typechecked
-def get_rc_map(gfa_path: Path, k: int = 501) -> Dict:
-    """Returns a dictionary mapping read IDs to their reverse complement."""
-    # TODO: this is awfully slow, should do something about it
-    segments, _ = parse_gfa(gfa_path, k=k, skip_links=True)
-    labels_rc = {}
-    labeler = RollingHash(k=k)
-
-    for sid, attrs in segments.items():
-        seq = attrs.pop('seq', None)
-        if seq is None or seq == '*':
-            raise ValueError(f'Invalid DNA sequence {seq}')
-        label = labeler.hash(reverse_complement(seq))
-        labels_rc[sid] = label
-
-    return labels_rc
 
 
 def parse_alignments_entry(read_id: str, edge_ids: str):
@@ -64,9 +40,8 @@ def parse_alignments(alignments_path: Path) -> set:
 
 
 @typechecked
-def get_correct_edges(alignments_path: Path, gfa_path: Path, k: int = 501) -> set:
+def get_correct_edges(alignments_path: Path, rc_map: Dict) -> set:
     correct_edges = parse_alignments(alignments_path)
-    rc_map = get_rc_map(gfa_path=gfa_path, k=k)
     # if read_id does not exist we simply re-add it as we are doing union with input set anyway
     correct_edges_rc = set(rc_map.get(read_id, read_id) for read_id in correct_edges)
 
@@ -74,7 +49,7 @@ def get_correct_edges(alignments_path: Path, gfa_path: Path, k: int = 501) -> se
 
 
 @typechecked
-def get_confusion_matrix(mult_info_path: Path, alignments_path: Path, gfa_path: Path, k: int = 501) -> tuple:
+def get_confusion_matrix(mult_info_path: Path, alignments_path: Path, rc_map: Dict) -> tuple:
     """
     Requires the following files:
     - alignments.txt
@@ -90,7 +65,7 @@ def get_confusion_matrix(mult_info_path: Path, alignments_path: Path, gfa_path: 
     print(f"Incorrect edges: {len(incorrect_edges_gt)}")
 
     # get mowerDBG edge assignments
-    correct_edges = get_correct_edges(alignments_path, gfa_path=gfa_path, k=k)
+    correct_edges = get_correct_edges(alignments_path, rc_map=rc_map)
     incorrect_edges = (correct_edges_gt | incorrect_edges_gt) - correct_edges
     print("MowerDBG classified:")
     print(f"\t{len(correct_edges)} as correct edges.")
@@ -119,8 +94,10 @@ def calculate_metrics(tp: int, tn:int, fp:int , fn:int) -> Dict[str, float]:
     }
 
 
-def evaluate_la_jolla(mult_info_path: Path, alignments_path: Path, gfa_path: Path, k: int) -> Dict:
-    tp, tn, fp, fn = get_confusion_matrix(mult_info_path, alignments_path=alignments_path, gfa_path=gfa_path, k=k)
+def evaluate_la_jolla(mult_info_path: Path, alignments_path: Path, gfa_path: Path, k: int, threads: int) -> Dict:
+
+    rc_map = get_rc_map_mp_pool_batch(gfa_path=gfa_path, k=k, threads=threads)
+    tp, tn, fp, fn = get_confusion_matrix(mult_info_path, alignments_path=alignments_path, rc_map=rc_map)
     metrics = calculate_metrics(tp, tn, fp, fn)
 
     evaluations = {
@@ -146,8 +123,9 @@ def main(cfg: DictConfig):
     initial_dbg_path = Path(cfg.asm_path) / cfg.full_asm_subdir / "00_CoverageBasedCorrection" / "initial_dbg.gfa"
     assert initial_dbg_path.exists(), f"Initial DBG file {initial_dbg_path} does not exist"
     k = cfg.k
+    threads = cfg.threads or os.cpu_count() - 1
     output_path = Path(cfg.output_path)
-    evaluation = evaluate_la_jolla(mult_info_path, alignments_path, gfa_path=initial_dbg_path, k=k)
+    evaluation = evaluate_la_jolla(mult_info_path, alignments_path, gfa_path=initial_dbg_path, k=k, threads=threads)
     if not output_path.exists():
         output_path.mkdir(parents=True)
 
