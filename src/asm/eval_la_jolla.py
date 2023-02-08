@@ -118,7 +118,7 @@ def evaluate_la_jolla(mult_info_path: Path, alignments_path: Path, gfa_path: Pat
 def main(cfg: DictConfig):
     mult_info_path = Path(cfg.asm_path) / "mult.info"
     assert mult_info_path.exists(), f"Mult info file {mult_info_path} does not exist"
-    alignments_path = Path(cfg.asm_path) / "eval_01" / "alignments.txt"
+    alignments_path = Path(cfg.asm_path) / cfg.eval_stage / "alignments.txt"
     assert alignments_path.exists(), f"Alignments file {alignments_path} does not exist"
     initial_dbg_path = Path(cfg.asm_path) / cfg.full_asm_subdir / "00_CoverageBasedCorrection" / "initial_dbg.gfa"
     assert initial_dbg_path.exists(), f"Initial DBG file {initial_dbg_path} does not exist"
