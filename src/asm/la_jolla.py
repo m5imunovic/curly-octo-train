@@ -67,9 +67,16 @@ class LaJolla(assembler.Assembler):
                 },
                 'long': {
                     'dbg': str(full_asm_path / '00_CoverageBasedCorrection' / 'initial_dbg.gfa'),
-                    'paths': str(full_asm_path / '01_TopologyBasedCorrection' / 'corrected_reads.fasta')
+                    'paths': str(full_asm_path / '00_CoverageBasedCorrection' / 'corrected_reads.fasta')
                 }
             }
+            option_params = compose_cmd_params(params)
+            out_cmd_param = f'-o {str(output_path / "eval_00")}'
+
+            # command for generating alignments
+            cmds.append(f'{align_and_print_executable} {option_params} {out_cmd_param}')
+
+            params['long']['paths'] = str(full_asm_path / '01_TopologyBasedCorrection' / 'corrected_reads.fasta')
             option_params = compose_cmd_params(params)
             out_cmd_param = f'-o {str(output_path / "eval_01")}'
 

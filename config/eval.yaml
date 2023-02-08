@@ -1,5 +1,6 @@
-asm_path: /home/msimunovic/ws/genomic/curly-octo-train/data/assemblies/random_species_medium_c1/01_21/S2/chr1/
+asm_path: /home/msimunovic/ws/genomic/curly-octo-train/data/assemblies/random_species_medium_c1/01_21/S3/chr1/
 full_asm_subdir: full_asm
+eval_stage: eval_01
 k: 501
 threads: null
 output_path: /tmp
