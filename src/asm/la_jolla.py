@@ -1,5 +1,6 @@
-import subprocess
+import json
 import shutil
+import subprocess
 from collections import defaultdict
 from pathlib import Path
 from typing import List
@@ -31,6 +32,51 @@ class LaJolla(assembler.Assembler):
 
         return assembler_root / 'bin'
 
+
+    @typechecked
+    def _construct_eval_cmds(self, output_path: Path, reads_cmd_params: str):
+        cmds = {}
+        if self.cfg['full_asm']:
+            full_asm_subdir = self.cfg['full_asm']
+            params = OmegaConf.to_container(self.cfg['params'])
+            params['long'].pop('reference', None)
+            params['append'] = params['append'].replace('--compress', '')
+            params['short'].pop('K', None)
+            k = params['short'].pop('k', None)
+
+            full_asm_path = output_path / full_asm_subdir
+            params['short']['o'] = full_asm_path
+            params['append'] = reads_cmd_params
+            cmds["lja"] = {"params": params.copy()}
+
+            params = {
+                'short': {
+                    'k': k,
+                },
+                'long': {
+                    'dbg': str(full_asm_path / '00_CoverageBasedCorrection' / 'initial_dbg.gfa'),
+                    'paths': str(full_asm_path / '00_CoverageBasedCorrection' / 'corrected_reads.fasta')
+                }
+            }
+
+            params['short']['o'] = {str(output_path / "eval_00")}
+
+            cmds["align_and_print"] = {}
+            # command for generating alignments
+            cmds["align_and_print"]["eval_00"] = params.copy()
+
+
+            params['short']['o'] = {str(output_path / "eval_01")}
+            params['long']['paths'] = str(full_asm_path / '01_TopologyBasedCorrection' / 'corrected_reads.fasta')
+            # command for generating alignments
+            cmds["align_and_print"]["eval_01"] = params.copy()
+
+            full_asm_path.mkdir(exist_ok=True, parents=True)
+            with open(full_asm_path / 'full_asm.json', 'w') as f:
+                json.dump(cmds, f, indent=4)
+
+            print("Stored evaluation commands in full_asm.json")
+
     @typechecked
     def _construct_exec_cmd(self, reads_files: List[Path], ref_path: Path, output_path: Path) -> List[str]:
         assert 'params' in self.cfg, "params must be specified in config"
@@ -45,46 +91,9 @@ class LaJolla(assembler.Assembler):
         asm_executable = self.assembler_root / exec
         cmds = [f'{asm_executable} {option_params} {reads_cmd_params} {out_cmd_param}']
 
-        if self.cfg['full_asm']:
-            lja_executable = self.assembler_root / 'lja'
-            full_asm_subdir = self.cfg['full_asm']
-            params = OmegaConf.to_container(self.cfg['params'])
-            params['long'].pop('reference', None)
-            params['append'] = params['append'].replace('--compress', '')
-            k = params['short'].pop('k', None)
-            params['short'].pop('K', None)
-
-            option_params = compose_cmd_params(params)
-            full_asm_path = output_path / full_asm_subdir
-            out_cmd_param = f'-o {str(full_asm_path)}'
-
-            cmds.append(f'{lja_executable} {option_params} {reads_cmd_params} {out_cmd_param}')
-
-            align_and_print_executable = self.assembler_root / 'align_and_print'
-            params = {
-                'short': {
-                    'k': k,
-                },
-                'long': {
-                    'dbg': str(full_asm_path / '00_CoverageBasedCorrection' / 'initial_dbg.gfa'),
-                    'paths': str(full_asm_path / '00_CoverageBasedCorrection' / 'corrected_reads.fasta')
-                }
-            }
-            option_params = compose_cmd_params(params)
-            out_cmd_param = f'-o {str(output_path / "eval_00")}'
-
-            # command for generating alignments
-            cmds.append(f'{align_and_print_executable} {option_params} {out_cmd_param}')
-
-            params['long']['paths'] = str(full_asm_path / '01_TopologyBasedCorrection' / 'corrected_reads.fasta')
-            option_params = compose_cmd_params(params)
-            out_cmd_param = f'-o {str(output_path / "eval_01")}'
-
-            # command for generating alignments
-            cmds.append(f'{align_and_print_executable} {option_params} {out_cmd_param}')
+        self._construct_eval_cmds(output_path=output_path, reads_cmd_params=reads_cmd_params)
 
         return cmds
-
 
     @typechecked
     def run(self, ref_path: Path, reads_path: Path, out_path: Path, suffix, *args, **kwargs):
@@ -110,8 +119,6 @@ class LaJolla(assembler.Assembler):
                 cwd_path = out_path / group / fastq_stem
                 if not cwd_path.exists():
                     cwd_path.mkdir(parents=True)
-                if self.cfg['full_asm']:
-                    (cwd_path / self.cfg['full_asm']).mkdir(parents=True)
                 for cmd in commands:
                     print(f'RUN::assembler::\n{cmd}')
                     subprocess.run(cmd, shell=True, cwd=cwd_path)
