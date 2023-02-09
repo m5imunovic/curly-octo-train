@@ -19,10 +19,6 @@ def get_ref_path() -> Path:
     return get_data_path() / 'references'
 
 
-def get_simulated_data_path() -> Path:
-    return get_data_path() / 'simulated'
-
-
 def get_assemblies_path() -> Path:
     return get_data_path() / 'assemblies'
 

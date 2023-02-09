@@ -1,4 +1,5 @@
 import json
+import random
 import shutil
 from datetime import datetime
 from pathlib import Path
@@ -31,6 +32,9 @@ def get_random_genome(chromosomes: Dict[str, int], gc_content: Optional[float] =
 
     genome = {}
     seed_chr_offset = 0
+    if seed is None:
+        seed = random.randint(0, 1000000)
+        print(f"Using randomly generated {seed=}.")
 
     for chr_name, chr_length in chromosomes.items():
         chr_seq = get_random_chromosome(chr_length, base_p, seed + seed_chr_offset)
