@@ -32,7 +32,7 @@ def test_add_features_lja_graph(test_gfa_root):
         'k': 501
     })
 
-    g = construct_graph(cfg)
+    g, _ = construct_graph(cfg)
     g, _ = add_features(g, features=['ln', 'kc'])
     for node_with_data in g.nodes(data=True):
         _, attrs = node_with_data

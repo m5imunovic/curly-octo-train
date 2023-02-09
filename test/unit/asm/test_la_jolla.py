@@ -34,7 +34,10 @@ def test_la_jolla_construct_exe_cmd(test_reads_root):
         reads = [reads_path / '0_0001.fastq', reads_path / '1_0001.fastq']
         cmd = lja._construct_exec_cmd(reads_files=reads, ref_path=reads_path, output_path=output_path)
 
-        assert len(cmd) == 2
+        # call jumboDBG
+        # call lja
+        # call align_and_print twice
+        assert len(cmd) == 4
 
         assert str(assembler_root / 'bin/jumboDBG') in cmd[0]
         assert '-k 501' in cmd[0]

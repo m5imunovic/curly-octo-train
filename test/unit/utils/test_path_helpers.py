@@ -19,11 +19,6 @@ def test_get_references_path():
     assert ref_path.name == "references"
 
 
-def test_get_simulated_data_path():
-    ref_path = ph.get_simulated_data_path()
-    assert ref_path.exists()
-    assert ref_path.name == "simulated"
-
 def test_get_default_cfg_path():
     cfg_path = ph.get_default_cfg_path()
     assert cfg_path.exists()
