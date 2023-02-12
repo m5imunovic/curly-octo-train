@@ -45,7 +45,7 @@ class LaJolla(assembler.Assembler):
             k = params['short'].pop('k', None)
 
             full_asm_path = output_path / full_asm_subdir
-            params['short']['o'] = full_asm_path
+            params['short']['o'] = str(full_asm_path)
             params['append'] = reads_cmd_params
             cmds["lja"] = {"params": params.copy()}
 
@@ -59,14 +59,14 @@ class LaJolla(assembler.Assembler):
                 }
             }
 
-            params['short']['o'] = {str(output_path / "eval_00")}
+            params['short']['o'] = str(output_path / "eval_00")
 
             cmds["align_and_print"] = {}
             # command for generating alignments
             cmds["align_and_print"]["eval_00"] = params.copy()
 
 
-            params['short']['o'] = {str(output_path / "eval_01")}
+            params['short']['o'] = str(output_path / "eval_01")
             params['long']['paths'] = str(full_asm_path / '01_TopologyBasedCorrection' / 'corrected_reads.fasta')
             # command for generating alignments
             cmds["align_and_print"]["eval_01"] = params.copy()
