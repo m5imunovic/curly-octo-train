@@ -2,6 +2,7 @@ import json
 import shutil
 import subprocess
 from collections import defaultdict
+from copy import deepcopy
 from pathlib import Path
 from typing import List
 
@@ -47,7 +48,7 @@ class LaJolla(assembler.Assembler):
             full_asm_path = output_path / full_asm_subdir
             params['short']['o'] = str(full_asm_path)
             params['append'] = reads_cmd_params
-            cmds["lja"] = {"params": params.copy()}
+            cmds["lja"] = {"params": deepcopy(params)}
 
             params = {
                 'short': {
@@ -63,13 +64,13 @@ class LaJolla(assembler.Assembler):
 
             cmds["align_and_print"] = {}
             # command for generating alignments
-            cmds["align_and_print"]["eval_00"] = params.copy()
+            cmds["align_and_print"]["eval_00"] = deepcopy(params)
 
 
             params['short']['o'] = str(output_path / "eval_01")
             params['long']['paths'] = str(full_asm_path / '01_TopologyBasedCorrection' / 'corrected_reads.fasta')
             # command for generating alignments
-            cmds["align_and_print"]["eval_01"] = params.copy()
+            cmds["align_and_print"]["eval_01"] = deepcopy(params)
 
             full_asm_path.mkdir(exist_ok=True, parents=True)
             with open(full_asm_path / 'full_asm.json', 'w') as f:
