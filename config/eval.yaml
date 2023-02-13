@@ -3,7 +3,7 @@ asm_path: /home/msimunovic/ws/genomic/curly-octo-train/data/assemblies/chr_11_ho
 full_asm_subdir: full_asm
 eval_cmd: full_asm.json
 skip_cmds: []  # possible options are lja and align_and_print
-eval_stages: ["eval_01"] # possible options are eval_00 and eval_01
+eval_stages: ["eval_00", "eval_01"] # possible options are eval_00 and eval_01
 k: 501
 threads: null
 output_path: /tmp
