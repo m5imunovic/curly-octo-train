@@ -1,12 +1,13 @@
 """Calculates the map of reverse complement IDs for reads in GFA files from LJA assembler.
+
 Multiprocessing implementations take round third of the time of the single-threaded version.
 """
 import multiprocessing as mp
 from itertools import repeat
-from more_itertools import batched
 from pathlib import Path
 from typing import Dict
 
+from more_itertools import batched
 from typeguard import typechecked
 
 from graph.gfa_parser import parse_gfa
@@ -15,7 +16,7 @@ from graph.rolling_hash import RollingHash
 
 def reverse_complement(seq: str) -> str:
     # TODO: unify this and the one in construct_graph.py
-    return seq[::-1].translate(str.maketrans('ACGT', 'TGCA'))
+    return seq[::-1].translate(str.maketrans("ACGT", "TGCA"))
 
 
 @typechecked
@@ -27,9 +28,9 @@ def get_rc_map(gfa_path: Path, k: int = 501) -> Dict:
     labeler = RollingHash(k=k)
 
     for sid, attrs in segments.items():
-        seq = attrs.pop('seq', None)
-        if seq is None or seq == '*':
-            raise ValueError(f'Invalid DNA sequence {seq}')
+        seq = attrs.pop("seq", None)
+        if seq is None or seq == "*":
+            raise ValueError(f"Invalid DNA sequence {seq}")
         label = labeler.hash(reverse_complement(seq))
         labels_rc[sid] = label
 
@@ -37,14 +38,13 @@ def get_rc_map(gfa_path: Path, k: int = 501) -> Dict:
 
 
 def worker_batched(args, labeler):
-    """The args argument is a chunk of input segments from GFA file
-    Returns a dictionary mapping read IDs to their reverse complement.
-    """
+    """The args argument is a chunk of input segments from GFA file Returns a dictionary mapping read IDs to their
+    reverse complement."""
     labels_rc = {}
     for sid, attrs in args:
-        seq = attrs.pop('seq', None)
-        if seq is None or seq == '*':
-            raise ValueError(f'Invalid DNA sequence {seq}')
+        seq = attrs.pop("seq", None)
+        if seq is None or seq == "*":
+            raise ValueError(f"Invalid DNA sequence {seq}")
         label = labeler.hash(reverse_complement(seq))
         labels_rc[sid] = label
 
@@ -52,14 +52,13 @@ def worker_batched(args, labeler):
 
 
 def worker(args, labeler):
-    """The args argument is a single item from input segments from GFA file
-    Returns a dictionary mapping read ID to its reverse complement.
-    """
+    """The args argument is a single item from input segments from GFA file Returns a dictionary mapping read ID to its
+    reverse complement."""
     labels_rc = {}
     sid, attrs = args
-    seq = attrs.pop('seq', None)
-    if seq is None or seq == '*':
-        raise ValueError(f'Invalid DNA sequence {seq}')
+    seq = attrs.pop("seq", None)
+    if seq is None or seq == "*":
+        raise ValueError(f"Invalid DNA sequence {seq}")
     label = labeler.hash(reverse_complement(seq))
     labels_rc[sid] = label
 
@@ -81,7 +80,6 @@ def get_rc_map_mp_pool_batch(gfa_path: Path, k: int = 501, threads: int = 8) -> 
     for results in processed_results:
         labels_rc.update(results)
 
-
     return labels_rc
 
 
@@ -100,6 +98,5 @@ def get_rc_map_mp_pool(gfa_path: Path, k: int = 501, threads: int = 8) -> Dict:
     labels_rc = {}
     for results in processed_results:
         labels_rc.update(results)
-
 
     return labels_rc

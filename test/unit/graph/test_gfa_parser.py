@@ -1,4 +1,3 @@
-from cgi import test
 import pytest
 
 from graph.gfa_parser import parse_gfa
@@ -12,31 +11,31 @@ def test_parse_gfa(test_gfa_root):
     assert len(links) == 24
     assert len(segments) == 20
 
-    segment = segments['1']
-    assert 'seq' in segment
-    assert 'kc' in segment
-    assert 'ln' in segment
+    segment = segments["1"]
+    assert "seq" in segment
+    assert "kc" in segment
+    assert "ln" in segment
 
-    assert segment['seq'] == '*'
-    assert segment['ln'] == 1
+    assert segment["seq"] == "*"
+    assert segment["ln"] == 1
     # Sequence is not known, so kmer coverage is not well defined
-    assert pytest.approx(-244451.88888888, rel=1e-6) == segment['kc']
+    assert pytest.approx(-244451.88888888, rel=1e-6) == segment["kc"]
 
 
 # TODO: parametrize test in order to merge these two into a single function
 def test_parse_lja_gfa(test_gfa_root):
-    example_gfa = test_gfa_root / 'lja_graph.gfa'
+    example_gfa = test_gfa_root / "lja_graph.gfa"
 
     segments, links = parse_gfa(example_gfa, k=501)
 
     assert len(links) == 66
     assert len(segments) == 80
 
-    segment = segments['1227474217660589217047698276682431851491C']
-    assert 'seq' in segment
-    assert 'kc' in segment
-    assert 'ln' in segment
+    segment = segments["1227474217660589217047698276682431851491C"]
+    assert "seq" in segment
+    assert "kc" in segment
+    assert "ln" in segment
 
-    assert segment['ln'] == 1431
-    assert segment['seq'].startswith('ATGCTGTCGAGCACTATGAC')
-    assert pytest.approx(1.0, rel=1e-6) == segment['kc']
+    assert segment["ln"] == 1431
+    assert segment["seq"].startswith("ATGCTGTCGAGCACTATGAC")
+    assert pytest.approx(1.0, rel=1e-6) == segment["kc"]

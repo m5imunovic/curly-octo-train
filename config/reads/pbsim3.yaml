@@ -9,7 +9,7 @@ params:
     method: errhmm
     errhmm: ${project_root:vendor}/pbsim3/data/ERRHMM-RSII.model # either use absolute path or use ${project_root} resolver
     accuracy-mean: 1.00
-  
-suffix: ['.fa', '.fasta'] # list of file suffixes to match when searching for reference
+
+suffix: [".fa", ".fasta"] # list of file suffixes to match when searching for reference
 
 # exclude: # list of chromosome that should be excluded from simulationa

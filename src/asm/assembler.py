@@ -4,8 +4,6 @@ from pathlib import Path
 from omegaconf import DictConfig, OmegaConf
 from typeguard import typechecked
 
-from utils import path_helpers as ph
-
 
 class Assembler:
     def __init__(self, cfg: DictConfig, vendor_dir: Path):
@@ -36,8 +34,9 @@ class Assembler:
 
 def assembler_factory(assembler: str, cfg: DictConfig) -> Assembler:
     vendor_dir: Path = cfg.paths.vendor_dir
-    if assembler == 'LJA':
+    if assembler == "LJA":
         from asm.la_jolla import LaJolla
+
         return LaJolla(cfg=cfg.asm, vendor_dir=vendor_dir)
 
 
@@ -47,10 +46,10 @@ def assembly_experiment_path(cfg: DictConfig) -> Path:
 
 def run(cfg: DictConfig, **kwargs):
     exec_args = {
-        'reads_path': Path(cfg.paths.reads_dir) / cfg.species_name,
-        'ref_path': Path(cfg.paths.ref_dir) / cfg.species_name / 'chromosomes',
-        'out_path': assembly_experiment_path(cfg),
-        'suffix': OmegaConf.to_container(cfg.suffix)
+        "reads_path": Path(cfg.paths.reads_dir) / cfg.species_name,
+        "ref_path": Path(cfg.paths.ref_dir) / cfg.species_name / "chromosomes",
+        "out_path": assembly_experiment_path(cfg),
+        "suffix": OmegaConf.to_container(cfg.suffix),
     }
 
     exec_args.update(kwargs)

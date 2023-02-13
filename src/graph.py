@@ -11,5 +11,5 @@ def main(cfg: DictConfig):
     run(cfg)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

@@ -9,9 +9,9 @@ defaults:
 
 date_mm_dd: ${now:%m_%d}
 experiment: ${species_name}
-graph: 
+graph:
   set:
     name: train
     dir_filter:
 
-tags: # list of tags that describe additionaly the experiment
+tags: # list of tags that describe additionally the experiment

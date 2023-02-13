@@ -8,13 +8,12 @@ defaults:
 
 seed: 42 # if multirun mode seed is used to as a range parameter
 date_mm_dd: ${now:%m_%d}
-experiment: 
-tags: # list of tags that describe additionaly the experiment
+experiment:
+tags: # list of tags that describe additionally the experiment
 
 reads:
   params:
     long:
       seed: ${seed}
-
 # paths:
 #   ref_dir: # use if you want to override the default in paths

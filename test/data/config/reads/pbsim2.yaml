@@ -6,8 +6,8 @@ params:
     depth: 20
     hmm_model: ${project_root:vendor/pbsim2/data/P6C4.model} # either use absolute path or use ${project_root} resolver
     accuracy-mean: 0.99
-  
-suffix: ['.fa', '.fasta'] # list of file suffixes to match when searching for reference
+
+suffix: [".fa", ".fasta"] # list of file suffixes to match when searching for reference
 
 species: random_species # name of the reference species
 request: # request number of simulations for specific chromosomes in reference
