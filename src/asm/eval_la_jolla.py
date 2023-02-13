@@ -3,8 +3,9 @@ the corrected reads produced by the second step of the pipeline (i.e. the topolo
 """
 import os
 import json
+import subprocess
 from pathlib import Path
-from typing import Dict
+from typing import Dict, List, MutableSequence
 
 import hydra
 from omegaconf import DictConfig
@@ -13,7 +14,7 @@ from typeguard import typechecked
 import utils.path_helpers as ph
 from asm.lja_rc_map import get_rc_map_mp_pool_batch
 from asm.mult_info_parser import parse_mult_info, partition_mult_info_edges
-
+from utils.io_utils import compose_cmd_params
 
 
 def parse_alignments_entry(read_id: str, edge_ids: str):
@@ -113,24 +114,63 @@ def evaluate_la_jolla(mult_info_path: Path, alignments_path: Path, gfa_path: Pat
     return evaluations
 
 
+@typechecked
+def construct_eval_commands(lja_bin_path: Path, eval_cmds_path: Path, skip_cmds: MutableSequence, eval_stages: MutableSequence) -> List[str]:
+    eval_cmds = {}
+    with open(eval_cmds_path) as f:
+        eval_cmds = json.load(f)
+    if not eval_cmds:
+        raise ValueError("No commands found in eval_cmds.json file")
+
+
+    cmds = []
+    for lja_cmd in eval_cmds:
+        if lja_cmd not in skip_cmds:
+            if lja_cmd == "lja":
+                params = eval_cmds[lja_cmd]["params"]
+                cmds.append(f"{str(lja_bin_path / lja_cmd)} {compose_cmd_params(params)}")
+            elif lja_cmd == "align_and_print":
+                for stage in eval_cmds[lja_cmd]:
+                    if stage in eval_stages:
+                        params = eval_cmds[lja_cmd][stage]
+                        cmds.append(f"{str(lja_bin_path / lja_cmd)} {compose_cmd_params(params)}")
+
+            else:
+                raise ValueError(f"Unknown command {lja_cmd}")
+
+    return cmds
+
 
 @hydra.main(version_base="1.2", config_path=ph.get_config_root(), config_name="eval.yaml")
 def main(cfg: DictConfig):
     mult_info_path = Path(cfg.asm_path) / "mult.info"
     assert mult_info_path.exists(), f"Mult info file {mult_info_path} does not exist"
-    alignments_path = Path(cfg.asm_path) / cfg.eval_stage / "alignments.txt"
-    assert alignments_path.exists(), f"Alignments file {alignments_path} does not exist"
-    initial_dbg_path = Path(cfg.asm_path) / cfg.full_asm_subdir / "00_CoverageBasedCorrection" / "initial_dbg.gfa"
-    assert initial_dbg_path.exists(), f"Initial DBG file {initial_dbg_path} does not exist"
-    k = cfg.k
-    threads = cfg.threads or os.cpu_count() - 1
-    output_path = Path(cfg.output_path)
-    evaluation = evaluate_la_jolla(mult_info_path, alignments_path, gfa_path=initial_dbg_path, k=k, threads=threads)
-    if not output_path.exists():
-        output_path.mkdir(parents=True)
+    lja_bin_path = Path(cfg.lja_bin_path)
+    assert lja_bin_path.exists(), f"LJA binary path {lja_bin_path} does not exist"
 
-    with open(output_path / "evaluation.json", "w") as f:
-        json.dump(evaluation, f, indent=4)
+    cmds = construct_eval_commands(lja_bin_path=lja_bin_path,
+                                   eval_cmds_path=Path(cfg.asm_path) / cfg.full_asm_subdir / cfg.eval_cmd,
+                                   skip_cmds=cfg.skip_cmds,
+                                   eval_stages=cfg.eval_stages)
+
+    for cmd in cmds:
+        print(f"Executing {cmd=}")
+        subprocess.run(cmd, shell=True)
+
+    for stage in cfg.eval_stages:
+        alignments_path = Path(cfg.asm_path) / stage / "alignments.txt"
+        assert alignments_path.exists(), f"Alignments file {alignments_path} does not exist"
+        initial_dbg_path = Path(cfg.asm_path) / cfg.full_asm_subdir / "00_CoverageBasedCorrection" / "initial_dbg.gfa"
+        assert initial_dbg_path.exists(), f"Initial DBG file {initial_dbg_path} does not exist"
+        k = cfg.k
+        threads = cfg.threads or os.cpu_count() - 1
+        output_path = Path(cfg.output_path) / stage
+        evaluation = evaluate_la_jolla(mult_info_path, alignments_path, gfa_path=initial_dbg_path, k=k, threads=threads)
+        if not output_path.exists():
+            output_path.mkdir(parents=True)
+
+        with open(output_path / "evaluation.json", "w") as f:
+            json.dump(evaluation, f, indent=4)
 
 
 if __name__ == "__main__":

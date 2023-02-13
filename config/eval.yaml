@@ -1,7 +1,9 @@
-# asm_path: /home/msimunovic/ws/genomic/curly-octo-train/data/assemblies/random_species_medium_c1/01_21/S3/chr1/
-asm_path: /home/msimunovic/ws/genomic/curly-octo-train/data/assemblies/chr_11_homunculus_50M/12_04/S100/chr2/  # eval_01/alignments.tx
+lja_bin_path: /home/msimunovic/ws/genomic/curly-octo-train/vendor/LJA/bin
+asm_path: /home/msimunovic/ws/genomic/curly-octo-train/data/assemblies/chr_11_homunculus_100M/12_10/S100/chr1/
 full_asm_subdir: full_asm
-eval_stage: eval_00
+eval_cmd: full_asm.json
+skip_cmds: []  # possible options are lja and align_and_print
+eval_stages: ["eval_00", "eval_01"] # possible options are eval_00 and eval_01
 k: 501
 threads: null
 output_path: /tmp
