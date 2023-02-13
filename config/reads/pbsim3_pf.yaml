@@ -9,7 +9,6 @@ params:
     method: sample
     sample-profile-id: pf1 # make sure that the id matches one in the profile path
 
-suffix: ['.fa', '.fasta'] # list of file suffixes to match when searching for reference
+suffix: [".fa", ".fasta"] # list of file suffixes to match when searching for reference
 profile_path: ${project_root:pf}
-
 # exclude: # list of chromosome that should be excluded from simulationa

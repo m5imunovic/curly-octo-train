@@ -6,7 +6,6 @@ defaults:
   - graph: db_graph
   - _self_
 
-
 # combine
 reference:
   overwrite: False

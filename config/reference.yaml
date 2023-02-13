@@ -6,5 +6,4 @@ defaults:
   - species_name@_global_: random_species
   - reference: ${species_name@_global_}
 
-
 seed: 42

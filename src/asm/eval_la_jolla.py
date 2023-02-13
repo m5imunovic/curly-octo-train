@@ -1,8 +1,10 @@
-"""Evaluates the corrected reads producesd by La Jolla Assembler. More specifically, it evaluates
-the corrected reads produced by the second step of the pipeline (i.e. the topology-based correction).
+"""Evaluates the corrected reads producesd by La Jolla Assembler.
+
+More specifically, it evaluates the corrected reads produced by the second step of the pipeline (i.e. the topology-
+based correction).
 """
-import os
 import json
+import os
 import subprocess
 from pathlib import Path
 from typing import Dict, List, MutableSequence
@@ -18,16 +20,18 @@ from utils.io_utils import compose_cmd_params
 
 
 def parse_alignments_entry(read_id: str, edge_ids: str):
-    """First line is read ID, second line is list of edge IDs. 
-    Returns a tuple of (read_id, edge_ids, is_rc) where is_rc is a list of 0s and 1s indicating
-    whether the corresponding edge string is reverse complemented."""
+    """First line is read ID, second line is list of edge IDs.
+
+    Returns a tuple of (read_id, edge_ids, is_rc) where is_rc is a list of 0s and 1s indicating whether the
+    corresponding edge string is reverse complemented.
+    """
     read_id = read_id.strip()[1:]
     edge_ids = edge_ids.strip().split()
-    is_rc = [edge_id.startswith('-') for edge_id in edge_ids]
+    is_rc = [edge_id.startswith("-") for edge_id in edge_ids]
     edge_ids = [edge_id[1:] if is_rc else edge_id for edge_id, is_rc in zip(edge_ids, is_rc)]
 
     return read_id, edge_ids, is_rc
-           
+
 
 @typechecked
 def parse_alignments(alignments_path: Path) -> set:
@@ -44,15 +48,15 @@ def parse_alignments(alignments_path: Path) -> set:
 def get_correct_edges(alignments_path: Path, rc_map: Dict) -> set:
     correct_edges = parse_alignments(alignments_path)
     # if read_id does not exist we simply re-add it as we are doing union with input set anyway
-    correct_edges_rc = set(rc_map.get(read_id, read_id) for read_id in correct_edges)
+    correct_edges_rc = {rc_map.get(read_id, read_id) for read_id in correct_edges}
 
     return correct_edges | correct_edges_rc
 
 
 @typechecked
 def get_confusion_matrix(mult_info_path: Path, alignments_path: Path, rc_map: Dict) -> tuple:
-    """
-    Requires the following files:
+    """Requires the following files:
+
     - alignments.txt
     - mult.info
     - initial_dbg.gfa
@@ -70,7 +74,7 @@ def get_confusion_matrix(mult_info_path: Path, alignments_path: Path, rc_map: Di
     incorrect_edges = (correct_edges_gt | incorrect_edges_gt) - correct_edges
     print("MowerDBG classified:")
     print(f"\t{len(correct_edges)} as correct edges.")
-    print(f"\t{len(incorrect_edges)} as incorrect egdes.")
+    print(f"\t{len(incorrect_edges)} as incorrect edges.")
 
     # true positives
     tp = len(correct_edges_gt & correct_edges)
@@ -82,7 +86,7 @@ def get_confusion_matrix(mult_info_path: Path, alignments_path: Path, rc_map: Di
 
 
 @typechecked
-def calculate_metrics(tp: int, tn:int, fp:int , fn:int) -> Dict[str, float]:
+def calculate_metrics(tp: int, tn: int, fp: int, fn: int) -> Dict[str, float]:
     precision = tp / (tp + fp)
     recall = tp / (tp + fn)
     accuracy = (tp + tn) / (tp + tn + fp + fn)
@@ -108,20 +112,21 @@ def evaluate_la_jolla(mult_info_path: Path, alignments_path: Path, gfa_path: Pat
             "tp fn": [tp, fn],
             "fp tn": [fp, tn],
         },
-        "metrics": metrics
+        "metrics": metrics,
     }
 
     return evaluations
 
 
 @typechecked
-def construct_eval_commands(lja_bin_path: Path, eval_cmds_path: Path, skip_cmds: MutableSequence, eval_stages: MutableSequence) -> List[str]:
+def construct_eval_commands(
+    lja_bin_path: Path, eval_cmds_path: Path, skip_cmds: MutableSequence, eval_stages: MutableSequence
+) -> List[str]:
     eval_cmds = {}
     with open(eval_cmds_path) as f:
         eval_cmds = json.load(f)
     if not eval_cmds:
         raise ValueError("No commands found in eval_cmds.json file")
-
 
     cmds = []
     for lja_cmd in eval_cmds:
@@ -148,10 +153,12 @@ def main(cfg: DictConfig):
     lja_bin_path = Path(cfg.lja_bin_path)
     assert lja_bin_path.exists(), f"LJA binary path {lja_bin_path} does not exist"
 
-    cmds = construct_eval_commands(lja_bin_path=lja_bin_path,
-                                   eval_cmds_path=Path(cfg.asm_path) / cfg.full_asm_subdir / cfg.eval_cmd,
-                                   skip_cmds=cfg.skip_cmds,
-                                   eval_stages=cfg.eval_stages)
+    cmds = construct_eval_commands(
+        lja_bin_path=lja_bin_path,
+        eval_cmds_path=Path(cfg.asm_path) / cfg.full_asm_subdir / cfg.eval_cmd,
+        skip_cmds=cfg.skip_cmds,
+        eval_stages=cfg.eval_stages,
+    )
 
     for cmd in cmds:
         print(f"Executing {cmd=}")
@@ -165,7 +172,9 @@ def main(cfg: DictConfig):
         k = cfg.k
         threads = cfg.threads or os.cpu_count() - 1
         output_path = Path(cfg.output_path) / stage
-        evaluation = evaluate_la_jolla(mult_info_path, alignments_path, gfa_path=initial_dbg_path, k=k, threads=threads)
+        evaluation = evaluate_la_jolla(
+            mult_info_path, alignments_path, gfa_path=initial_dbg_path, k=k, threads=threads
+        )
         if not output_path.exists():
             output_path.mkdir(parents=True)
 

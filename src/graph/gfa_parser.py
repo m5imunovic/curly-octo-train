@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Any, Dict, Tuple
-from typeguard import typechecked
 
+from typeguard import typechecked
 
 SegmentDict = Dict[str, Dict[str, Any]]
 
@@ -27,32 +27,28 @@ def parse_gfa(path: Path, k=501, skip_links=False) -> Tuple:
 
     node_id = 0
 
-    expected_cigar = str(k) + 'M'
+    expected_cigar = str(k) + "M"
 
-    with open(path, 'r') as f:
+    with open(path) as f:
         version = f.readline().strip()
-        assert 'VN:Z:1.0' in version
+        assert "VN:Z:1.0" in version
         for line in f:
-            if line.startswith('S'):
+            if line.startswith("S"):
                 _, sid, seq, kc = line.strip().split()
-                kc = int(kc[len("KC:i:"):])
+                kc = int(kc[len("KC:i:") :])
                 ln = len(seq)
-                segments[sid] = {
-                    'seq': seq,
-                    'kc': float(kc/(ln-k)),
-                    'ln': ln
-                }
+                segments[sid] = {"seq": seq, "kc": float(kc / (ln - k)), "ln": ln}
             if not skip_links:
-                if line.startswith('L'):
+                if line.startswith("L"):
                     _, inc_id, inc_sgn, out_id, out_sgn, cigar = line.strip().split()
                     assert cigar == expected_cigar
                     links[node_id] = (inc_id, inc_sgn, out_id, out_sgn)
                     node_id += 2
 
-    print(f'Loaded {len(segments)} segments')
+    print(f"Loaded {len(segments)} segments")
     if not skip_links:
-        print(f'Loaded {len(links)} links')
+        print(f"Loaded {len(links)} links")
     else:
-        print('Skipped links loading')
+        print("Skipped links loading")
 
     return segments, links

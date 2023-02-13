@@ -7,6 +7,7 @@ def test_get_project_root():
     toplevel_readme_file = root_path / "README.md"
     assert toplevel_readme_file.exists()
 
+
 def test_get_vendor_path():
     vendor_path = ph.get_vendor_path()
     assert vendor_path.exists()

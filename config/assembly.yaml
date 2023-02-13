@@ -1,5 +1,5 @@
 # this is top-level default config for assembly step
-# We need to provide the reads as well as the reference data in order to 
+# We need to provide the reads as well as the reference data in order to
 # be able to generate all the output files required for the downstream tasks
 # The reference path is constructed from paths.ref_dir and species name
 # Reads paths is constructed from reads_dir and species name
@@ -11,7 +11,6 @@ defaults:
   - asm: la_jolla
   - _self_
 
-
 date_mm_dd: ${now:%m_%d}
 experiment: ${species_name}
 suffix:
@@ -21,7 +20,7 @@ suffix:
   reference:
     - .fasta
     - .fa
-tags: # list of tags that describe additionaly the experiment
+tags: # list of tags that describe additionally the experiment
 # paths:
 #   ref_dir: # use if you want to override the default in paths
 #   reads

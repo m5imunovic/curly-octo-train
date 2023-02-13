@@ -11,57 +11,50 @@ from reads.reads_simulator import run as run_reads_simulator
 
 
 def reads_simulator_cfg(overwrite: bool, tmp_dir: Path):
-    return OmegaConf.create({
-            'reads': {
-                'name': 'pbsim2',
-                'overwrite': overwrite,
-                'params': None,
-                'request': {
-                    'chr1': 2
-                }
+    return OmegaConf.create(
+        {
+            "reads": {"name": "pbsim2", "overwrite": overwrite, "params": None, "request": {"chr1": 2}},
+            "paths": {
+                "ref_dir": str(tmp_dir / "ref"),
+                "simulated_data_dir": str(tmp_dir / "simulated"),
             },
-            'paths': {
-                'ref_dir': str(tmp_dir / 'ref'),
-                'simulated_data_dir': str(tmp_dir / 'simulated'),
-            },
-            'species_name': 'test_species',
-    })
+            "species_name": "test_species",
+        }
+    )
 
 
-@mock.patch('random.randint', return_value=22)
+@mock.patch("random.randint", return_value=22)
 def test_pbmsim2_construct_exe_cmd(mock_randint, test_reads_root):
-    cfg1 = OmegaConf.create({
-        'name': 'pbsim2',
-        'params': {
-            'long': {
-                'depth': 30,
+    cfg1 = OmegaConf.create(
+        {
+            "name": "pbsim2",
+            "params": {
+                "long": {
+                    "depth": 30,
+                },
+                "pattern": None,
             },
-            'pattern': None
         }
-    })
+    )
 
-    cfg2 = OmegaConf.create({
-        'name': 'pbsim2',
-        'params': {
-        }
-    })
+    cfg2 = OmegaConf.create({"name": "pbsim2", "params": {}})
 
     with tempfile.TemporaryDirectory() as tmp_dir:
-        vendor_dir = Path(tmp_dir) / 'vendor'
+        vendor_dir = Path(tmp_dir) / "vendor"
         vendor_dir.mkdir(exist_ok=True)
-        simulator_root = vendor_dir / 'pbsim2'
+        simulator_root = vendor_dir / "pbsim2"
         simulator_root.mkdir(exist_ok=True)
 
-        dummy_ref = test_reads_root / 'dummy' / 'dummy.fa'
-        save_dir = Path("/tmp/save")
-        prefix = '1'
+        dummy_ref = test_reads_root / "dummy" / "dummy.fa"
+        save_dir = Path(tmp_dir) / "save"
+        prefix = "1"
         pbsim = reads_simulator.PbSim2(cfg1, vendor_dir)
         cmd = pbsim._construct_exec_cmd(dummy_ref, save_dir, prefix)
         seed = mock_randint.return_value + int(prefix)
 
         expected_cmd = [
             f'{str(simulator_root / "src/pbsim")} --depth 30 --prefix {prefix} {str(dummy_ref)} --seed {seed}',
-            f'rm {prefix}_0001.ref'
+            f"rm {prefix}_0001.ref",
         ]
 
         assert len(cmd) == 2
@@ -74,21 +67,21 @@ def test_pbmsim2_construct_exe_cmd(mock_randint, test_reads_root):
 
         expected_cmd = [
             f'{str(simulator_root / "src/pbsim")}  --prefix {prefix} {str(dummy_ref)} --seed {seed}',
-            f'rm {prefix}_0001.ref'
+            f"rm {prefix}_0001.ref",
         ]
         assert cmd[0] == expected_cmd[0]
         assert cmd[1] == expected_cmd[1]
 
 
-@mock.patch.object(PbSim2, 'run')
-@mock.patch('shutil.rmtree', return_value=True)
+@mock.patch.object(PbSim2, "run")
+@mock.patch("shutil.rmtree", return_value=True)
 def test_reads_simulator_overwrite_data(mock_rmtree, mock_run, tmp_path):
     with tempfile.TemporaryDirectory() as tmp_dir:
         cfg = reads_simulator_cfg(overwrite=True, tmp_dir=Path(tmp_dir))
         kwargs = {
-            'ref_root': tmp_path / cfg.species_name,
-            'simulated_species_path': tmp_path,
-            'chr_request': dict(cfg.reads.request)
+            "ref_root": tmp_path / cfg.species_name,
+            "simulated_species_path": tmp_path,
+            "chr_request": dict(cfg.reads.request),
         }
         mock_run.return_value = True
 

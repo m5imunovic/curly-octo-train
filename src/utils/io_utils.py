@@ -1,13 +1,16 @@
 import re
 from pathlib import Path
 from typing import Dict, List, Optional, Union
+
 from omegaconf import DictConfig
 from typeguard import typechecked
 
 
 @typechecked
-def get_read_files(read_path: Path, suffix: Optional[List[str]] = None, override: bool = True, regex: Optional[str] = None) -> List[Path]:
-    '''Get all files in the read_path with the given suffix.
+def get_read_files(
+    read_path: Path, suffix: Optional[List[str]] = None, override: bool = True, regex: Optional[str] = None
+) -> List[Path]:
+    """Get all files in the read_path with the given suffix.
 
     Args:
         read_path (Path):
@@ -19,28 +22,29 @@ def get_read_files(read_path: Path, suffix: Optional[List[str]] = None, override
 
     Returns:
         list[Path]: sorted list of file paths in read_path with the given suffix.
-    '''
-    default_suffixes = ['.fasta', '.fa', '.fastq', '.fq']
+    """
+    default_suffixes = [".fasta", ".fa", ".fastq", ".fq"]
     if not override:
         default_suffixes += suffix if suffix else []
     else:
-        assert suffix is not None, 'Pattern must be specified when override is True'
+        assert suffix is not None, "Pattern must be specified when override is True"
         default_suffixes = suffix
 
     results = []
     if read_path.is_file() and read_path.suffix in set(default_suffixes):
         results = [read_path]
     elif read_path.is_dir():
-        results = sorted([p.resolve() for p in read_path.glob('**/*') if p.suffix in set(default_suffixes)])
+        results = sorted(p.resolve() for p in read_path.glob("**/*") if p.suffix in set(default_suffixes))
 
     if regex is not None:
         results = [p for p in results if re.search(regex, str(p))]
 
     return results
 
+
 @typechecked
 def compose_cmd_params(params: Union[Dict, DictConfig]) -> str:
-    '''Compose command line parameters from a dictionary.
+    """Compose command line parameters from a dictionary.
 
     Args:
         params (dict):
@@ -51,9 +55,9 @@ def compose_cmd_params(params: Union[Dict, DictConfig]) -> str:
 
     Returns:
         str: _description_
-    '''
-    short_params = ' '.join([f'-{k} {v}' for k, v in params['short'].items()]) if 'short' in params else ''
-    long_params = ' '.join([f'--{k} {v}' for k, v in params['long'].items()]) if 'long' in params else ''
-    append_params = f'{params["append"]}' if 'append' in params and params['append'] is not None else ''
-    combined_params = ' '.join([short_params,  long_params,  append_params])
+    """
+    short_params = " ".join([f"-{k} {v}" for k, v in params["short"].items()]) if "short" in params else ""
+    long_params = " ".join([f"--{k} {v}" for k, v in params["long"].items()]) if "long" in params else ""
+    append_params = f'{params["append"]}' if "append" in params and params["append"] is not None else ""
+    combined_params = " ".join([short_params, long_params, append_params])
     return combined_params.strip()
