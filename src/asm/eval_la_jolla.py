@@ -99,9 +99,8 @@ def calculate_metrics(tp: int, tn: int, fp: int, fn: int) -> Dict[str, float]:
     }
 
 
-def evaluate_la_jolla(mult_info_path: Path, alignments_path: Path, gfa_path: Path, k: int, threads: int) -> Dict:
+def evaluate_la_jolla(mult_info_path: Path, alignments_path: Path, rc_map: Dict) -> Dict:
 
-    rc_map = get_rc_map_mp_pool_batch(gfa_path=gfa_path, k=k, threads=threads)
     tp, tn, fp, fn = get_confusion_matrix(mult_info_path, alignments_path=alignments_path, rc_map=rc_map)
     metrics = calculate_metrics(tp, tn, fp, fn)
 
@@ -172,9 +171,13 @@ def main(cfg: DictConfig):
         k = cfg.k
         threads = cfg.threads or os.cpu_count() - 1
         output_path = Path(cfg.output_path) / stage
-        evaluation = evaluate_la_jolla(
-            mult_info_path, alignments_path, gfa_path=initial_dbg_path, k=k, threads=threads
-        )
+        if cfg.rc_map_path:
+            with open(cfg.rc_map_path) as f:
+                rc_map = json.load(f)
+        else:
+            rc_map = get_rc_map_mp_pool_batch(gfa_path=initial_dbg_path, k=k, threads=threads)
+        evaluation = evaluate_la_jolla(mult_info_path, alignments_path, rc_map=rc_map)
+
         if not output_path.exists():
             output_path.mkdir(parents=True)
 
