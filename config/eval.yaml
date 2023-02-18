@@ -1,5 +1,6 @@
 lja_bin_path: /home/msimunovic/ws/genomic/curly-octo-train/vendor/LJA/bin
 asm_path: /home/msimunovic/ws/genomic/curly-octo-train/data/assemblies/chr_11_homunculus_100M/12_10/S100/chr1/
+rc_map_path: # if running eval after graph construction step this file will be available so some computation can be saved
 full_asm_subdir: full_asm
 eval_cmd: full_asm.json
 skip_cmds: [] # possible options are lja and align_and_print
