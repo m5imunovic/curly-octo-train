@@ -14,6 +14,8 @@ import requests
 from omegaconf import OmegaConf
 from torch_geometric.data import download_url, extract_gz
 
+from reference.genome_generator import save_chr_to_fasta
+
 # URLs of the chm13 reference genomes
 chm13_urls = {
     "v1.1": "https://s3-us-west-2.amazonaws.com/human-pangenomics/T2T/CHM13/assemblies/chm13.draft_v1.1.fasta.gz",
@@ -58,15 +60,14 @@ def get_chr_ranges(offsets: dict) -> dict:
 def generate_chr_fasta_files(
     chm13_path: Path, output_dir: Path, chr_ranges_entry: tuple
 ):  # , chr: str, chr_range: tuple):
-    chr, (start, stop) = chr_ranges_entry
+    chromosome, (start, stop) = chr_ranges_entry
     cmd = shlex.join(["sed", "-n", f"{start},{stop}p", str(chm13_path)])
     print(cmd)
     sed_output = subprocess.check_output(cmd, shell=True, encoding="utf-8")
-    output_path = output_dir / "chromosomes" / f"{chr}.fasta"
-    output_path.parent.mkdir(exist_ok=True, parents=True)
-
-    with open(output_path, "w") as f:
-        f.write(sed_output)
+    lines = sed_output.split('\n')
+    chromosomes_dir = output_dir / "chromosomes"
+    chr_seq = "".join(lines[1:]).upper()
+    save_chr_to_fasta(output_path=chromosomes_dir, chr_name=chromosome, chr_seq=chr_seq, multiline=False)
 
 
 def main(cfg: OmegaConf):
@@ -98,7 +99,7 @@ if __name__ == "__main__":
             "chm13_version": "v2.0",
             "output_dir": "/home/${oc.env:USER}/ws/genomic/data/references/chm13_v2.0",
             "debug": True,
-            "threads": 4,
+            "threads": 15,
         }
     )
     OmegaConf.resolve(cfg)
