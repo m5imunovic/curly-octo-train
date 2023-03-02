@@ -1,4 +1,8 @@
 # curly-octo-train
+## Install preprequisites
+
+CMake
+zlib (apt install zlib1g zlib1g-dev)
 
 ## Random reference genome step
 

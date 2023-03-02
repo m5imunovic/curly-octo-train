@@ -23,7 +23,8 @@ class LaJolla(assembler.Assembler):
                 subprocess.run(
                     "git clone https://github.com/AntonBankevich/LJA.git", shell=True, cwd=str(vendor_dir.absolute())
                 )
-                subprocess.run("git checkout -t anton_development", shell=True, cwd=str(assembler_root))
+                subprocess.run("git fetch", shell=True, cwd=str(assembler_root))
+                subprocess.run("git checkout -t origin/anton_development", shell=True, cwd=str(assembler_root))
                 subprocess.run("cmake .", shell=True, cwd=str(assembler_root))
                 subprocess.run("make -j 8 lja", shell=True, cwd=str(assembler_root))
                 subprocess.run("make -j 8 jumboDBG", shell=True, cwd=str(assembler_root))
