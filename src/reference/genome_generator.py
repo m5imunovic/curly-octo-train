@@ -52,6 +52,7 @@ def save_chr_to_fasta(
     output_path: Path, chr_name: str, chr_seq: str, description: str = "", multiline: bool = True
 ) -> Path:
     file_path = output_path / f"{chr_name}.fasta"
+    print(f"Saving {file_path}...")
     new_fasta = [SeqIO.SeqRecord(seq=Seq(chr_seq), id=chr_name, description=description)]
     if multiline:
         SeqIO.write(new_fasta, file_path, "fasta")
@@ -116,7 +117,7 @@ def run(cfg):
     return True
 
 
-@hydra.main(version_base="1.2", config_path="../../config")
+@hydra.main(version_base=None, config_path="../../config")
 def main(cfg):
     # TODO: use logger instead
     print("Starting random species generator step...")
