@@ -70,7 +70,7 @@ def run(cfg: DictConfig):
             run_graph_step(cfg)
 
 
-@hydra.main(version_base="1.2", config_path="../config", config_name="config")
+@hydra.main(version_base=None, config_path="../config", config_name="config")
 def main(cfg: DictConfig):
     ph.adjust_cfg_paths(cfg)
     run(cfg)

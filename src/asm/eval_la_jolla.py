@@ -145,7 +145,7 @@ def construct_eval_commands(
     return cmds
 
 
-@hydra.main(version_base="1.2", config_path=ph.get_config_root(), config_name="eval.yaml")
+@hydra.main(version_base=None, config_path=ph.get_config_root(), config_name="eval.yaml")
 def main(cfg: DictConfig):
     mult_info_path = Path(cfg.asm_path) / "mult.info"
     assert mult_info_path.exists(), f"Mult info file {mult_info_path} does not exist"
