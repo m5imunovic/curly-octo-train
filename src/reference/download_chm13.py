@@ -61,11 +61,11 @@ def generate_chr_fasta_files(
     chm13_path: Path, output_dir: Path, chr_ranges_entry: tuple
 ):  # , chr: str, chr_range: tuple):
     chromosome, (start, stop) = chr_ranges_entry
-    cmd = shlex.join(["sed", "-n", f"{start},{stop}p", str(chm13_path)])
+    cmd = shlex.join(["sed", "-n", f"{start},{stop-1}p", str(chm13_path)])
     print(cmd)
     sed_output = subprocess.check_output(cmd, shell=True, encoding="utf-8")
-    lines = sed_output.split('\n')
     chromosomes_dir = output_dir / "chromosomes"
+    lines = sed_output.split('\n')
     chr_seq = "".join(lines[1:]).upper()
     save_chr_to_fasta(output_path=chromosomes_dir, chr_name=chromosome, chr_seq=chr_seq, multiline=False)
 
