@@ -9,5 +9,5 @@ set:
 # For now coverage (col0) and length (col1) are always added and used
 features: [kc, ln]
 k: 501
-threads: 3
+threads: 5
 debug: True # if true outputs the graph in GML format for visualization purposes
