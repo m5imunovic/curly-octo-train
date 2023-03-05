@@ -1,7 +1,7 @@
 # curly-octo-train
 ## Install preprequisites
 
-CMake
+CMake (pip install cmake=3.20.2)
 zlib (apt install zlib1g zlib1g-dev)
 
 ## Random reference genome step
@@ -69,4 +69,33 @@ In order to filter specific subset of assemblies that go into dataset we can use
 
 ```
 PROJECT_ROOT="./" python src/graph.py  graph.set.dir_filter='S\[1-2\]'
+```
+
+## Evaluation of LJA
+
+Branch `anton_development`, commit sha `9c81c179dcf8854981eaf843e2a44ba4c5607a7f` was used to perform evaluation of LJA metrics. In addition, following patch is applied
+in order to add the export of initial GFA graph representation:
+```diff
+--- a/src/projects/error_correction/coverage_ec_stage.hpp
++++ b/src/projects/error_correction/coverage_ec_stage.hpp
+@@ -32,6 +32,7 @@ CoverageEC(logging::Logger &logger, const std::experimental::filesystem::path &d
+     io::SeqReader reader(reads_lib);
+     readStorage.fill(reader.begin(), reader.end(), dbg, w + k - 1, logger, threads);
+     printDot(dir / "initial_dbg.dot", Component(dbg));
++    printGFA(dir / "initial_dbg.gfa", Component(dbg), true);
+     coverageStats(logger, dbg);
+     if(debug) {
+         PrintPaths(logger, threads, dir / "state_dump", "initial", dbg, readStorage, paths_lib, true);
+diff --git a/src/projects/error_correction/topology_ec_stage.hpp b/src/projects/error_correction/topology_ec_stage.hpp
+index 1709ec5..4c58f13 100644
+--- a/src/projects/error_correction/topology_ec_stage.hpp
++++ b/src/projects/error_correction/topology_ec_stage.hpp
+@@ -31,6 +31,7 @@ TopologyEC(logging::Logger &logger, const std::experimental::filesystem::path &d
+     io::SeqReader reader(reads_lib);
+     readStorage.fill(reader.begin(), reader.end(), dbg, w + k - 1, logger, threads);
+     printDot(dir / "initial_dbg.dot", Component(dbg));
++    printGFA(dir / "initial_dbg.gfa", Component(dbg), true);
+     if(debug) {
+         DrawSplit(Component(dbg), dir / "before_figs", readStorage.labeler(), 25000);
+         PrintPaths(logger, threads, dir / "state_dump", "initial", dbg, readStorage, paths_lib, false);
 ```
