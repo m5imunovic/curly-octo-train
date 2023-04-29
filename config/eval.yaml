@@ -1,10 +1,15 @@
-lja_bin_path: /home/msimunovic/ws/genomic/curly-octo-train/vendor/LJA/bin
-asm_path: /home/msimunovic/ws/genomic/curly-octo-train/data/assemblies/chr_11_homunculus_100M/12_10/S100/chr1/
-rc_map_path: # if running eval after graph construction step this file will be available so some computation can be saved
+defaults:
+  - paths: paths
+  - _self_
+
+lja_bin_path: ${oc.env:HOME}/ws/genomic/curly-octo-train/vendor/LJA/bin
+asm_path: #
+rc_map_path: #${paths.datasets_dir}/chr_homunculus_03_04/test/digraph/debug/0.rcmap # if running eval after graph construction step this file will be available so some computation can be saved
 full_asm_subdir: full_asm
 eval_cmd: full_asm.json
 skip_cmds: [] # possible options are lja and align_and_print
 eval_stages: ["eval_00", "eval_01"] # possible options are eval_00 and eval_01
 k: 501
 threads: null
-output_path: /tmp
+chr_n: # chromosome id (1, 2, 12, X, Y)
+output_path: ${paths.trainingdata_dir}/exp/eval_lja/chr${chr_n}
