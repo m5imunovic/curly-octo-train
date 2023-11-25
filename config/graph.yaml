@@ -3,12 +3,12 @@
 defaults:
   - hydra: hydra
   - paths: paths
-  - species_name@_global_: random_species
+  - species_name: null
   - graph: db_graph
   - _self_
 
 date_mm_dd: ${now:%m_%d}
-experiment: ${species_name}
+experiment: ${species_name.name}
 graph:
   set:
     name: train

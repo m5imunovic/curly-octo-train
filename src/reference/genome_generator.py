@@ -75,7 +75,7 @@ def save_genome_to_fasta(output_path: Path, genome: Dict[str, str], description:
 
 def species_reference_root(cfg: DictConfig) -> Path:
     references_dir = Path(cfg.paths.ref_dir)
-    species_name = str(cfg.species_name)
+    species_name = str(cfg.species_name["name"])
     return references_dir / species_name
 
 
@@ -87,16 +87,15 @@ def run(cfg):
     species_path = species_reference_root(cfg)
 
     if species_path.exists():
-        print(f"Reference genome for species `{cfg.species_name}` already exists at location: \n{species_path}")
+        print(f"Reference genome for species `{cfg.species_name['name']}` already exists at location: \n{species_path}")
         print("Skipping...")
         return False
 
     try:
-        print(cfg)
         species_path.mkdir(parents=True)
 
         species_info = {
-            "species_name": cfg.species_name,
+            "species_name": cfg.species_name["name"],
             "chromosomes": dict(cfg.reference.chromosomes),
             "gc_content": cfg.reference.gc_content,
             "seed": cfg.seed,

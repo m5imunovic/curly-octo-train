@@ -4,12 +4,9 @@ In addition the pip requirements file needs to be properly maintained.
 
 # Installation
 
-We recommend the usage of mamba for setting up Python environment:
+https://github.com/conda-forge/miniforge#mambaforge
 
-```bash
-## Install mamba
-conda install mamba -n base -c conda-forge
-conda update mamba -c conda-forge
+```Bash
 mamba init
 
 ## Create new environment

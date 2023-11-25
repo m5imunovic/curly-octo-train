@@ -4,7 +4,7 @@ threads: 15 # set if you want to override (default is os.cpu_count() - 1)
 
 params:
   long: # command line params starting with --
-    depth: 30
+    depth: 25
     strategy: wgs
     method: sample
     sample-profile-id: pf1 # make sure that the id matches one in the profile path

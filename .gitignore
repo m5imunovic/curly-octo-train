@@ -30,3 +30,6 @@ pf/**
 
 
 .vscode/launch.json
+
+# Hydra
+*.log
