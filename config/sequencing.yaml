@@ -2,7 +2,7 @@
 defaults:
   - hydra: hydra
   - paths: paths
-  - species_name@_global_: random_species
+  - species_name: null
   - reads: pbsim3_pf
   - _self_
 

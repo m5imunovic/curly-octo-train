@@ -110,7 +110,7 @@ def construct_graphs(gfa_path: Path, k: int) -> Tuple[Dict[str, DbGraphType], Di
     segments, links = parse_gfa(path=gfa_path, k=k)
     graphs = {}
     labels = {}
-    segments_ = deepcopy(segments)
-    graphs["digraph"], labels["digraph"] = construct_nx_digraph(segments_, links, k=k)
+    # segments_ = deepcopy(segments)
+    # graphs["digraph"], labels["digraph"] = construct_nx_digraph(segments_, links, k=k)
     graphs["multidigraph"], labels["multidigraph"] = construct_nx_multigraph(segments, k=k)
     return graphs, labels

@@ -1,6 +1,6 @@
 """Extracts the chm13 reference genome into a fasta file per chromosome.
 
-For simplicity, we ignore the last chromosome in the file.
+For simplicity, we ignore the last chromosome (mitochondrial DNA) in the file.
 """
 
 import multiprocessing as mp
@@ -10,7 +10,7 @@ import subprocess
 from itertools import pairwise, repeat
 from pathlib import Path
 
-import requests
+import wandb
 from omegaconf import OmegaConf
 from torch_geometric.data import download_url, extract_gz
 
@@ -21,18 +21,6 @@ chm13_urls = {
     "v1.1": "https://s3-us-west-2.amazonaws.com/human-pangenomics/T2T/CHM13/assemblies/chm13.draft_v1.1.fasta.gz",
     "v2.0": "https://s3-us-west-2.amazonaws.com/human-pangenomics/T2T/CHM13/assemblies/analysis_set/chm13v2.0.fa.gz",
 }
-
-
-def download_if_not_exist(dowload_dir: Path, filename: str, url: str):
-    download_path = dowload_dir / filename
-    if not download_path.exists():
-        print(f"Downloading reference from {url}...")
-        requests.get(url, stream=True)
-
-
-def download_chm13(dowload_dir: Path, url: str):
-    filename = url.split("/")[-1]
-    download_if_not_exist(dowload_dir, filename, url)
 
 
 def grep_chromosome_offsets(chm13_path: Path) -> dict:
@@ -59,15 +47,18 @@ def get_chr_ranges(offsets: dict) -> dict:
 
 def generate_chr_fasta_files(
     chm13_path: Path, output_dir: Path, chr_ranges_entry: tuple
-):  # , chr: str, chr_range: tuple):
+):
     chromosome, (start, stop) = chr_ranges_entry
+    file_path = output_dir / f"{chromosome}.fasta"
+    if file_path.exists():
+        print(f"The file path {str(file_path)} already exists, skipping...")
+        return
     cmd = shlex.join(["sed", "-n", f"{start},{stop-1}p", str(chm13_path)])
     print(cmd)
     sed_output = subprocess.check_output(cmd, shell=True, encoding="utf-8")
-    chromosomes_dir = output_dir / "chromosomes"
     lines = sed_output.split('\n')
     chr_seq = "".join(lines[1:]).upper()
-    save_chr_to_fasta(output_path=chromosomes_dir, chr_name=chromosome, chr_seq=chr_seq, multiline=False)
+    save_chr_to_fasta(output_path=output_dir, chr_name=chromosome, chr_seq=chr_seq, multiline=False)
 
 
 def main(cfg: OmegaConf):
@@ -82,14 +73,23 @@ def main(cfg: OmegaConf):
     offsets = grep_chromosome_offsets(fasta_file)
     chr_ranges = get_chr_ranges(offsets)
 
+    chromosomes_dir = download_dir / "chromosomes"
+    chromosomes_dir.mkdir(exist_ok=True)
     with mp.Pool(processes=cfg.threads) as pool:
-        pool.starmap(generate_chr_fasta_files, zip(repeat(fasta_file), repeat(download_dir), chr_ranges.items()))
+        pool.starmap(generate_chr_fasta_files, zip(repeat(fasta_file), repeat(chromosomes_dir), chr_ranges.items()))
+
+    if cfg.store_artifacts:
+        run = wandb.init(project="chm13", job_type="add-dataset")
+        artifact = wandb.Artifact(name="chromosomes", type="dataset")
+        artifact.add_dir(local_path=str(chromosomes_dir))
+        run.log_artifact(artifact)
+
 
     fasta_file.unlink()
     if not cfg.debug:
         fasta_gz_file.unlink()
 
-    shutil.move(str(download_dir), str(cfg.output_dir))
+    # shutil.move(str(download_dir), str(cfg.output_dir))
 
 
 if __name__ == "__main__":
@@ -97,9 +97,10 @@ if __name__ == "__main__":
     cfg = OmegaConf.create(
         {
             "chm13_version": "v2.0",
-            "output_dir": "/home/${oc.env:USER}/ws/genomic/data/references/chm13_v2.0",
+            "output_dir": "/home/${oc.env:USER}/data/chm13",
             "debug": True,
             "threads": 15,
+            "store_artifacts": True
         }
     )
     OmegaConf.resolve(cfg)
