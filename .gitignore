@@ -7,8 +7,14 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-  # Unit test / coverage reports
+# Unit test / coverage reports
 .pytest_cache/
+
+# Jupyter
+.ipynb_checkpoints
+notebooks/.ipynbcheckpoints
+notebooks/*.dot
+notebooks/*.png
 
 # Project related files
 data/assemblies/**
@@ -33,3 +39,7 @@ pf/**
 
 # Hydra
 *.log
+# Dummy files
+*.txt
+scripts/*.png
+scripts/*.dot
