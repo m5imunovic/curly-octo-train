@@ -27,6 +27,14 @@ vendor/**
 outputs/**
 logs/**
 pf/**
+notebooks/*.dot
+notebooks/*.png
+notebooks/*.ipynb_checkpoints
+*.ipynb_checkpoints
+scripts/*.py
+scripts/*.png
+scripts/*.dot
+wandb/*
 
 
 .vscode/launch.json
