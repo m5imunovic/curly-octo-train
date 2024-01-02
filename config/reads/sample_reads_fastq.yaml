@@ -1,0 +1,5 @@
+reads_file: "/data/profile/SRR11292120.man.fastq"
+date_yy_mm_dd: ${now:%y_%m_%d}
+sampled_file: "/data/profile/sampled/${date_yy_mm_dd}/SRR11292120.sampled.fastq"
+probability: 0.1
+seed: 63
