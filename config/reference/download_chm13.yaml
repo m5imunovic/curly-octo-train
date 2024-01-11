@@ -1,0 +1,5 @@
+chm13_version: "v2.0" # either v1.1 or v2.0 is supported
+keep_metadata: true # keep downloaded files
+threads: 15
+store_artifacts: false # wandb logging, need to set up wandb access on the machine first
+output_dir: null # storage location
