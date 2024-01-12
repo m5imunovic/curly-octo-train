@@ -1,7 +1,6 @@
 # curly-octo-train
 ## Install preprequisites
 
-CMake (pip install cmake=3.20.2)
 zlib (apt install zlib1g zlib1g-dev)
 build-essentials (apt install build-essentials)
 
