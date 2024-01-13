@@ -86,8 +86,8 @@ class PbSim2(RSimulator):
             profile_id = self.cfg.params.long["sample-profile-id"]
             profile_file = Path(self.cfg.profile.path) / f"sample_profile_{profile_id}.fastq"
             stats_file = Path(self.cfg.profile.path) / f"sample_profile_{profile_id}.stats"
-            cmds.append(f"ln -s {profile_file} {profile_file.name}")
-            cmds.append(f"ln -s {stats_file} {stats_file.name}")
+            cmds.append(f"ln {profile_file} {profile_file.name}")
+            cmds.append(f"ln {stats_file} {stats_file.name}")
 
         cmds.extend(
             [
@@ -137,7 +137,7 @@ class PbSim2(RSimulator):
                 if not Path(profile_file_tmp).exists() or not filecmp.cmp(profile_file_tmp, profile_file):
                     subprocess.run(f"cp {profile_file} {profile_file_tmp}", shell=True, cwd=tmp_profile_dir)
                     subprocess.run(f"cp {stats_file} {stats_file_tmp}", shell=True, cwd=tmp_profile_dir)
-                    self.cfg.profile.path = str(tmp_profile_dir)
+                self.cfg.profile.path = str(tmp_profile_dir)
                 return profile_file_tmp, stats_file_tmp
             
             return None, None
@@ -182,6 +182,7 @@ class PbSim2(RSimulator):
         if not cwd_path.exists():
             cwd_path.mkdir(parents=True)
         for cmd in commands:
+            print(f"RUN::simulate::\n{cmd}")
             subprocess.run(cmd, shell=True, cwd=cwd_path)
 
     @typechecked
