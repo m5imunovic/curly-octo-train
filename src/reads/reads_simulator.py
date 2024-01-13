@@ -1,3 +1,4 @@
+import filecmp
 import multiprocessing as mp
 import os
 import shutil
@@ -81,23 +82,22 @@ class PbSim2(RSimulator):
         read_params = self._prefix_read_params(read_params)
 
         cmds = []
-        if self.cfg.profile_path and self.cfg.params.long["sample-profile-id"]:
+        if self.cfg.profile.path and self.cfg.params.long["sample-profile-id"]:
             profile_id = self.cfg.params.long["sample-profile-id"]
-            profile_file = Path(self.cfg.profile_path) / f"sample_profile_{profile_id}.fastq"
-            stats_file = Path(self.cfg.profile_path) / f"sample_profile_{profile_id}.stats"
-            assert profile_file.exists(), f"Profile file {profile_file} does not exist!"
-            assert stats_file.exists(), f"Stats file {stats_file} does not exist!"
+            profile_file = Path(self.cfg.profile.path) / f"sample_profile_{profile_id}.fastq"
+            stats_file = Path(self.cfg.profile.path) / f"sample_profile_{profile_id}.stats"
             cmds.append(f"ln -s {profile_file} {profile_file.name}")
             cmds.append(f"ln -s {stats_file} {stats_file.name}")
 
         cmds.extend(
             [
                 f"{self.simulator_exec} {option_params} {prefix_param} {read_params}",
+                f"rm {prefix}_0001.maf",
                 f"rm {prefix}_0001.ref",
             ]
         )
 
-        if self.cfg.profile_path and self.cfg.params.long["sample-profile-id"]:
+        if self.cfg.profile.path and self.cfg.params.long["sample-profile-id"]:
             cmds.append(f"rm {profile_file.name}")
             cmds.append(f"rm {stats_file.name}")
 
@@ -115,10 +115,47 @@ class PbSim2(RSimulator):
     def _prefix_read_params(self, read_params: str):
         return read_params
 
+    def prepare_profile(self) -> tuple:
+        """Copies profile to an intermediate location if necessary.
+        This is implemented for cases where the profile is located on remote storage and cannot be symlinked.
+        Each thread executes from a local simulated directory and simulator expects the profile to be in the same directory.
+        If we did not copy the profile each thread would need to copy the profile individually which is not efficient.
+        Returns:
+            tuple of paths to profile file and stats file if copying is used else tuple of None 
+        """
+        if self.cfg.profile.path and self.cfg.params.long["sample-profile-id"]:
+            profile_id = self.cfg.params.long["sample-profile-id"]
+            profile_file = Path(self.cfg.profile.path) / f"sample_profile_{profile_id}.fastq"
+            stats_file = Path(self.cfg.profile.path) / f"sample_profile_{profile_id}.stats"
+            assert profile_file.exists(), f"Profile file {profile_file} does not exist!"
+            assert stats_file.exists(), f"Stats file {stats_file} does not exist!"
+            if self.cfg.profile.tmp_path:
+                tmp_profile_dir = Path(self.cfg.profile.tmp_path)
+                tmp_profile_dir.mkdir(parents=True, exist_ok=True)
+                profile_file_tmp = tmp_profile_dir / f"sample_profile_{profile_id}.fastq"
+                stats_file_tmp = tmp_profile_dir / f"sample_profile_{profile_id}.stats"
+                if not Path(profile_file_tmp).exists() or not filecmp.cmp(profile_file_tmp, profile_file):
+                    subprocess.run(f"cp {profile_file} {profile_file_tmp}", shell=True, cwd=tmp_profile_dir)
+                    subprocess.run(f"cp {stats_file} {stats_file_tmp}", shell=True, cwd=tmp_profile_dir)
+                    self.cfg.profile.path = str(tmp_profile_dir)
+                return profile_file_tmp, stats_file_tmp
+            
+            return None, None
+
+    @typechecked
+    def clean_profile(self, profile_file: Path | None, stats_file: Path | None):
+        if not self.cfg.profile.keep:
+            if profile_file and stats_file:
+                subprocess.run(f"rm {profile_file}", shell=True, cwd=Path(self.cfg.profile.tmp_path))
+                subprocess.run(f"rm {stats_file}", shell=True, cwd=Path(self.cfg.profile.tmp_path))
+        
     @typechecked
     def run(self, ref_root: Path, simulated_species_path: Path, *args, **kwargs) -> bool:
         chr_path = ref_root / "chromosomes"
         assert chr_path.exists(), f"{chr_path} does not exist!"
+
+        # TODO: implement profile handling as context manager
+        profile_file, stats_file = self.prepare_profile()
 
         ref_suffix = list(self.cfg.suffix) or [".fasta", ".fa"]
         ref_fasta_files = get_read_files(chr_path, suffix=ref_suffix, regex=self.cfg.chr_filter)
@@ -132,6 +169,8 @@ class PbSim2(RSimulator):
         threads = self.cfg.threads or (os.cpu_count() - 1)
         with mp.Pool(threads) as pool:
             pool.starmap(self.simulate_reads_mp, simulation_data)
+
+        self.clean_profile(profile_file, stats_file)
 
         return True
 
