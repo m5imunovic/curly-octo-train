@@ -12,4 +12,4 @@ params:
 
 suffix: [".fa", ".fasta"] # list of file suffixes to match when searching for reference
 
-# exclude: # list of chromosome that should be excluded from simulationa
+chr_filter: null # regex expression to filter out non-matching chromosomes

@@ -121,7 +121,7 @@ class PbSim2(RSimulator):
         assert chr_path.exists(), f"{chr_path} does not exist!"
 
         ref_suffix = list(self.cfg.suffix) or [".fasta", ".fa"]
-        ref_fasta_files = get_read_files(chr_path, suffix=ref_suffix)
+        ref_fasta_files = get_read_files(chr_path, suffix=ref_suffix, regex=self.cfg.chr_filter)
         simulation_data = []
         for ref_fasta_file in ref_fasta_files:
             simulated_fastq_file = simulated_species_path / f"{ref_fasta_file.stem}.fastq"

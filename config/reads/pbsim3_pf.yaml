@@ -11,4 +11,5 @@ params:
 
 suffix: [".fa", ".fasta"] # list of file suffixes to match when searching for reference
 profile_path: ${project_root:pf}
-# exclude: # list of chromosome that should be excluded from simulationa
+
+chr_filter: # regex expression to filter out non-matching chromosomes
