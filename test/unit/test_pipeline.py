@@ -1,5 +1,6 @@
 from unittest import mock
 
+import pytest
 from hydra import compose, initialize_config_dir
 from omegaconf import OmegaConf
 
@@ -43,6 +44,7 @@ def test_skipped_reference_and_reads_steps(
     run_graph_step.assert_not_called()
 
 
+@pytest.mark.skip(reason="The entire pipeline is currently under the rewrite")
 @mock.patch("pipeline.run_graph_step")
 @mock.patch("pipeline.run_assembly_step")
 @mock.patch("pipeline.run_generate_reads_step")

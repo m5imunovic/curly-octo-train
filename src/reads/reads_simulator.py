@@ -192,11 +192,11 @@ class PbSim2(RSimulator):
             if self.cfg.overwrite:
                 print("PRE::simulate:: Removing existing simulation data")
                 shutil.rmtree(simulated_species_path)
-                # ensure that the directory exists
             else:
                 err = f"PRE::simulate:: {simulated_species_path} already exists! Set overwrite to True to overwrite existing data!"
                 raise FileExistsError(err)
 
+        # ensure that the directory exists
         simulated_species_path.mkdir(parents=True)
 
 
@@ -235,6 +235,7 @@ def simulator_factory(simulator: str, cfg: DictConfig) -> RSimulator:
 
 
 def run(cfg: DictConfig, **kwargs):
+    # TODO: use a function to create this, there is a duplicate in test_reads_simulator
     output_path = Path(cfg.paths.reads_dir) / cfg.species_name["name"] / cfg.date_mm_dd / f"S{cfg.seed}"
     exec_args = {
         # Top level output path
