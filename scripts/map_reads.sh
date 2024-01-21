@@ -20,4 +20,3 @@ minimap2 -x map-hifi -H -t 20 -d "$REF_DIR"/ref.mmi "$REF_DIR"/chm13v2.0.fa.gz
 # minimap2 -x map-hifi -H -c -t 20 "$REF_DIR"/ref.mmi fasta/"$SRR_ENTRY" > paf/alignment_"$SRR_ENTRY".paf
 # Fastq
 minimap2 -x map-hifi -H -c -t 20 "$REF_DIR"/ref.mmi fastq/"$SRR_ENTRY".fastq > paf/alignment_"$SRR_ENTRY".paf
-

@@ -1,10 +1,10 @@
-import random
 import logging
+import random
 from pathlib import Path
 
 import hydra
-from typeguard import typechecked
 from Bio import SeqIO
+from typeguard import typechecked
 
 import utils.path_helpers as ph
 
@@ -17,7 +17,7 @@ def sample_reads_with_probability(reads_file: Path, sampled_file: Path, probabil
     sampled_dir = sampled_file.parent
     if not sampled_dir.exists():
         sampled_dir.mkdir(parents=True)
-    
+
     processed = 0
     selected = 0
     with open(sampled_file, "w") as out_handle:

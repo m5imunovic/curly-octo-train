@@ -1,8 +1,33 @@
 # curly-octo-train
+
 ## Install preprequisites
 
 zlib (apt install zlib1g zlib1g-dev)
 build-essentials (apt install build-essentials)
+
+# Installation
+
+We recommend the usage of mambaforge for setting up Python environment:
+
+https://github.com/conda-forge/miniforge#mambaforge
+
+```Bash
+## Install conda
+mamba init
+
+## Create new environment (named menv)
+mamba env create --file=environment.yaml
+mamba activate menv
+```
+
+## Setup pre-commit hooks
+
+```bash
+pip install pre-commit
+# Set up on the first usage
+pre-commit install
+pre-commit run --all-files
+```
 
 ## Random reference genome step
 
@@ -75,6 +100,7 @@ PROJECT_ROOT="./" python src/graph.py  graph.set.dir_filter='S\[1-2\]'
 
 Branch `anton_development`, commit sha `9c81c179dcf8854981eaf843e2a44ba4c5607a7f` was used to perform evaluation of LJA metrics. In addition, following patch is applied
 in order to add the export of initial GFA graph representation:
+
 ```diff
 --- a/src/projects/error_correction/coverage_ec_stage.hpp
 +++ b/src/projects/error_correction/coverage_ec_stage.hpp

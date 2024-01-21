@@ -4,6 +4,6 @@ defaults:
   - hydra: hydra
   - paths: paths
   - species_name: null
-  - reference: null 
+  - reference: null
 
 seed: 42

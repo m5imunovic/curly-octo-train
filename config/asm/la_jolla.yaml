@@ -10,15 +10,15 @@ params:
     # K: 2001 # not supported for jumboDBG
   append: "--compress"
 
-keep: null
-#  [
-#    "graph.gfa",
-#    "mult.info",
-#    "ref.info",
-#    "disjointigs.fasta",
-#    "graph.dot",
-#    "alignments.txt",
-#  ]
+keep:
+  [
+    "graph.gfa",
+    "mult.info",
+    "ref.info",
+    "disjointigs.fasta",
+    "graph.dot",
+    "alignments.txt",
+  ]
 exec: jumboDBG # name of the executable to use (jumboDBG or lja)
 full_asm: full_asm # execute LJA so that we have all the files for comparison and save in this dir
 

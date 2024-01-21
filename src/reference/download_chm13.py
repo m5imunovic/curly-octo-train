@@ -1,5 +1,5 @@
-"""Extracts the chm13 reference genome into a fasta file per chromosome.
-The results are stored in output_dir/chromosomes directory.
+"""Extracts the chm13 reference genome into a fasta file per chromosome. The results are stored in
+output_dir/chromosomes directory.
 
 For simplicity, we ignore the last chromosome (mitochondrial DNA) in the file.
 """
@@ -12,13 +12,12 @@ from itertools import pairwise, repeat
 from pathlib import Path
 
 import hydra
-import wandb
 from omegaconf import OmegaConf
 from torch_geometric.data import download_url, extract_gz
 
 import utils.path_helpers as ph
+import wandb  # TODO: resolve black and isort conflict on this line
 from reference.genome_generator import save_chr_to_fasta
-
 
 logger = logging.getLogger(__name__)
 # URLs of the chm13 reference genomes
@@ -35,9 +34,7 @@ def check_config(cfg: OmegaConf):
         cfg (OmegaConf): app config
     """
     if cfg.chm13_version not in chm13_urls.keys():
-        raise ValueError(
-            f"Invalid chm13 version {cfg.chm13_version}. Valid values are: {chm13_urls.keys()}"
-        )
+        raise ValueError(f"Invalid chm13 version {cfg.chm13_version}. Valid values are: {chm13_urls.keys()}")
     if cfg.output_dir is None:
         raise ValueError("Output directory <output_dir> must be specified")
     # simple checks to capture config renames
@@ -47,9 +44,9 @@ def check_config(cfg: OmegaConf):
 
 
 def grep_chromosome_offsets(chm13_path: Path) -> dict:
-    """Find line number offsets for each chromosome in the chm13 fasta file. Grep 
-    is used to print the line number (-n) and the matched string (-o) for each chromosome.
-    Extended grep (-E) is used to avoid backslash escaping of the regex.
+    """Find line number offsets for each chromosome in the chm13 fasta file. Grep is used to print the line number (-n)
+    and the matched string (-o) for each chromosome. Extended grep (-E) is used to avoid backslash escaping of the
+    regex.
 
     Args:
         chm13_path (Path): input file path
@@ -85,9 +82,7 @@ def get_chr_ranges(offsets: dict) -> dict:
     return chr_ranges
 
 
-def generate_chr_fasta_files(
-    chm13_path: Path, output_dir: Path, chr_ranges_entry: tuple
-):
+def generate_chr_fasta_files(chm13_path: Path, output_dir: Path, chr_ranges_entry: tuple):
     """Generate a fasta file for a single chromosome.
 
     Args:
@@ -103,7 +98,7 @@ def generate_chr_fasta_files(
     cmd = shlex.join(["sed", "-n", f"{start},{stop-1}p", str(chm13_path)])
     logger.info(f"Running command: {cmd}")
     sed_output = subprocess.check_output(cmd, shell=True, encoding="utf-8")
-    lines = sed_output.split('\n')
+    lines = sed_output.split("\n")
     chr_seq = "".join(lines[1:]).upper()
     save_chr_to_fasta(output_path=output_dir, chr_name=chromosome, chr_seq=chr_seq, multiline=False)
 

@@ -4,7 +4,6 @@ dictionary (edge_id, edge_sequence) We need to load the nodes as overlap of the 
 incoming edge -> outgoing edge and with the +/- defined as if incoming edge + use last kmer of the edge else from RC of
 the edge if outgoing edge + use first kmer of the edge else from RC of the edge
 """
-from copy import deepcopy
 from pathlib import Path
 from typing import Dict, Tuple, Union
 

@@ -142,11 +142,10 @@ def run(cfg: DictConfig, **kwargs):
         mp_data.append([idx, graph_dir, cfg, out_processed_paths, out_raw_paths, out_debug_paths])
 
     print(f"Processing {len(mp_data)} graphs with {threads} threads")
-    #if len(mp_data) == 1:
+    # if len(mp_data) == 1:
     #    processed_results = [process_graph_mp(*mp_data[0])]
     with mp.Pool(threads) as pool:
         processed_results = pool.starmap(process_graph_mp, mp_data)
-    
 
     # Merge results
     processed_files = defaultdict(list)

@@ -87,7 +87,9 @@ def run(cfg):
     species_path = species_reference_root(cfg)
 
     if species_path.exists():
-        print(f"Reference genome for species `{cfg.species_name['name']}` already exists at location: \n{species_path}")
+        print(
+            f"Reference genome for species `{cfg.species_name['name']}` already exists at location: \n{species_path}"
+        )
         print("Skipping...")
         return False
 
