@@ -114,6 +114,18 @@ repos:
           - --skip=logs/**,data/**,*.ipynb,notebooks/*.py
           # - --ignore-words-list=abc,def
 
+  # pytest
+  - repo: local
+    hooks:
+      - id: pytest
+        name: Run unit tests
+        stages: [commit]
+        language: system
+        entry: bash -c 'PYTHONPATH="src" PROJECT_ROOT="./" pytest test/unit'
+        types: [python]
+        pass_filenames: false
+        always_run: true
+
   - repo: meta
     hooks:
       - id: check-hooks-apply
