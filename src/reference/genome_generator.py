@@ -29,7 +29,6 @@ def get_random_chromosome(
 def get_random_genome(
     chromosomes: Dict[str, int], gc_content: Optional[float] = None, seed: Optional[int] = None
 ) -> Dict[str, str]:
-
     base_p = [(1 - gc_content) / 2, gc_content / 2, gc_content / 2, (1 - gc_content) / 2] if gc_content else None
 
     genome = {}

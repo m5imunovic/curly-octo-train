@@ -100,7 +100,6 @@ def calculate_metrics(tp: int, tn: int, fp: int, fn: int) -> Dict[str, float]:
 
 
 def evaluate_la_jolla(mult_info_path: Path, alignments_path: Path, rc_map: Dict) -> Dict:
-
     tp, tn, fp, fn = get_confusion_matrix(mult_info_path, alignments_path=alignments_path, rc_map=rc_map)
     metrics = calculate_metrics(tp, tn, fp, fn)
 

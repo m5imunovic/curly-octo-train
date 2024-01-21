@@ -104,7 +104,6 @@ def process_graph_mp(
 
 
 def run(cfg: DictConfig, **kwargs):
-
     exec_args = {
         "assemblies_path": cfg.paths.assemblies_dir / cfg.species_name.name,
         "out_path": cfg.paths.datasets_dir / f"{cfg.species_name.name}_{cfg.date_mm_dd}" / cfg.graph.set.name,

@@ -82,7 +82,7 @@ def construct_nx_digraph(segments: SegmentDict, links: Dict[int, Tuple], k: int)
         labels_rc[sid] = label
         g.add_node(label, **attrs)
 
-    for (inc_id, inc_sgn, out_id, out_sgn) in links.values():
+    for inc_id, inc_sgn, out_id, out_sgn in links.values():
         vertex_from = inc_id if inc_sgn == "+" else labels_rc[inc_id]
         vertex_to = out_id if out_sgn == "+" else labels_rc[out_id]
         g.add_edge(vertex_from, vertex_to)
