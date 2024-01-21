@@ -18,7 +18,7 @@ def genome_generator_cfg(tmp_path):
                 "chromosomes": {"chr1": 2000},
                 "gc_content": None,
             },
-            "species_name": "test_species",
+            "species_name": {"name": "test_species"},
             "paths": {"ref_dir": str(tmp_path / "curly_octo_train")},
             "seed": None,
         }
@@ -53,7 +53,7 @@ def test_overwrites_data(mock_save_chr_to_fasta, tmp_path):
     cfg = genome_generator_cfg(tmp_path=tmp_path)
     run_reference_step(cfg)
 
-    expected_save_dir = Path(cfg.paths.ref_dir) / cfg.species_name / "chromosomes"
+    expected_save_dir = Path(cfg.paths.ref_dir) / cfg.species_name["name"] / "chromosomes"
     assert mock_save_chr_to_fasta.call_count == 1
     assert expected_save_dir in mock_save_chr_to_fasta.call_args[0]
     assert all(chrX in mock_save_chr_to_fasta.call_args[0] for chrX in cfg.reference.chromosomes)

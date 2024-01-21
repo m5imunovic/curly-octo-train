@@ -2,6 +2,7 @@ import tempfile
 from pathlib import Path
 from unittest import mock
 
+import pytest
 from omegaconf import OmegaConf
 
 from asm.assembler import run as run_assembler
@@ -16,21 +17,24 @@ def assembler_cfg(overwrite: bool, tmp_dir: Path):
                 "overwrite": overwrite,
                 "params": None,
                 "experiment": "test_experiment",
+                "suffix": [".fa", ".fasta"],
             },
             "paths": {
-                "simulated_data_dir": str(tmp_dir / "simulated"),
+                "ref_dir": str(tmp_dir / "ref"),
+                "reads_dir": str(tmp_dir / "simulated"),
                 "assemblies_dir": str(tmp_dir / "assemblies"),
                 "vendor_dir": str(tmp_dir / "vendor"),
             },
-            "species_name": "test_species",
+            "species_name": {"name": "test_species"},
+            "experiment": "test_experiment",
+            "suffix": {"reads": [".fq", ".fastq"], "reference": [".fa", ".fasta"]},
         }
     )
 
 
 @mock.patch.object(LaJolla, "run")
 @mock.patch.object(LaJolla, "_install")
-@mock.patch("shutil.rmtree", return_value=True)
-def test_assembler_overwrite_data(mock_rmtree, mock_install, mock_run, tmp_path):
+def test_assembler_overwrite_data(mock_install, mock_run, tmp_path):
     with tempfile.TemporaryDirectory() as tmp_dir:
         cfg = assembler_cfg(overwrite=True, tmp_dir=Path(tmp_dir))
 
@@ -40,10 +44,8 @@ def test_assembler_overwrite_data(mock_rmtree, mock_install, mock_run, tmp_path)
         mock_run.return_value = True
         run_assembler(cfg, **kwargs)
 
-        assert mock_rmtree.call_count == 1
         assert mock_run.call_count == 1
 
         cfg = assembler_cfg(overwrite=False, tmp_dir=Path(tmp_dir))
-        run_assembler(cfg, **kwargs)
-        assert mock_rmtree.call_count == 1
-        assert mock_run.call_count == 2
+        with pytest.raises(FileExistsError):
+            run_assembler(cfg, **kwargs)

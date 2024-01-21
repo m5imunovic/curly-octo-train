@@ -54,6 +54,7 @@ dependencies:
 
   # Other
   - filelock
+  - more-itertools
   - protobuf
   - tqdm
 

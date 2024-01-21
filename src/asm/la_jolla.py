@@ -128,8 +128,10 @@ class LaJolla(assembler.Assembler):
         if self.cfg.overwrite:
             if out_path.exists():
                 print("PRE::assembler:: Warning, existing assembly files, will potentially overwrite them")
-                # shutil.rmtree(out_path)
-                out_path.mkdir(parents=True, exist_ok=True)
+                shutil.rmtree(out_path)
+            else:
+                raise FileExistsError(f"PRE::assembler:: Error, {out_path} already exists!")
+        out_path.mkdir(parents=True)
 
     def post_assembly_step(self, out_path: Path, *args, **kwargs):
         # Clean up the files
