@@ -41,3 +41,8 @@ wandb/*
 
 # Hydra
 *.log
+
+# Scripts
+assembly.sh
+graph.sh
+sequencing.sh

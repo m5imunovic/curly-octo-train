@@ -117,11 +117,12 @@ class PbSim2(RSimulator):
 
     def prepare_profile(self) -> tuple:
         """Copies profile to an intermediate location if necessary.
+
         This is implemented for cases where the profile is located on remote storage and cannot be symlinked.
         Each thread executes from a local simulated directory and simulator expects the profile to be in the same directory.
         If we did not copy the profile each thread would need to copy the profile individually which is not efficient.
         Returns:
-            tuple of paths to profile file and stats file if copying is used else tuple of None 
+            tuple of paths to profile file and stats file if copying is used else tuple of None
         """
         if self.cfg.profile.path and self.cfg.params.long["sample-profile-id"]:
             profile_id = self.cfg.params.long["sample-profile-id"]
@@ -139,7 +140,7 @@ class PbSim2(RSimulator):
                     subprocess.run(f"cp {stats_file} {stats_file_tmp}", shell=True, cwd=tmp_profile_dir)
                 self.cfg.profile.path = str(tmp_profile_dir)
                 return profile_file_tmp, stats_file_tmp
-            
+
             return None, None
 
     @typechecked
@@ -148,7 +149,7 @@ class PbSim2(RSimulator):
             if profile_file and stats_file:
                 subprocess.run(f"rm {profile_file}", shell=True, cwd=Path(self.cfg.profile.tmp_path))
                 subprocess.run(f"rm {stats_file}", shell=True, cwd=Path(self.cfg.profile.tmp_path))
-        
+
     @typechecked
     def run(self, ref_root: Path, simulated_species_path: Path, *args, **kwargs) -> bool:
         chr_path = ref_root / "chromosomes"

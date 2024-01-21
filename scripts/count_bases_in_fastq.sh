@@ -1,4 +1,4 @@
-#!/bin/bash 
+#!/bin/bash
 # Assume that the fastq entry is in a single line
 # paste prints four consecutive lines of fastq file in on row (tab delimited)
 # cut takes only second column

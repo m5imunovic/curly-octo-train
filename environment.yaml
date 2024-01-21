@@ -38,7 +38,7 @@ dependencies:
   # Bio
   - biopython
 
-  # Graph  
+  # Graph
   - networkx
 
   # Config
