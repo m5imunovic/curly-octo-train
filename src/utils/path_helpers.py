@@ -44,10 +44,9 @@ def adjust_cfg_paths(cfg: DictConfig):
 
     project_root = get_project_root()
     OmegaConf.resolve(cfg.paths)
-    for key, value in cfg.paths.items():
-        if isinstance(value, str):
-            cfg.paths[key] = project_root / value
-        elif isinstance(value, list):
-            cfg.paths[key] = [project_root / path for path in value]
+    for path_key, path_value in cfg.paths.items():
+        if isinstance(path_value, Path):
+            if not path_value.is_absolute():
+                cfg.paths[path_key] = project_root / path_value
         else:
-            raise ValueError(f"Unknown type for path {key}: {type(value)}")
+            raise ValueError(f"Unexpected type for path {path_key}: {type(path_value)}")
