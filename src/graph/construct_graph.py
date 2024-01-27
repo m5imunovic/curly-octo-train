@@ -5,16 +5,14 @@ incoming edge -> outgoing edge and with the +/- defined as if incoming edge + us
 the edge if outgoing edge + use first kmer of the edge else from RC of the edge
 """
 from pathlib import Path
-from typing import Dict, Tuple, Union
 
 import networkx as nx
-from omegaconf import DictConfig
 from typeguard import typechecked
 
 from graph.gfa_parser import SegmentDict, parse_gfa
 from graph.rolling_hash import RollingHash
 
-DbGraphType = Union[nx.DiGraph, nx.MultiDiGraph]
+DbGraphType = nx.DiGraph | nx.MultiDiGraph
 
 
 @typechecked
@@ -43,7 +41,7 @@ def verify_edge_overlaps(segments: SegmentDict, links: dict, k: int):
 
 
 @typechecked
-def construct_nx_multigraph(segments: SegmentDict, k: int) -> Tuple[nx.MultiDiGraph, Dict]:
+def construct_nx_multigraph(segments: SegmentDict, k: int) -> tuple[nx.MultiDiGraph, dict]:
     labeler = RollingHash(k=k)
 
     label_rc = {}
@@ -68,48 +66,6 @@ def construct_nx_multigraph(segments: SegmentDict, k: int) -> Tuple[nx.MultiDiGr
 
 
 @typechecked
-def construct_nx_digraph(segments: SegmentDict, links: Dict[int, Tuple], k: int) -> Tuple[nx.DiGraph, Dict]:
-    g = nx.DiGraph()
-    labels_rc = {}
-    labeler = RollingHash(k=k)
-
-    for sid, attrs in segments.items():
-        seq = attrs.pop("seq", None)
-        if seq is None or seq == "*":
-            raise ValueError(f"Invalid DNA sequence {seq}")
-        g.add_node(sid, **attrs)
-        label = labeler.hash(reverse_complement(seq))
-        labels_rc[sid] = label
-        g.add_node(label, **attrs)
-
-    for inc_id, inc_sgn, out_id, out_sgn in links.values():
-        vertex_from = inc_id if inc_sgn == "+" else labels_rc[inc_id]
-        vertex_to = out_id if out_sgn == "+" else labels_rc[out_id]
-        g.add_edge(vertex_from, vertex_to)
-        vertex_from_rc = out_id if out_sgn == "-" else labels_rc[out_id]
-        vertex_to_rc = inc_id if inc_sgn == "-" else labels_rc[inc_id]
-        g.add_edge(vertex_from_rc, vertex_to_rc)
-
-    return g, labels_rc
-
-
-@typechecked
-def construct_graph(cfg: DictConfig) -> Tuple[DbGraphType, Dict]:
-    segments, links = parse_gfa(path=cfg.gfa_path, k=cfg.k)
-    if cfg.graph_type == "multidigraph":
-        return construct_nx_multigraph(segments, k=cfg.k)
-    if cfg.graph_type == "digraph":
-        return construct_nx_digraph(segments, links, k=cfg.k)
-
-    raise ValueError(f"Unknown graph type {cfg.graph_type}")
-
-
-@typechecked
-def construct_graphs(gfa_path: Path, k: int) -> Tuple[Dict[str, DbGraphType], Dict]:
-    segments, links = parse_gfa(path=gfa_path, k=k)
-    graphs = {}
-    labels = {}
-    # segments_ = deepcopy(segments)
-    # graphs["digraph"], labels["digraph"] = construct_nx_digraph(segments_, links, k=k)
-    graphs["multidigraph"], labels["multidigraph"] = construct_nx_multigraph(segments, k=k)
-    return graphs, labels
+def construct_graph(gfa_path: Path, k: int) -> tuple[DbGraphType, dict]:
+    segments, _ = parse_gfa(path=gfa_path, k=k)
+    return construct_nx_multigraph(segments, k=k)

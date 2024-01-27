@@ -1,8 +1,7 @@
 name: db_graph
 overwrite: False # set to True if you want to overwrite the existing data
-graph_type: multidigraph # either digraph or multidigraph
 experiment: experiment_1
-#supported features for digraph (edge is just a k-mer):
+#supported features for graph
 # kc - coverage
 # ln - length, i.e. number of nucleotides in node
 # For now coverage (col0) and length (col1) are always added and used
