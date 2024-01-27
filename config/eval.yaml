@@ -4,7 +4,7 @@ defaults:
 
 lja_bin_path: ${oc.env:HOME}/ws/genomic/curly-octo-train/vendor/LJA/bin
 asm_path: #
-rc_map_path: #${paths.datasets_dir}/chr_homunculus_03_04/test/digraph/debug/0.rcmap # if running eval after graph construction step this file will be available so some computation can be saved
+rc_map_path: # if running eval after graph construction step this file will be available so some computation can be saved
 full_asm_subdir: full_asm
 eval_cmd: full_asm.json
 skip_cmds: [] # possible options are lja and align_and_print
