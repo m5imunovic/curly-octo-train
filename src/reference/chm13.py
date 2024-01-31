@@ -11,36 +11,28 @@ import subprocess
 from itertools import pairwise, repeat
 from pathlib import Path
 
-import hydra
-from omegaconf import OmegaConf
+from omegaconf import DictConfig
 from torch_geometric.data import download_url, extract_gz
 
-import utils.path_helpers as ph
+import reference.reference_utils as ru
 import wandb  # TODO: resolve black and isort conflict on this line
-from reference.genome_generator import save_chr_to_fasta
 
 logger = logging.getLogger(__name__)
 # URLs of the chm13 reference genomes
 chm13_urls = {
-    "v1.1": "https://s3-us-west-2.amazonaws.com/human-pangenomics/T2T/CHM13/assemblies/chm13.draft_v1.1.fasta.gz",
-    "v2.0": "https://s3-us-west-2.amazonaws.com/human-pangenomics/T2T/CHM13/assemblies/analysis_set/chm13v2.0.fa.gz",
+    "chm13_v1_1": "https://s3-us-west-2.amazonaws.com/human-pangenomics/T2T/CHM13/assemblies/chm13.draft_v1.1.fasta.gz",
+    "chm13_v2": "https://s3-us-west-2.amazonaws.com/human-pangenomics/T2T/CHM13/assemblies/analysis_set/chm13v2.0.fa.gz",
 }
 
 
-def check_config(cfg: OmegaConf):
-    """Checks the configuration for the download_chm13 script.
+def check_config(cfg: DictConfig):
+    """Checks the configuration for the chm13.
 
     Args:
-        cfg (OmegaConf): app config
+        cfg (DictConf): species config
     """
-    if cfg.chm13_version not in chm13_urls.keys():
-        raise ValueError(f"Invalid chm13 version {cfg.chm13_version}. Valid values are: {chm13_urls.keys()}")
-    if cfg.output_dir is None:
-        raise ValueError("Output directory <output_dir> must be specified")
-    # simple checks to capture config renames
-    assert "threads" in cfg, "Missing threads parameter in config"
-    assert "keep_metadata" in cfg, "Missing keep_metadata parameter in config"
-    assert "store_artifacts" in cfg, "Missing store_artifacts parameter in config"
+    if cfg.release not in chm13_urls.keys():
+        raise ValueError(f"Invalid chm13 version {cfg.release}. Valid values are: {chm13_urls.keys()}")
 
 
 def grep_chromosome_offsets(chm13_path: Path) -> dict:
@@ -100,37 +92,39 @@ def generate_chr_fasta_files(chm13_path: Path, output_dir: Path, chr_ranges_entr
     sed_output = subprocess.check_output(cmd, shell=True, encoding="utf-8")
     lines = sed_output.split("\n")
     chr_seq = "".join(lines[1:]).upper()
-    save_chr_to_fasta(output_path=output_dir, chr_name=chromosome, chr_seq=chr_seq, multiline=False)
+    ru.save_chr_to_fasta(output_path=output_dir, chr_name=chromosome, chr_seq=chr_seq, multiline=False)
 
 
-@hydra.main(version_base=None, config_path=str(ph.get_config_root() / "reference"), config_name="download_chm13")
-def main(cfg: OmegaConf):
-    url = chm13_urls[cfg.chm13_version]
-    download_dir = Path(cfg.output_dir)
-    download_dir.mkdir(exist_ok=True, parents=True)
+def get_chm13_reference(species_root: Path, species: DictConfig):
+    # TODO: split downloading and saving into separate functions to make it
+    # similar to random reference?
+    url = chm13_urls[species.release]
+    download_dir = species_root
     fasta_gz_file = download_url(url=url, folder=download_dir)
     fasta_file = Path(fasta_gz_file).with_suffix("")
     if not fasta_file.exists():
         logger.info(f"Extracting archive {fasta_gz_file} file...")
+
     extract_gz(path=fasta_gz_file, folder=download_dir)
     offsets = grep_chromosome_offsets(fasta_file)
     chr_ranges = get_chr_ranges(offsets)
 
-    chromosomes_dir = download_dir / "chromosomes"
-    chromosomes_dir.mkdir(exist_ok=True)
-    with mp.Pool(processes=cfg.threads) as pool:
+    chromosomes_dir = ru.ref_chromosomes_path(download_dir)
+    chromosomes_dir.mkdir()
+    threads = min(mp.cpu_count() - 1, len(chr_ranges))
+    with mp.Pool(processes=threads) as pool:
         pool.starmap(generate_chr_fasta_files, zip(repeat(fasta_file), repeat(chromosomes_dir), chr_ranges.items()))
 
-    if cfg.store_artifacts:
+    # TODO: move store_artifacts to reference config
+    if species.store_artifacts:
         run = wandb.init(project="chm13", job_type="add-dataset")
         artifact = wandb.Artifact(name="chromosomes", type="dataset")
         artifact.add_dir(local_path=str(chromosomes_dir))
         run.log_artifact(artifact)
 
     fasta_file.unlink()
-    if not cfg.keep_metadata:
+    # TODO move keep_metadata to reference config
+    if not species.keep_metadata:
         fasta_gz_file.unlink()
 
-
-if __name__ == "__main__":
-    main()
+    return url

@@ -32,5 +32,15 @@ def test_datasets_root(test_data_root):
 
 
 @pytest.fixture(scope="session")
+def test_data_reference(test_data_root):
+    return test_data_root / "reference"
+
+
+@pytest.fixture(scope="session")
 def test_cfg_path(test_data_root):
     return test_data_root / "config" / "config.yaml"
+
+
+@pytest.fixture(scope="session")
+def test_cfg_root():
+    return get_project_root() / "test" / "config"

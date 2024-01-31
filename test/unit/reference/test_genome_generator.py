@@ -1,61 +1,48 @@
-import tempfile
-from collections import Counter
+import filecmp
 from pathlib import Path
 from unittest import mock
 
-import pytest
 from omegaconf import OmegaConf
 
-from reference.genome_generator import get_random_chromosome, get_random_genome
+import reference.reference_utils as ru
 from reference.genome_generator import run as run_reference_step
-from reference.genome_generator import save_genome_to_fasta
 
 
 def genome_generator_cfg(tmp_path):
+    # TODO: replace with fixture loading the config and overwrite the path
     return OmegaConf.create(
         {
             "reference": {
-                "chromosomes": {"chr1": 2000},
-                "gc_content": None,
+                "species": {
+                    "name": "test_species",
+                    "chromosomes": {"chr1": 2000},
+                    "gc_content": None,
+                    "seed": 1,
+                }
             },
-            "species_name": {"name": "test_species"},
             "paths": {"ref_dir": str(tmp_path / "curly_octo_train")},
-            "seed": None,
         }
     )
 
 
-def test_get_random_chromosome():
-    assert get_random_chromosome(10, seed=1) == "GATCATGGTC"
-    assert len(get_random_chromosome(10)) == 10
-
-
-def test_get_random_genome_with_gc_content():
-    gc_content_expected = 0.4
-    genome = get_random_genome({"chr1": 1000000}, gc_content=gc_content_expected, seed=1)
-    assert isinstance(genome, dict)
-
-    chromosome_1 = genome["chr1"]
-    counter = Counter(chromosome_1)
-    gc_content = (counter["G"] + counter["C"]) / len(chromosome_1)
-    assert pytest.approx(gc_content, 0.1) == gc_content_expected
-
-
-def test_save_genome_to_fasta():
-    with tempfile.TemporaryDirectory() as output_dir:
-        path = Path(output_dir)
-        save_genome_to_fasta(path, {"chr1": "ACTGCTGATC"}, "Test Genome")
-        assert (path / "chr1.fasta").exists()
-
-
-@mock.patch("reference.genome_generator.save_chr_to_fasta")
-def test_overwrites_data(mock_save_chr_to_fasta, tmp_path):
+@mock.patch("reference.reference_utils.save_chr_to_fasta")
+def test_run_random_reference_saves_data(mock_save_chr_to_fasta, tmp_path):
     cfg = genome_generator_cfg(tmp_path=tmp_path)
     run_reference_step(cfg)
 
-    expected_save_dir = Path(cfg.paths.ref_dir) / cfg.species_name["name"] / "chromosomes"
+    expected_save_dir = ru.ref_chromosomes_path(ru.get_species_root(Path(cfg.paths.ref_dir), cfg.reference.species))
     assert mock_save_chr_to_fasta.call_count == 1
     assert expected_save_dir in mock_save_chr_to_fasta.call_args[0]
-    assert all(chrX in mock_save_chr_to_fasta.call_args[0] for chrX in cfg.reference.chromosomes)
+    assert all(chrX in mock_save_chr_to_fasta.call_args[0] for chrX in cfg.reference.species.chromosomes)
+
+    # TODO: add test for real reference
+
+
+def test_run_random_reference(tmp_path, test_species_cfg, test_data_reference):
+    cfg = OmegaConf.create({"paths": {"ref_dir": str(tmp_path)}, "reference": {"species": test_species_cfg}})
     run_reference_step(cfg)
-    assert mock_save_chr_to_fasta.call_count == 1
+    save_dir = ru.ref_chromosomes_path(ru.get_species_root(Path(cfg.paths.ref_dir), cfg.reference.species))
+    expected_dir = ru.ref_chromosomes_path(ru.get_species_root(test_data_reference, cfg.reference.species))
+
+    assert filecmp.cmp(save_dir / "chr1.fasta", expected_dir / "chr1.fasta"), "The chr1.fasta file changed!"
+    assert filecmp.cmp(save_dir / "chr2.fasta", expected_dir / "chr2.fasta"), "The chr2.fasta file changed!"

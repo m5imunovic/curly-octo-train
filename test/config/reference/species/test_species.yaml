@@ -1,0 +1,6 @@
+name: test_species
+chromosomes:
+  chr1: 100000
+  chr2: 200000
+seed: 1
+gc_content: 0.44
