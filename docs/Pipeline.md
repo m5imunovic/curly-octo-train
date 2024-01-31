@@ -35,3 +35,11 @@ The pipeline takes care of data cleanup and updating the dataset and metadata wi
 pipeline should remove all the files that are being created except when explicitly stated. As soon as the
 graph stage for a sample is complete the cleanup should be scheduled as the pipeline creates a lot of data and
 in case of large datasets this might cause it to break.
+
+# Roles of each step
+
+It is important to keep the responsibilities of each step isolated and independent as much as possible. This makes
+configuration easier, and code simpler.
+For example, the role of the "Reference" step is just to provide the existence of the genomic reference on the system.
+It should not concern itself with the issues such as if this is going to be used once, multiple times, how the dataset
+in which the data is flowing is produced or named, does the simulator only produces reads from subset or entire reference, etc.

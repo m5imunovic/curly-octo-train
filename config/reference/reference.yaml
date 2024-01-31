@@ -1,2 +1,2 @@
 defaults:
-  - random_species@_here_
+  - species: random_species

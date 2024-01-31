@@ -1,9 +1,6 @@
-# this is top-level default config for sequencing simulation
+# this is top-level default config for creating reference genomes
 defaults:
   - _self_
   - hydra: hydra
   - paths: paths
-  - species_name: null
-  - reference: null
-
-seed: 42
+  - reference: reference
