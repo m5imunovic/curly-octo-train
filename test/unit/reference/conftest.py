@@ -1,14 +1,5 @@
-from pathlib import Path
-
 import pytest
 from hydra import compose, initialize_config_dir
-
-this_dir = Path(__file__).parent
-
-
-@pytest.fixture(scope="session")
-def test_data_reference(test_data_root):
-    return test_data_root / "reference"
 
 
 @pytest.fixture(scope="session")

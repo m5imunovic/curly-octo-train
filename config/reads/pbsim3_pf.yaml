@@ -1,6 +1,4 @@
 name: pbsim3
-overwrite: True # set to True if you want to overwrite existing data
-threads: 15 # set if you want to override (default is os.cpu_count() - 1)
 
 params:
   long: # command line params starting with --
@@ -8,11 +6,8 @@ params:
     strategy: wgs
     method: sample
     sample-profile-id: pf1 # make sure that the id matches one in the profile path
+    seed: null
+    prefix: sim
 
-suffix: [".fa", ".fasta"] # list of file suffixes to match when searching for reference
 profile:
-  path: ${project_root:pf}
-  tmp_path: # if you want to copy the profile to a different location (i.e. from NAS to local disk)
-  keep: True
-
-chr_filter: # regex expression to filter out non-matching chromosomes
+  path: ${project_root:pf} # path to the profile directory
