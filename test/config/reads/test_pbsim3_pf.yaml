@@ -1,0 +1,13 @@
+name: pbsim3
+
+params:
+  long: # command line params starting with --
+    depth: 25
+    strategy: wgs
+    method: sample
+    sample-profile-id: pf1 # make sure that the id matches one in the profile path
+    seed: null
+    prefix: sim
+
+profile:
+  path: null # path to the profile directory
