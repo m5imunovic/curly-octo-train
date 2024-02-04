@@ -43,6 +43,7 @@ dependencies:
 
   # Config
   - colorlog
+  - dataclass-wizard
   - hydra-core
   - pyyaml
 

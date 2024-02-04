@@ -40,7 +40,7 @@ def test_species_genome(test_data_reference) -> list[Path]:
 
 def test_generator_produces_expected_output(test_pbsim3_pf_cfg, test_species_genome, test_data_reads, tmpdir):
     simulator = simulator_factory("pbsim3", test_pbsim3_pf_cfg)
-    simulator.run(genome=test_species_genome, simulated_species_path=Path(tmpdir))
+    simulator.run(genome=test_species_genome, simulated_reads_path=Path(tmpdir))
 
     simulated_fastq = tmpdir / "sim_0001.fastq"
     assert simulated_fastq.exists(), "Simulated fastq file does not exist"

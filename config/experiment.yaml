@@ -1,0 +1,9 @@
+defaults:
+  - hydra: hydra
+  - paths: paths
+  - _self_
+
+scenario:
+  name: random_scenario # without .json
+
+experiment_id: ${now:%Y%m%d_%H%M}

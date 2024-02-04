@@ -1,6 +1,7 @@
 import logging
 import shutil
 import subprocess
+import tempfile
 from abc import abstractmethod
 from pathlib import Path
 
@@ -20,7 +21,6 @@ class RSimulator:
     def __init__(self, cfg: DictConfig, vendor_dir: Path):
         self.cfg = cfg
         self.name = self.cfg.name
-        self.seed = self.cfg.params.long.seed
         if "install_script" in cfg and cfg.install_script is not None:
             assert cfg.exec_root is not None
             self._install_from_script(Path(cfg.script_path))
@@ -121,21 +121,23 @@ class PbSim3(RSimulator):
         return cmds
 
     @typechecked
-    def run(self, genome: list[Path], simulated_species_path: Path, *args, **kwargs) -> bool:
-        self._simulate_reads(genome, simulated_species_path)
+    def run(self, genome: list[Path], simulated_reads_path: Path, *args, **kwargs) -> bool:
+        self._simulate_reads(genome, simulated_reads_path)
         return True
 
     @typechecked
-    def _simulate_reads(self, chr_seq_path: list[Path], chr_save_path: Path):
+    def _simulate_reads(self, chr_seq_path: list[Path], simulated_reads_path: Path):
         reference_list = "\n-->".join(str(p) for p in chr_seq_path)
         logger.info(f"Simulating reads from reference:\n-->{reference_list}")
         commands = self.construct_exec_cmd(chr_seq_path)
-        cwd_path = chr_save_path
-        if not cwd_path.exists():
-            cwd_path.mkdir(parents=True)
-        for cmd in commands:
-            logger.info(f"RUN::simulate::\n{cmd}")
-            subprocess.run(cmd, shell=True, cwd=cwd_path)
+        with tempfile.TemporaryDirectory() as staging_dir:
+            for cmd in commands:
+                logger.info(f"RUN::simulate:: {cmd}")
+                subprocess.run(cmd, shell=True, cwd=staging_dir)
+            if not simulated_reads_path.exists():
+                simulated_reads_path.mkdir(parents=True)
+            # shutil.move would also include staging dir
+            shutil.copytree(staging_dir, simulated_reads_path, dirs_exist_ok=True, copy_function=shutil.move)
 
 
 @typechecked

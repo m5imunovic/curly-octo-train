@@ -13,10 +13,13 @@ logger = logging.Logger(__name__)
 def run(cfg):
     reference_root = Path(cfg.paths.ref_dir)
     species = cfg.reference.species
+    species_path = ru.get_species_root(Path(reference_root), species)
+
+    # TODO: this function should accept species_path
     if ru.check_reference_exists(reference_root, species):
         msg = f"Reference genome for species `{species.name}` already exists at:  \n{reference_root}"
         logger.info(msg)
-        return True
+        return species_path
 
     try:
         species_path = ru.get_species_root(Path(reference_root), species)
@@ -38,6 +41,6 @@ def run(cfg):
     except Exception as e:
         shutil.rmtree(species_path)
         msg = f"Error while generating reference genome for species `{species.name}`: {e}"
-        return False
+        return None
 
-    return True
+    return species_path
