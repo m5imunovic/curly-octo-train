@@ -20,6 +20,6 @@ def test_data_profile(test_data_root) -> Path:
 def test_pbsim3_pf_cfg(test_cfg_root, test_data_profile):
     test_species_config_dir = test_cfg_root / "reads"
     overrides = [f"profile.path={test_data_profile}", "params.long.seed=2"]
-    with initialize_config_dir(version_base=None, config_dir=str(test_species_config_dir), job_name="test_ref"):
+    with initialize_config_dir(version_base=None, config_dir=str(test_species_config_dir), job_name="test_seq"):
         cfg = compose(config_name="test_pbsim3_pf.yaml", overrides=overrides)
         return cfg

@@ -4,6 +4,7 @@ from pathlib import Path
 from hydra import compose, initialize_config_dir
 from hydra.core.global_hydra import GlobalHydra
 from omegaconf import DictConfig
+from typeguard import typechecked
 
 import experiment.experiment_utils as eu
 import reference.reference_utils as ru
@@ -46,6 +47,7 @@ def ensure_references_exist(scenario: Scenario) -> dict | None:
     return species_paths
 
 
+@typechecked
 def create_sequencing_jobs(scenario: Scenario, sequencing_root: Path, reference_paths: dict) -> list:
     jobs = []
     for item in scenario.items:

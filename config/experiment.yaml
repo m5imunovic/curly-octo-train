@@ -4,6 +4,6 @@ defaults:
   - _self_
 
 scenario:
-  name: random_scenario # without .json
+  name: random_scenario #  can be with or without .json
 
 experiment_id: ${now:%Y%m%d_%H%M}

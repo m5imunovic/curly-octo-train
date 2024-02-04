@@ -4,6 +4,7 @@ import utils.path_helpers as ph
 
 
 def get_scenario_root() -> Path:
+    # TODO: scenario root should be loaded from env variable (user specific or for test)
     return ph.get_config_root() / "experiment" / "scenarios"
 
 
