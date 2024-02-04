@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 from pathlib import Path
 
-import yaml
 from omegaconf import DictConfig, OmegaConf
 
 from reads.reads_simulator import simulator_factory
@@ -14,16 +13,14 @@ class SampleProfile:
 
 
 def run(cfg: DictConfig, **kwargs):
-    # species_filter is used to control which species are simulated
     # species_filter contains species name (unique path identifier in the reference directory)
     # chromosomes from which to sequence, how many reads to simulate and range of nucleotides
 
-    output_path = Path(cfg.paths.reads_dir) / cfg.date_mm_dd / f"S{cfg.seed}"
     exec_args = {
         # Top level output path
-        "simulated_species_path": output_path,
-        # Path to the reference genome directory (can contain one or multiple fasta files)
-        "genome": Path(cfg.paths.ref_dir) / cfg.species_name["name"],
+        "simulated_reads_path": None,
+        # Path to the reference genome directory (can contain one or multiple files)
+        "genome": None,
     }
     exec_args.update(kwargs)
     simulator = simulator_factory(simulator=cfg.reads.name, cfg=cfg.reads)
@@ -32,11 +29,8 @@ def run(cfg: DictConfig, **kwargs):
     simulator.run(**exec_args)
     simulator.post_simulation_step(**exec_args)
 
-    metadata_path = output_path.parent / "metadata"
+    metadata_path = exec_args["simulated_reads_path"] / "metadata"
     metadata_path.mkdir(parents=True, exist_ok=True)
 
-    with open(metadata_path / f"S{cfg.seed}.yaml", "w") as f:
-        OmegaConf.resolve(cfg)
-        cfg_cont = OmegaConf.to_container(cfg)
-        cfg_cont.pop("paths", None)
-        yaml.dump(cfg_cont, f)
+    with open(metadata_path / "reads.yaml", "w") as f:
+        OmegaConf.save(config=cfg, f=f, resolve=True)

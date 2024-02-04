@@ -1,0 +1,20 @@
+{
+  "dataset": "random_dataset",
+  "items": [
+    {
+      "samples": [
+        {
+          "chromosomes": [
+            {
+              "name": "chr1"
+            }
+          ],
+          "count": 10,
+          "init_seed": 1
+        }
+      ],
+      "species_name": "random_species.yaml"
+    }
+  ],
+  "subset": "train"
+}
