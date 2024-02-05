@@ -42,7 +42,9 @@ class Chromosome:
 
 
 def load_scenario(scenario_name: str) -> Scenario:
-    scenario_path = eu.get_scenario_root() / f"{scenario_name}.json"
+    # user can supply name both with and without suffix (compatibility with yaml in hydra)
+    scenario_with_suffix = f"{scenario_name.removesuffix('.json')}.json"
+    scenario_path = eu.get_scenario_root() / scenario_with_suffix
     with open(scenario_path) as f:
         scenario = Scenario.from_json(f.read())
 

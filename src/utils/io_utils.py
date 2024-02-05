@@ -34,7 +34,7 @@ def get_read_files(
     if read_path.is_file() and read_path.suffix in set(default_suffixes):
         results = [read_path]
     elif read_path.is_dir():
-        results = sorted(p.resolve() for p in read_path.glob("**/*") if p.suffix in set(default_suffixes))
+        results = sorted(p.absolute() for p in read_path.glob("**/*") if p.suffix in set(default_suffixes))
 
     if regex is not None:
         results = [p for p in results if re.search(regex, str(p))]
@@ -57,7 +57,15 @@ def compose_cmd_params(params: Union[Dict, DictConfig]) -> str:
         str: _description_
     """
     short_params = " ".join([f"-{k} {v}" for k, v in params["short"].items()]) if "short" in params else ""
-    long_params = " ".join([f"--{k} {v}" for k, v in params["long"].items()]) if "long" in params else ""
+    long_params = []
+    if "long" in params:
+        for k, v in params["long"].items():
+            if isinstance(v, list):
+                for item in v:
+                    long_params.append(f"--{k} {item}")
+            else:
+                long_params.append(f"--{k} {v}")
+    long_params = " ".join(long_params)
     append_params = f'{params["append"]}' if "append" in params and params["append"] is not None else ""
     combined_params = " ".join([short_params, long_params, append_params])
     return combined_params.strip()

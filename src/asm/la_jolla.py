@@ -1,21 +1,20 @@
 import json
 import shutil
 import subprocess
-from collections import defaultdict
 from copy import deepcopy
 from pathlib import Path
-from typing import List
 
 from omegaconf import OmegaConf
 from typeguard import typechecked
 
 from asm import assembler
-from utils.io_utils import compose_cmd_params, get_read_files
+from utils.io_utils import compose_cmd_params
 
 
 class LaJolla(assembler.Assembler):
     @typechecked
-    def _install(self, vendor_dir: Path) -> Path:
+    def _install(self, vendor_dir: Path | str) -> Path:
+        vendor_dir = Path(vendor_dir)
         assembler_root = (vendor_dir / "LJA").absolute()
         if not assembler_root.exists():
             try:
@@ -80,64 +79,44 @@ class LaJolla(assembler.Assembler):
             print("Stored evaluation commands in full_asm.json")
 
     @typechecked
-    def _construct_exec_cmd(self, reads_files: List[Path], ref_path: Path, output_path: Path) -> List[str]:
+    def _construct_exec_cmd(self, genome: list[Path], reads: list[Path], output_path: Path) -> list[str]:
         assert "params" in self.cfg, "params must be specified in config"
 
-        reads_cmd_params = " ".join([f"--reads {str(read_file)}" for read_file in reads_files])
-        self.cfg.params.long.reference = ref_path
-        out_cmd_param = f"-o {str(output_path)}"
+        if genome:
+            self.cfg.params.long.reference = " ".join(str(p) for p in genome)
+        self.cfg.params.short.o = str(output_path)
         option_params = compose_cmd_params(self.cfg["params"])
 
         exec = "lja" if "exec" not in self.cfg else self.cfg["exec"]
         asm_executable = self.assembler_root / exec
-        cmds = [f"{asm_executable} {option_params} {reads_cmd_params} {out_cmd_param}"]
+        # TODO: handle reads through config
+        reads_cmd_params = " ".join([f"--reads {str(read_file)}" for read_file in reads])
+        cmds = [f"{asm_executable} {option_params} {reads_cmd_params}"]
 
         self._construct_eval_cmds(output_path=output_path, reads_cmd_params=reads_cmd_params)
 
         return cmds
 
     @typechecked
-    def run(self, ref_path: Path, reads_path: Path, out_path: Path, suffix, *args, **kwargs):
-        # TODO: check if num ref files smaller than reads files
-        ref_paths = get_read_files(ref_path, suffix=suffix["reference"])
+    def run(self, genome: list[Path], reads: list[Path], output_path: Path, *args, **kwargs):
+        commands = self._construct_exec_cmd(genome, reads, output_path)
 
-        fastq_files = get_read_files(reads_path, suffix=suffix["reads"], regex=self.cfg.dir_filter)
-        fastq_groups = defaultdict(list)
-        for fastq_file in fastq_files:
-            group = fastq_file.parent.relative_to(reads_path)
-            fastq_groups[group].append(fastq_file)
-
-        fasta_stems = {ref_path.stem: ref_path for ref_path in ref_paths}
-        for group, fastq_files in fastq_groups.items():
-            # TODO: add regex stem matching
-            fastq_stems = {fastq_file.stem[:-5]: fastq_file for fastq_file in fastq_files}
-            for fastq_stem in fastq_stems:
-                commands = self._construct_exec_cmd(
-                    [fastq_stems[fastq_stem]], fasta_stems[fastq_stem], out_path / group / fastq_stem
-                )
-
-                cwd_path = out_path / group / fastq_stem
-                if not cwd_path.exists():
-                    cwd_path.mkdir(parents=True)
-                for cmd in commands:
-                    print(f"RUN::assembler::\n{cmd}")
-                    subprocess.run(cmd, shell=True, cwd=cwd_path)
+        for cmd in commands:
+            print(f"RUN::assembler::\n{cmd}")
+            subprocess.run(cmd, shell=True, cwd=output_path)
 
     @typechecked
-    def pre_assembly_step(self, out_path: Path, *args, **kwargs):
-        if self.cfg.overwrite:
-            if out_path.exists():
-                print("PRE::assembler:: Warning, existing assembly files, will potentially overwrite them")
-                shutil.rmtree(out_path)
-            else:
-                raise FileExistsError(f"PRE::assembler:: Error, {out_path} already exists!")
-        out_path.mkdir(parents=True)
+    def pre_assembly_step(self, output_path: Path, *args, **kwargs):
+        if output_path.exists():
+            print("PRE::assembler:: Warning, existing assembly files, overwriting them")
+            shutil.rmtree(output_path)
+        output_path.mkdir(parents=True)
 
-    def post_assembly_step(self, out_path: Path, *args, **kwargs):
+    def post_assembly_step(self, output_path: Path, *args, **kwargs):
         # Clean up the files
         if "keep" in self.cfg and self.cfg["keep"] is not None:
             keep_files = OmegaConf.to_container(self.cfg["keep"])
-            for path in out_path.glob("**/*"):
+            for path in output_path.glob("**/*"):
                 if not path.is_dir():
                     if self.cfg["full_asm"]:
                         if "full_asm" in str(path):
@@ -146,11 +125,11 @@ class LaJolla(assembler.Assembler):
                         path.unlink()
         # Create files summary and store it to the csv file in raw directory
         kept_files = []
-        for path in out_path.glob("**/*"):
+        for path in output_path.glob("**/*"):
             if not path.is_dir():
-                kept_files.append(str(path.relative_to(out_path)))
+                kept_files.append(str(path.relative_to(output_path)))
 
-        raw_dir = out_path / "raw"
+        raw_dir = output_path / "raw"
         if not raw_dir.exists():
             raw_dir.mkdir(parents=True)
 

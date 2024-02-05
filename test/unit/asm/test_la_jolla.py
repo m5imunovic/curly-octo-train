@@ -27,8 +27,9 @@ def test_la_jolla_construct_exe_cmd(test_reads_root):
         reads_path = test_reads_root / "chr1"
         output_path = Path(tmp_dir) / "output"
         reads = [reads_path / "0_0001.fastq", reads_path / "1_0001.fastq"]
+        genome = [Path("/fake/reference/chromosomes/chr1.fasta")]
         with patch("json.dump") as mock_dump, patch("builtins.open") as mock_open:
-            cmd = lja._construct_exec_cmd(reads_files=reads, ref_path=reads_path, output_path=output_path)
+            cmd = lja._construct_exec_cmd(genome=genome, reads=reads, output_path=output_path)
 
         # call jumboDBG
         # call lja
