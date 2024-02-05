@@ -9,6 +9,7 @@ from typeguard import typechecked
 import experiment.experiment_utils as eu
 import reference.reference_utils as ru
 import utils.path_helpers as ph
+from asm.assembler import run as assembly_task
 from experiment.scenario_schema import Scenario, collect_all_species_defs, load_scenario
 from reads.simulate_reads import run as sequencing_task
 from reference.genome_generator import run as reference_task
@@ -75,6 +76,25 @@ def create_sequencing_jobs(scenario: Scenario, sequencing_root: Path, reference_
     return jobs
 
 
+def create_assembly_jobs(read_jobs: list, assembly_root: Path) -> list:
+    jobs = []
+    for read_job in read_jobs:
+        # find fastq files in reads
+        jobs.extend(
+            [
+                {
+                    "genome": read_job["genome"],
+                    # TODO: should be dynamic fastq name based on the reads config or (better) returned from the reads job
+                    "reads": [read_job["simulated_reads_path"] / "sim_0001.fastq"],
+                    "output_path": assembly_root / f"{read_job['simulated_reads_path'].name}",
+                    "threads": 15,
+                }
+            ]
+        )
+
+    return jobs
+
+
 def run_sequencing_jobs(jobs: list) -> list:
     config_root = ph.get_config_root()
     for job in jobs:
@@ -84,6 +104,22 @@ def run_sequencing_jobs(jobs: list) -> list:
         with initialize_config_dir(version_base=None, config_dir=str(config_root), job_name=job_name):
             cfg = compose(config_name="sequencing.yaml", overrides=[f"reads.params.long.seed={seed}"])
             sequencing_task(cfg, genome=job["genome"], simulated_reads_path=job["simulated_reads_path"])
+
+    return []
+
+
+def run_assembly_jobs(jobs: list):
+    config_root = ph.get_config_root()
+    for job in jobs:
+        job_name = job["output_path"].name
+        # Warning, this modifies the input jobs
+        threads = job.pop("threads")
+        GlobalHydra.instance().clear()
+        with initialize_config_dir(version_base=None, config_dir=str(config_root), job_name=job_name):
+            cfg = compose(config_name="assembly.yaml", overrides=[f"asm.params.long.threads={threads}"])
+            assembly_task(cfg, **job)
+
+    return []
 
 
 def run(cfg: DictConfig):
@@ -100,3 +136,6 @@ def run(cfg: DictConfig):
 
     sequencing_jobs = create_sequencing_jobs(scenario, experiment_root / "sequencing", reference_paths)
     run_sequencing_jobs(sequencing_jobs)
+
+    assembly_jobs = create_assembly_jobs(sequencing_jobs, experiment_root / "assembly")
+    run_assembly_jobs(assembly_jobs)

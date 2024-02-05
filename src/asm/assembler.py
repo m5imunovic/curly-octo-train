@@ -1,14 +1,14 @@
 from abc import abstractmethod
 from pathlib import Path
 
-from omegaconf import DictConfig, OmegaConf
+from omegaconf import DictConfig
 from typeguard import typechecked
 
 
 class Assembler:
-    def __init__(self, cfg: DictConfig, vendor_dir: Path):
+    def __init__(self, cfg: DictConfig, vendor_dir: Path | str):
         self.cfg = cfg
-        self.assembler_root = self._install(vendor_dir)
+        self.assembler_root = self._install(Path(vendor_dir))
 
     @abstractmethod
     @typechecked
@@ -27,29 +27,25 @@ class Assembler:
         pass
 
     def __call__(self, *args, **kwargs):
+        # TODO: refactor reads simulator to use the same pattern
         self.pre_assembly_step(*args, **kwargs)
         self.run(**kwargs)
         self.post_assembly_step(*args, **kwargs)
 
 
 def assembler_factory(assembler: str, cfg: DictConfig) -> Assembler:
-    vendor_dir: Path = cfg.paths.vendor_dir
+    vendor_dir = cfg.paths.vendor_dir
     if assembler == "LJA":
         from asm.la_jolla import LaJolla
 
         return LaJolla(cfg=cfg.asm, vendor_dir=vendor_dir)
 
 
-def assembly_experiment_path(cfg: DictConfig) -> Path:
-    return Path(cfg.paths.assemblies_dir) / cfg.experiment
-
-
 def run(cfg: DictConfig, **kwargs):
     exec_args = {
-        "reads_path": Path(cfg.paths.reads_dir) / cfg.species_name["name"],
-        "ref_path": Path(cfg.paths.ref_dir) / cfg.species_name["name"] / "chromosomes",
-        "out_path": assembly_experiment_path(cfg),
-        "suffix": OmegaConf.to_container(cfg.suffix),
+        "genome": None,
+        "reads": None,
+        "out_path": None,
     }
 
     exec_args.update(kwargs)
