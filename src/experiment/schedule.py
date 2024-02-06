@@ -1,4 +1,5 @@
 import logging
+import shutil
 from pathlib import Path
 
 from hydra import compose, initialize_config_dir
@@ -156,6 +157,11 @@ def run_graph_jobs(jobs: list) -> list:
     return []
 
 
+def run_cleanup_job(read_job: dict, assembly_job: dict):
+    shutil.rmtree(read_job["simulated_reads_path"])
+    shutil.rmtree(assembly_job["output_path"])
+
+
 def run(cfg: DictConfig):
     scenario = load_scenario(cfg.scenario.name)
     # get the species name and start the reference.py
@@ -169,13 +175,14 @@ def run(cfg: DictConfig):
     )
 
     sequencing_jobs = create_sequencing_jobs(scenario, experiment_root / "sequencing", reference_paths)
-    run_sequencing_jobs(sequencing_jobs)
-
     assembly_jobs = create_assembly_jobs(sequencing_jobs, experiment_root / "assembly")
-    run_assembly_jobs(assembly_jobs)
-
     raw_dir = experiment_root.parent / "raw"
     raw_dir.mkdir(parents=True, exist_ok=True)
     graph_jobs = create_graph_jobs(assembly_jobs, experiment_root / "graph", raw_dir)
 
-    run_graph_jobs(graph_jobs)
+    for i in range(len(sequencing_jobs)):
+        print(f"Running job {i+1} of {len(sequencing_jobs)}")
+        run_sequencing_jobs([sequencing_jobs[i]])
+        run_assembly_jobs([assembly_jobs[i]])
+        run_graph_jobs([graph_jobs[i]])
+        run_cleanup_job(sequencing_jobs[i], assembly_jobs[i])
