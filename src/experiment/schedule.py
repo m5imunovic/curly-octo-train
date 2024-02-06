@@ -11,6 +11,7 @@ import reference.reference_utils as ru
 import utils.path_helpers as ph
 from asm.assembler import run as assembly_task
 from experiment.scenario_schema import Scenario, collect_all_species_defs, load_scenario
+from graph.db_graph import run as graph_task
 from reads.simulate_reads import run as sequencing_task
 from reference.genome_generator import run as reference_task
 
@@ -95,6 +96,27 @@ def create_assembly_jobs(read_jobs: list, assembly_root: Path) -> list:
     return jobs
 
 
+@typechecked
+def create_graph_jobs(assembly_jobs: list, graph_root: Path, raw_dir: Path) -> list:
+    jobs = []
+    # TODO: add exception clause here
+    file_stems = [int(f.stem) for f in raw_dir.glob("*.pt")]
+    idx = max(file_stems) + 1 if file_stems else 0
+    for assembly_job in assembly_jobs:
+        # find assembly files in assemblies
+        jobs.extend(
+            [
+                {
+                    "assembly_path": assembly_job["output_path"],
+                    "output_path": graph_root / f"{assembly_job['output_path'].name}",
+                    "idx": idx,
+                }
+            ]
+        )
+        idx += 1
+    return jobs
+
+
 def run_sequencing_jobs(jobs: list) -> list:
     config_root = ph.get_config_root()
     for job in jobs:
@@ -122,6 +144,18 @@ def run_assembly_jobs(jobs: list):
     return []
 
 
+def run_graph_jobs(jobs: list) -> list:
+    config_root = ph.get_config_root()
+    for job in jobs:
+        job_name = job["output_path"].name
+        GlobalHydra.instance().clear()
+        with initialize_config_dir(version_base=None, config_dir=str(config_root), job_name=job_name):
+            cfg = compose(config_name="graph.yaml")
+            graph_task(cfg, **job)
+
+    return []
+
+
 def run(cfg: DictConfig):
     scenario = load_scenario(cfg.scenario.name)
     # get the species name and start the reference.py
@@ -139,3 +173,9 @@ def run(cfg: DictConfig):
 
     assembly_jobs = create_assembly_jobs(sequencing_jobs, experiment_root / "assembly")
     run_assembly_jobs(assembly_jobs)
+
+    raw_dir = experiment_root.parent / "raw"
+    raw_dir.mkdir(parents=True, exist_ok=True)
+    graph_jobs = create_graph_jobs(assembly_jobs, experiment_root / "graph", raw_dir)
+
+    run_graph_jobs(graph_jobs)
