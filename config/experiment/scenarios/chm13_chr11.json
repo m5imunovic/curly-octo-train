@@ -1,0 +1,20 @@
+{
+  "dataset": "chm13_chr11_dataset",
+  "items": [
+    {
+      "samples": [
+        {
+          "chromosomes": [
+            {
+              "name": "chr11"
+            }
+          ],
+          "count": 1,
+          "init_seed": 1
+        }
+      ],
+      "species_name": "chm13.yaml"
+    }
+  ],
+  "subset": "test"
+}
