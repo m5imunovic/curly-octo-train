@@ -19,7 +19,7 @@ def fake_vendor_root():
         vendor_dir.mkdir(exist_ok=True)
         simulator_root = vendor_dir / "pbsim3"
         simulator_root.mkdir(exist_ok=True)
-        # PbSim3 will expects vendor_dir as input argument and that pbsim3 folder exists in there
+        # PbSim3 expects vendor_dir as input argument and that pbsim3 folder exists in there
         yield vendor_dir
 
 
@@ -30,12 +30,6 @@ def fake_sample_profile():
         seed=SEED,
     )
     return profile
-
-
-@pytest.fixture(scope="function")
-def test_species_genome(test_data_reference) -> list[Path]:
-    chr_path = test_data_reference / "test_species" / "S_0001" / "chromosomes"
-    return list(chr_path.glob("*.fasta"))
 
 
 def test_generator_produces_expected_output(test_pbsim3_pf_cfg, test_species_genome, test_data_reads, tmpdir):

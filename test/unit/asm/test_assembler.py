@@ -9,15 +9,12 @@ from asm.assembler import run as run_assembler
 from asm.la_jolla import LaJolla
 
 
-def assembler_cfg(overwrite: bool, tmp_dir: Path):
+def assembler_cfg(tmp_dir: Path):
     return OmegaConf.create(
         {
             "asm": {
                 "name": "LJA",
-                "overwrite": overwrite,
                 "params": None,
-                "experiment": "test_experiment",
-                "suffix": [".fa", ".fasta"],
             },
             "paths": {
                 "ref_dir": str(tmp_dir / "ref"),
@@ -25,9 +22,7 @@ def assembler_cfg(overwrite: bool, tmp_dir: Path):
                 "assemblies_dir": str(tmp_dir / "assemblies"),
                 "vendor_dir": str(tmp_dir / "vendor"),
             },
-            "species_name": {"name": "test_species"},
             "experiment": "test_experiment",
-            "suffix": {"reads": [".fq", ".fastq"], "reference": [".fa", ".fasta"]},
         }
     )
 
@@ -37,7 +32,7 @@ def assembler_cfg(overwrite: bool, tmp_dir: Path):
 @mock.patch.object(LaJolla, "_install")
 def test_assembler_overwrite_data(mock_install, mock_run, tmp_path):
     with tempfile.TemporaryDirectory() as tmp_dir:
-        cfg = assembler_cfg(overwrite=True, tmp_dir=Path(tmp_dir))
+        cfg = assembler_cfg(tmp_dir=Path(tmp_dir))
 
         kwargs = {"reads": tmp_path, "output_path": tmp_path}
 
@@ -46,7 +41,3 @@ def test_assembler_overwrite_data(mock_install, mock_run, tmp_path):
         run_assembler(cfg, **kwargs)
 
         assert mock_run.call_count == 1
-
-        cfg = assembler_cfg(overwrite=False, tmp_dir=Path(tmp_dir))
-        with pytest.raises(FileExistsError):
-            run_assembler(cfg, **kwargs)

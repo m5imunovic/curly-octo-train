@@ -142,7 +142,7 @@ class PbSim3(RSimulator):
 
 @typechecked
 def simulator_factory(simulator: str, cfg: DictConfig) -> RSimulator:
-    vendor_dir: Path = ph.get_vendor_path()
+    vendor_dir: Path = ph.get_vendor_path() if "paths" in cfg else ph.get_vendor_path()
     if simulator == "pbsim3":
         return PbSim3(cfg=cfg, vendor_dir=vendor_dir)
     raise ValueError(f"Unknown simulator name {simulator}")

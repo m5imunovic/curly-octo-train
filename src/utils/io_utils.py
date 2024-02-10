@@ -2,7 +2,7 @@ import re
 from pathlib import Path
 from typing import Dict, List, Optional, Union
 
-from omegaconf import DictConfig
+from omegaconf import DictConfig, ListConfig
 from typeguard import typechecked
 
 
@@ -60,7 +60,7 @@ def compose_cmd_params(params: Union[Dict, DictConfig]) -> str:
     long_params = []
     if "long" in params:
         for k, v in params["long"].items():
-            if isinstance(v, list):
+            if isinstance(v, list) or isinstance(v, ListConfig):
                 for item in v:
                     long_params.append(f"--{k} {item}")
             else:

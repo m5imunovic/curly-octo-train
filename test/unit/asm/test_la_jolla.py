@@ -2,47 +2,66 @@ import tempfile
 from pathlib import Path
 from unittest.mock import patch
 
-import omegaconf
+import pytest
 
 from asm import la_jolla
+from asm.assembler import assembler_factory
+from asm.mult_info_parser import parse_mult_info
 
 
-def test_la_jolla_construct_exe_cmd(test_reads_root):
-    cfg1 = omegaconf.DictConfig(
-        {
-            "name": "LJA",
-            "params": {"long": {"threads": 8}, "short": {"k": 501}, "append": "--compress"},
-            "exec": "jumboDBG",
-            "full_asm": "full_asm",
-        }
-    )
-
+@pytest.fixture(scope="module")
+def fake_vendor_root():
+    # TODO: use pyfakefs for this
     with tempfile.TemporaryDirectory() as tmp_dir:
         vendor_dir = Path(tmp_dir) / "vendor"
         vendor_dir.mkdir(exist_ok=True)
         assembler_root = vendor_dir / "LJA"
         assembler_root.mkdir(exist_ok=True)
+        # LaJolla expects vendor_dir as input argument and that LJA folder exists in there
+        yield vendor_dir
 
-        lja = la_jolla.LaJolla(cfg1, vendor_dir)
-        reads_path = test_reads_root / "chr1"
-        output_path = Path(tmp_dir) / "output"
-        reads = [reads_path / "0_0001.fastq", reads_path / "1_0001.fastq"]
-        genome = [Path("/fake/reference/chromosomes/chr1.fasta")]
-        with patch("json.dump") as mock_dump, patch("builtins.open") as mock_open:
-            cmd = lja._construct_exec_cmd(genome=genome, reads=reads, output_path=output_path)
 
-        # call jumboDBG
-        # call lja
-        # call align_and_print twice
-        assert len(cmd) == 1
+def test_la_jolla_construct_exe_cmd(fake_vendor_root, test_la_jolla_cfg):
+    lja = la_jolla.LaJolla(test_la_jolla_cfg, fake_vendor_root)
+    output_path = Path("fake/output")
+    reads = [Path("/fake/reads/chr1/0_0001.fastq"), Path("/fake/reads/chr1/1_0001.fastq")]
+    genome = [Path("/fake/reference/chromosomes/chr1.fasta")]
+    with patch("json.dump") as mock_dump, patch("builtins.open") as mock_open:
+        cmd, eval_cmd_path = lja._construct_exec_cmd(genome=genome, reads=reads, output_path=output_path)
 
-        assert str(assembler_root / "bin/jumboDBG") in cmd[0]
-        assert "-k 501" in cmd[0]
-        assert "--threads 8" in cmd[0]
-        assert "--compress" in cmd[0]
-        assert "--reference" in cmd[0]
-        assert str(reads_path / "0_0001.fastq") in cmd[0]
-        assert str(reads_path / "1_0001.fastq") in cmd[0]
-        assert "full_asm.json" in str(mock_open.call_args_list[0])
-        assert "lja" in mock_dump.call_args[0][0]
-        assert "align_and_print" in mock_dump.call_args[0][0]
+    # call jumboDBG
+    assert len(cmd) == 1
+    assert str(fake_vendor_root / "LJA/bin/jumboDBG") in cmd[0]
+    assert "-k 501" in cmd[0]
+    assert "--threads 15" in cmd[0]
+    assert "--compress" in cmd[0]
+    assert f"--reference {genome[0]}" in cmd[0]
+    assert f"--reads {reads[0]}" in cmd[0]
+    assert f"--reads {reads[1]}" in cmd[0]
+
+    # prepares the commands for later evaluation
+    # call lja
+    # call align_and_print twice
+    assert output_path / test_la_jolla_cfg["full_asm"] / "full_asm.json" == eval_cmd_path
+    assert "full_asm.json" in str(mock_open.call_args_list[0])
+    assert "lja" in mock_dump.call_args[0][0]
+    assert "align_and_print" in mock_dump.call_args[0][0]
+
+
+def test_la_jolla_produces_expected_output(
+    test_la_jolla_cfg, test_species_genome, test_data_reads_fq, test_data_assemblies, tmpdir
+):
+    assembler = assembler_factory("LJA", test_la_jolla_cfg)
+
+    output_path = Path(tmpdir)
+    # with patch("json.dump"), patch("builtins.open"):
+    assembler(genome=test_species_genome, reads=test_data_reads_fq, output_path=output_path)
+
+    assert output_path.exists()
+
+    assert (output_path / "graph.gfa").exists()
+    assert (output_path / "mult.info").exists()
+    assert (output_path / "full_asm" / "full_asm.json").exists()
+    expected_mult_info = parse_mult_info(test_data_assemblies / "mult.info")
+    mult_info = parse_mult_info(output_path / "mult.info")
+    assert sorted(mult_info.keys()) == sorted(expected_mult_info.keys())

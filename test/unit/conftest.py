@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pytest
 from omegaconf import OmegaConf
 
@@ -44,3 +46,19 @@ def test_cfg_path(test_data_root):
 @pytest.fixture(scope="session")
 def test_cfg_root():
     return get_project_root() / "test" / "config"
+
+
+@pytest.fixture(scope="session")
+def test_species_genome(test_data_reference) -> list[Path]:
+    chr_path = test_data_reference / "test_species" / "S_0001" / "chromosomes"
+    return list(chr_path.glob("*.fasta"))
+
+
+@pytest.fixture(scope="session")
+def test_data_reads(test_data_root) -> Path:
+    return test_data_root / "reads"
+
+
+@pytest.fixture(scope="session")
+def test_data_assemblies(test_data_root) -> Path:
+    return test_data_root / "assemblies"

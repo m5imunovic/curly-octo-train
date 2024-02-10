@@ -1,0 +1,23 @@
+name: LJA
+
+params:
+  long:
+    threads: 15
+    reference: # null or either single path or list of paths
+  short:
+    o: # output path
+    k: 501
+    # K: 2001 # not supported for jumboDBG
+  append: "--compress"
+
+keep:
+  [
+    "graph.gfa",
+    "mult.info",
+    "ref.info",
+    "disjointigs.fasta",
+    "graph.dot",
+    "alignments.txt",
+  ]
+exec: jumboDBG # name of the executable to use (jumboDBG or lja)
+full_asm: full_asm # execute LJA so that we have all the files for comparison and save in this dir
