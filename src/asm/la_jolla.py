@@ -1,4 +1,5 @@
 import json
+import logging
 import shutil
 import subprocess
 from copy import deepcopy
@@ -10,15 +11,16 @@ from typeguard import typechecked
 from asm import assembler
 from utils.io_utils import compose_cmd_params
 
+logger = logging.getLogger(__name__)
+
 
 class LaJolla(assembler.Assembler):
     @typechecked
-    def _install(self, vendor_dir: Path | str) -> Path:
-        vendor_dir = Path(vendor_dir)
+    def _install(self, vendor_dir: Path) -> Path:
         assembler_root = (vendor_dir / "LJA").absolute()
         if not assembler_root.exists():
             try:
-                print("SETUP::generate:: Download La Jolla Assembler")
+                logger.info("SETUP::generate:: Download La Jolla Assembler")
                 subprocess.run(
                     "git clone https://github.com/AntonBankevich/LJA.git", shell=True, cwd=str(vendor_dir.absolute())
                 )
@@ -29,14 +31,14 @@ class LaJolla(assembler.Assembler):
                 subprocess.run("make -j 8 jumboDBG", shell=True, cwd=str(assembler_root))
                 subprocess.run("make -j 8 align_and_print", shell=True, cwd=str(assembler_root))
             except Exception as ex:
-                print(f"SETUP::generate:: Error: {ex}")
+                logger.info(f"SETUP::generate:: Error: {ex}")
                 shutil.rmtree(assembler_root)
                 raise ex
 
         return assembler_root / "bin"
 
     @typechecked
-    def _construct_eval_cmds(self, output_path: Path, reads_cmd_params: str):
+    def _construct_eval_cmds(self, output_path: Path, reads_cmd_params: str) -> Path | None:
         cmds = {}
         if self.cfg["full_asm"]:
             full_asm_subdir = self.cfg["full_asm"]
@@ -73,17 +75,21 @@ class LaJolla(assembler.Assembler):
             cmds["align_and_print"]["eval_01"] = deepcopy(params)
 
             full_asm_path.mkdir(exist_ok=True, parents=True)
-            with open(full_asm_path / "full_asm.json", "w") as f:
+            eval_cmds_file = full_asm_path / "full_asm.json"
+            with open(eval_cmds_file, "w") as f:
                 json.dump(cmds, f, indent=4)
+            return eval_cmds_file
 
-            print("Stored evaluation commands in full_asm.json")
+        return None
 
     @typechecked
-    def _construct_exec_cmd(self, genome: list[Path], reads: list[Path], output_path: Path) -> list[str]:
+    def _construct_exec_cmd(
+        self, genome: list[Path], reads: list[Path], output_path: Path
+    ) -> tuple[list[str], Path | None]:
         assert "params" in self.cfg, "params must be specified in config"
 
         if genome:
-            self.cfg.params.long.reference = " ".join(str(p) for p in genome)
+            self.cfg.params.long.reference = [str(p) for p in genome]
         self.cfg.params.short.o = str(output_path)
         option_params = compose_cmd_params(self.cfg["params"])
 
@@ -93,22 +99,23 @@ class LaJolla(assembler.Assembler):
         reads_cmd_params = " ".join([f"--reads {str(read_file)}" for read_file in reads])
         cmds = [f"{asm_executable} {option_params} {reads_cmd_params}"]
 
-        self._construct_eval_cmds(output_path=output_path, reads_cmd_params=reads_cmd_params)
+        eval_cmds_path = self._construct_eval_cmds(output_path=output_path, reads_cmd_params=reads_cmd_params)
 
-        return cmds
+        return cmds, eval_cmds_path
 
     @typechecked
     def run(self, genome: list[Path], reads: list[Path], output_path: Path, *args, **kwargs):
-        commands = self._construct_exec_cmd(genome, reads, output_path)
+        commands, eval_cmds_path = self._construct_exec_cmd(genome, reads, output_path)
+        logger.info(f"Save eval commands to {eval_cmds_path}")
 
         for cmd in commands:
-            print(f"RUN::assembler::\n{cmd}")
+            logger.info(f"RUN::assembler::\n{cmd}")
             subprocess.run(cmd, shell=True, cwd=output_path)
 
     @typechecked
     def pre_assembly_step(self, output_path: Path, *args, **kwargs):
         if output_path.exists():
-            print("PRE::assembler:: Warning, existing assembly files, overwriting them")
+            logger.info("PRE::assembler:: Warning, existing assembly files, overwriting them")
             shutil.rmtree(output_path)
         output_path.mkdir(parents=True)
 
