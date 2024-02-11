@@ -152,7 +152,7 @@ def run_graph_jobs(jobs: list) -> list:
         GlobalHydra.instance().clear()
         with initialize_config_dir(version_base=None, config_dir=str(config_root), job_name=job_name):
             cfg = compose(config_name="graph.yaml")
-            graph_task(cfg, **job)
+            graph_task(cfg.graph, **job)
 
     return []
 

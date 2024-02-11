@@ -1,0 +1,8 @@
+name: db_graph
+#supported features for graph
+# kc - coverage
+# ln - length, i.e. number of nucleotides in node
+# For now coverage (col0) and length (col1) are always added and used
+features: # [kc, ln]
+k: 501
+debug: False # if true outputs the graph in GML format for visualization purposes
