@@ -5,7 +5,7 @@ import utils.path_helpers as ph
 from experiment.schedule import run
 
 
-@hydra.main(version_base=None, config_path=str(ph.get_config_root()), config_name="experiment")
+@hydra.main(version_base=None, config_path=str(ph.get_config_root()), config_name="config")
 def main(cfg: DictConfig):
     ph.adjust_cfg_paths(cfg)
     run(cfg)

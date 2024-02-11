@@ -102,8 +102,8 @@ class PbSim3(RSimulator):
         if self.cfg.profile.path and self.cfg.params.long["sample-profile-id"]:
             profile_file = self.sample_profile_path
             stats_file = self.sample_stats_path
-            cmds.append(f"ln {profile_file} {profile_file.name}")
-            cmds.append(f"ln {stats_file} {stats_file.name}")
+            cmds.append(f"ln -s {profile_file} {profile_file.name}")
+            cmds.append(f"ln -s {stats_file} {stats_file.name}")
 
         prefix = self.cfg.params.long.prefix
         cmds.extend(
@@ -121,12 +121,12 @@ class PbSim3(RSimulator):
         return cmds
 
     @typechecked
-    def run(self, genome: list[Path], simulated_reads_path: Path, *args, **kwargs) -> bool:
-        self._simulate_reads(genome, simulated_reads_path)
+    def run(self, genome: list[Path], output_path: Path, *args, **kwargs) -> bool:
+        self._simulate_reads(genome, output_path)
         return True
 
     @typechecked
-    def _simulate_reads(self, chr_seq_path: list[Path], simulated_reads_path: Path):
+    def _simulate_reads(self, chr_seq_path: list[Path], output_path: Path):
         reference_list = "\n-->".join(str(p) for p in chr_seq_path)
         logger.info(f"Simulating reads from reference:\n-->{reference_list}")
         commands = self.construct_exec_cmd(chr_seq_path)
@@ -134,10 +134,10 @@ class PbSim3(RSimulator):
             for cmd in commands:
                 logger.info(f"RUN::simulate:: {cmd}")
                 subprocess.run(cmd, shell=True, cwd=staging_dir)
-            if not simulated_reads_path.exists():
-                simulated_reads_path.mkdir(parents=True)
+            if not output_path.exists():
+                output_path.mkdir(parents=True)
             # shutil.move would also include staging dir
-            shutil.copytree(staging_dir, simulated_reads_path, dirs_exist_ok=True, copy_function=shutil.move)
+            shutil.copytree(staging_dir, output_path, dirs_exist_ok=True, copy_function=shutil.move)
 
 
 @typechecked
