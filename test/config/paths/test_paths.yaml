@@ -12,3 +12,4 @@ ref_dir: ${paths.data_dir}/references/
 
 # path for storing the outputs of the specific run
 exp_dir: ${paths.data_dir}/experiments
+datasets_dir: null

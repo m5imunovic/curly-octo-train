@@ -91,7 +91,6 @@ def run(cfg: DictConfig, **kwargs):
     exec_args = {
         "assembly_path": None,
         "output_path": None,
-        "idx": 0,
     }
 
     exec_args.update(kwargs)
@@ -109,8 +108,8 @@ def run(cfg: DictConfig, **kwargs):
     if not out_debug_path.exists():
         out_debug_path.mkdir(parents=True)
 
-    idx = exec_args["idx"]
     assembly_path = exec_args["assembly_path"]
+    idx = 0
     processed_results = process_graph(idx, assembly_path, cfg, out_raw_path, out_debug_path)
 
     with open(output_path / "raw.csv", "w") as f:
