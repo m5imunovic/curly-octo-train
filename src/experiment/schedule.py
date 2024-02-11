@@ -1,5 +1,6 @@
 import logging
 import shutil
+import subprocess
 import tempfile
 from pathlib import Path
 
@@ -144,8 +145,9 @@ def run_collect_job(dataset_path: Path, graph_job: dict):
     idx = len(list(dataset_path.glob("*.pt")))
     src = graph_job["output_path"] / "raw" / "0.pt"
     dst = dataset_path / f"{idx}.pt"
-    logger.info(f"Moving {src} to {dst}")
-    shutil.move(src, dst)
+    logger.info(f"Copying {src} to {dst}")
+    # shutil.move fails on alternative setup with SMB drive (permissions issue)
+    subprocess.run(f"cp {src} {dst}", shell=True)
 
 
 def run_cleanup_job(read_job: dict, assembly_job: dict, graph_job: dict):
