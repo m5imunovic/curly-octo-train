@@ -1,7 +1,9 @@
+from pathlib import Path
+
 from omegaconf import OmegaConf
 
 from graph.construct_graph import construct_graph
-from graph.db_graph import convert_to_pyg_graph
+from graph.db_graph import convert_to_pyg_graph, run
 
 
 def test_convert_to_pyg_graph(test_gfa_root, expected_lja):
@@ -18,3 +20,18 @@ def test_convert_to_pyg_graph(test_gfa_root, expected_lja):
 
     assert pyg.num_nodes == expected_number_of_nodes
     assert pyg.edge_index.shape[1] == expected_number_of_edges
+
+
+def test_graph_produces_expected_outputs(test_db_graph_cfg, test_data_assemblies, tmpdir):
+    exec_args = {
+        "assembly_path": test_data_assemblies,
+        "output_path": Path(tmpdir),
+        "idx": 0,
+    }
+
+    run(test_db_graph_cfg, **exec_args)
+
+    idx = exec_args["idx"]
+    assert (Path(tmpdir) / "raw" / f"{idx}.pt").exists()
+    assert (Path(tmpdir) / "debug" / f"{idx}.idmap").exists()
+    assert (Path(tmpdir) / "debug" / f"{idx}.rcmap").exists()

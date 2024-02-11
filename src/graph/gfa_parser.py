@@ -1,9 +1,13 @@
+import logging
 from pathlib import Path
 from typing import Any, Dict, Tuple
 
 from typeguard import typechecked
 
 SegmentDict = Dict[str, Dict[str, Any]]
+
+
+logger = logging.getLogger(__name__)
 
 
 @typechecked
@@ -45,10 +49,10 @@ def parse_gfa(path: Path, k=501, skip_links=False) -> Tuple:
                     links[node_id] = (inc_id, inc_sgn, out_id, out_sgn)
                     node_id += 2
 
-    print(f"Loaded {len(segments)} segments")
+    logging.info(f"Loaded {len(segments)} segments")
     if not skip_links:
-        print(f"Loaded {len(links)} links")
+        logging.info(f"Loaded {len(links)} links")
     else:
-        print("Skipped links loading")
+        logging.info("Skipped links loading")
 
     return segments, links
