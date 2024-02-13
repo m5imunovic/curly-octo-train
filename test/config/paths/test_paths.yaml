@@ -1,0 +1,15 @@
+# path to root directory
+# PROJECT_ROOT environment variable is defined in .env file in root of the project
+# VS Code will pick this up automatically otherwise it needs to be defined before
+# running the script, e.g. PROJECT_ROOT="$HOME/ws/project" python src/train.py
+root_dir: ${oc.env:PROJECT_ROOT}
+
+# path to data directory
+# defined in the top level conftest.py via autouse fixture
+data_dir: ${oc.env:TEST_DATA_ROOT}
+# path to genome references
+ref_dir: ${paths.data_dir}/references/
+
+# path for storing the outputs of the specific run
+exp_dir: ${paths.data_dir}/experiments
+datasets_dir: null

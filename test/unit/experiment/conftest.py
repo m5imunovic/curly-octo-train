@@ -14,6 +14,11 @@ def test_data_experiment(test_data_root) -> Path:
 
 
 @pytest.fixture(scope="session")
+def test_scenarios_root(test_cfg_root) -> Path:
+    return test_cfg_root / "experiment" / "scenarios"
+
+
+@pytest.fixture(scope="session")
 def test_scenario(test_cfg_root) -> Scenario:
     test_scenario_path = test_cfg_root / "experiment" / "scenarios" / "test_scenario.json"
     with open(test_scenario_path) as f:
@@ -24,7 +29,7 @@ def test_scenario(test_cfg_root) -> Scenario:
 
 @pytest.fixture(scope="session")
 def test_experiment_cfg(test_cfg_root):
-    test_experiment_config_dir = test_cfg_root / "experiment"
+    test_experiment_config_dir = test_cfg_root
     with initialize_config_dir(version_base=None, config_dir=str(test_experiment_config_dir), job_name="test_exp"):
-        cfg = compose(config_name="test_experiment.yaml")
+        cfg = compose(config_name="test_config.yaml")
         return cfg

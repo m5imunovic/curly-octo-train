@@ -10,4 +10,4 @@ params:
     prefix: sim
 
 profile:
-  path: null # path to the profile directory
+  path: ${oc.env:TEST_PROFILE_ROOT}

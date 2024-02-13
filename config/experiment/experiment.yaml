@@ -1,8 +1,3 @@
-defaults:
-  - hydra: hydra
-  - paths: paths
-  - _self_
-
 scenario:
   name: random_scenario #  can be with or without .json
 

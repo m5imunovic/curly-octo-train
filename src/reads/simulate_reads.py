@@ -18,7 +18,7 @@ def run(cfg: DictConfig, **kwargs):
 
     exec_args = {
         # Top level output path
-        "simulated_reads_path": None,
+        "output_path": None,
         # Path to the reference genome directory (can contain one or multiple files)
         "genome": None,
     }
@@ -29,7 +29,7 @@ def run(cfg: DictConfig, **kwargs):
     simulator.run(**exec_args)
     simulator.post_simulation_step(**exec_args)
 
-    metadata_path = exec_args["simulated_reads_path"] / "metadata"
+    metadata_path = exec_args["output_path"] / "metadata"
     metadata_path.mkdir(parents=True, exist_ok=True)
 
     with open(metadata_path / "reads.yaml", "w") as f:

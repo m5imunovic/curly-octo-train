@@ -1,0 +1,4 @@
+scenario:
+  name: test_scenario.json # can be with or without .json
+
+experiment_id: ${now:%Y%m%d_%H%M}

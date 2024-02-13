@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 import pytest
@@ -6,6 +7,12 @@ from omegaconf import OmegaConf
 from utils.path_helpers import get_project_root, project_root_append
 
 OmegaConf.register_new_resolver("project_root", project_root_append, replace=True)
+
+
+@pytest.fixture(scope="session", autouse=True)
+def set_env():
+    os.environ["TEST_DATA_ROOT"] = str(get_project_root() / "test" / "data")
+    os.environ["TEST_PROFILE_ROOT"] = str(get_project_root() / "test" / "data" / "pf")
 
 
 @pytest.fixture(scope="session")
@@ -35,7 +42,7 @@ def test_datasets_root(test_data_root):
 
 @pytest.fixture(scope="session")
 def test_data_reference(test_data_root):
-    return test_data_root / "reference"
+    return test_data_root / "references"
 
 
 @pytest.fixture(scope="session")

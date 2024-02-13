@@ -34,7 +34,7 @@ def fake_sample_profile():
 
 def test_generator_produces_expected_output(test_pbsim3_pf_cfg, test_species_genome, test_data_reads, tmpdir):
     simulator = simulator_factory("pbsim3", test_pbsim3_pf_cfg)
-    simulator.run(genome=test_species_genome, simulated_reads_path=Path(tmpdir))
+    simulator.run(genome=test_species_genome, output_path=Path(tmpdir))
 
     simulated_fastq = tmpdir / "sim_0001.fastq"
     assert simulated_fastq.exists(), "Simulated fastq file does not exist"
@@ -56,8 +56,8 @@ def test_simulator_generates_expected_commands(test_pbsim3_pf_cfg, fake_vendor_r
     profile_path = pbsim.construct_sample_path(profile_root, cfg.params.long["sample-profile-id"], ".fastq")
     stats_path = pbsim.construct_sample_path(profile_root, cfg.params.long["sample-profile-id"], ".stats")
     expected_cmds = [
-        f"ln {profile_path} {profile_path.name}",
-        f"ln {stats_path} {stats_path.name}",
+        f"ln -s {profile_path} {profile_path.name}",
+        f"ln -s {stats_path} {stats_path.name}",
         f"{simulator_exe} --depth 25 --strategy wgs --method sample --sample-profile-id pf1 --seed {SEED} --prefix sim --genome {fake_sample_profile.genome[0]}",
         f"rm {cfg.params.long.prefix}_0001.maf",
         f"rm {cfg.params.long.prefix}_0001.ref",
