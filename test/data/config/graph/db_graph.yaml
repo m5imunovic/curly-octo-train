@@ -1,5 +1,4 @@
 name: db_graph
-overwrite: False # set to True if you want to overwrite the existing data
 experiment: experiment_1
 #supported features for graph
 # kc - coverage

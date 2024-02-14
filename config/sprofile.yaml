@@ -1,0 +1,17 @@
+defaults:
+  - hydra: hydra
+  - paths: paths
+  - reference: reference
+  - reads: pbsim3_create_pf
+  - reads@sample: sample_reads_fastq
+  - _self_
+
+reads:
+  params:
+    long:
+      seed: ${sample.seed}
+      sample-profile-id: pf_chm13_chr10_${sample.seed}
+      genome: ${paths.ref_dir}/homo_sapiens/chm13_v2/chromosomes/chr10.fasta
+      sample: ${sample.sampled_file}
+  profile:
+    path: ${paths.profile_dir}/pbsim3

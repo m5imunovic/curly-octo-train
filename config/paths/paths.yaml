@@ -8,13 +8,10 @@ root_dir: ${oc.env:PROJECT_ROOT}
 data_dir: /data/
 # path to genome references
 ref_dir: ${paths.data_dir}/references/
-# path to sequencing reads
-reads_dir: ${paths.data_dir}/reads
-# path to results of genome assembly
-assemblies_dir: ${paths.data_dir}/assemblies
 # path to ML datasets shared with train/inference pipeline
 datasets_dir: ${paths.data_dir}/datasets
-
+# path to reads for profiling
+profile_dir: ${paths.data_dir}/profile
 # path for storing the outputs of the specific run
 # see hydra config for the exact format used
 output_dir: ${hydra:runtime.output_dir}

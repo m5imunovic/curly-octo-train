@@ -8,9 +8,7 @@ defaults:
 
 # combine
 reference:
-  overwrite: False
   name: random_species
 reads:
-  overwrite: True
   request:
     chr1: 1
