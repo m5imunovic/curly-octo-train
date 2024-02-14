@@ -1,5 +1,4 @@
 name: pbsim2
-overwrite: True # set to False if you want to keep existing data
 
 params:
   long: # command line params starting with --

@@ -1,5 +1,4 @@
 name: pbsim3
-overwrite: True # set to True if you want to overwrite existing data
 threads: 15 # set if you want to override (default is os.cpu_count() - 1)
 
 params:
