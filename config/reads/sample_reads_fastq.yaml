@@ -1,5 +1,7 @@
-reads_file: "/data/profile/SRR11292120.man.fastq"
-date_yy_mm_dd: ${now:%y_%m_%d}
-sampled_file: "/data/profile/sampled/${date_yy_mm_dd}/SRR11292120.sampled.fastq"
-probability: 0.1
-seed: 63
+# @package sample
+origin: https://www.ncbi.nlm.nih.gov/sra/SRX7897688 # origin of sequencing file (either url or simulation params link)
+reads_file: ${paths.profile_dir}/SRR11292120.man.fastq # local file to which the reads are saved
+
+seed: 2402132228 #${now:%y%m%d%H%M}
+sampled_file: ${paths.profile_dir}/sampled/${sample.seed}/SRR11292120.sampled.fastq # local file to which the sampled reads are saved
+probability: 0.1 # probability of taking a read from sample

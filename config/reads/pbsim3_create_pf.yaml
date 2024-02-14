@@ -1,0 +1,14 @@
+name: pbsim3
+
+params:
+  long: # command line params starting with --
+    strategy: wgs
+    method: sample
+    depth: 25
+    seed: # override in top-level config
+    sample-profile-id: # override in top-level config
+    genome: # override in top-level config
+    sample: # override in top-level config
+
+profile:
+  path: # override in top-level config
