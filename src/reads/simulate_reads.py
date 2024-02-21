@@ -1,18 +1,12 @@
-from dataclasses import dataclass
-from pathlib import Path
-
-from omegaconf import DictConfig, OmegaConf
+from omegaconf import DictConfig
+from typeguard import typechecked
 
 from reads.reads_simulator import simulator_factory
+from utils.io_utils import get_job_outputs
 
 
-@dataclass
-class SampleProfile:
-    genome: list[Path]
-    seed: int
-
-
-def run(cfg: DictConfig, **kwargs):
+@typechecked
+def run(cfg: DictConfig, **kwargs) -> dict:
     # species_filter contains species name (unique path identifier in the reference directory)
     # chromosomes from which to sequence, how many reads to simulate and range of nucleotides
 
@@ -25,12 +19,6 @@ def run(cfg: DictConfig, **kwargs):
     exec_args.update(kwargs)
     simulator = simulator_factory(simulator=cfg.reads.name, cfg=cfg.reads)
 
-    simulator.pre_simulation_step(**exec_args)
-    simulator.run(**exec_args)
-    simulator.post_simulation_step(**exec_args)
+    simulator(**exec_args)
 
-    metadata_path = exec_args["output_path"] / "metadata"
-    metadata_path.mkdir(parents=True, exist_ok=True)
-
-    with open(metadata_path / "reads.yaml", "w") as f:
-        OmegaConf.save(config=cfg, f=f, resolve=True)
+    return get_job_outputs(exec_args)

@@ -130,15 +130,3 @@ class LaJolla(assembler.Assembler):
                             continue
                     if path.name not in keep_files:
                         path.unlink()
-        # Create files summary and store it to the csv file in raw directory
-        kept_files = []
-        for path in output_path.glob("**/*"):
-            if not path.is_dir():
-                kept_files.append(str(path.relative_to(output_path)))
-
-        raw_dir = output_path / "raw"
-        if not raw_dir.exists():
-            raw_dir.mkdir(parents=True)
-
-        with open(raw_dir / "files.csv", "w") as f:
-            f.write("\n".join(kept_files))

@@ -1,3 +1,4 @@
+import json
 import re
 from pathlib import Path
 from typing import Dict, List, Optional, Union
@@ -69,3 +70,27 @@ def compose_cmd_params(params: Union[Dict, DictConfig]) -> str:
     append_params = f'{params["append"]}' if "append" in params and params["append"] is not None else ""
     combined_params = " ".join([short_params, long_params, append_params])
     return combined_params.strip()
+
+
+class PathEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, Path):
+            return str(obj)
+        return json.JSONEncoder.default(self, obj)
+
+
+def get_job_outputs(exec_args) -> dict:
+    assert "output_path" in exec_args, "output_path must be specified in exec_args"
+
+    metadata_path = exec_args["output_path"] / "job_metadata"
+    metadata_path.mkdir(parents=True, exist_ok=True)
+
+    with open(metadata_path / "exec_args.json", "w") as f:
+        json.dump(exec_args, f, indent=2, cls=PathEncoder)
+
+    produced_files = {
+        "metadata": list(metadata_path.glob("**/*")),
+        "artifacts": list(f for f in exec_args["output_path"].glob("**/*") if f.is_file()),
+    }
+
+    return produced_files

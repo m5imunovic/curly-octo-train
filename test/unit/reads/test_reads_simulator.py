@@ -1,12 +1,12 @@
 import filecmp
 import tempfile
+from dataclasses import dataclass
 from pathlib import Path
 
 import pytest
 
 from reads import reads_simulator
 from reads.reads_simulator import simulator_factory
-from reads.simulate_reads import SampleProfile
 
 SEED = 3
 
@@ -21,6 +21,12 @@ def fake_vendor_root():
         simulator_root.mkdir(exist_ok=True)
         # PbSim3 expects vendor_dir as input argument and that pbsim3 folder exists in there
         yield vendor_dir
+
+
+@dataclass
+class SampleProfile:
+    genome: list[Path]
+    seed: int
 
 
 @pytest.fixture(scope="module")

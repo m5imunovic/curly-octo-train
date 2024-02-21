@@ -1,5 +1,5 @@
+import concurrent.futures
 import logging
-import shutil
 import subprocess
 import tempfile
 from pathlib import Path
@@ -114,46 +114,59 @@ def create_graph_jobs(assembly_jobs: list) -> list:
     return jobs
 
 
-def run_sequencing_jobs(cfg: DictConfig, jobs: list) -> list:
+def run_sequencing_jobs(cfg: DictConfig, jobs: list) -> dict:
+    produced_files = {}
     for job in jobs:
         cfg.reads.params.long.seed = job["seed"]
-        sequencing_task(cfg, genome=job["genome"], output_path=job["output_path"])
+        produced_files = sequencing_task(cfg, genome=job["genome"], output_path=job["output_path"])
 
-    return []
+    return produced_files
 
 
-def run_assembly_jobs(cfg: DictConfig, jobs: list):
+def run_assembly_jobs(cfg: DictConfig, jobs: list) -> dict:
+    produced_files = {}
     for job in jobs:
         # Warning, this modifies the input jobs
         threads = job.pop("threads")
         cfg.asm.params.long.threads = threads
-        assembly_task(cfg, **job)
+        produced_files = assembly_task(cfg, **job)
         # restore original job
         job["threads"] = threads
 
-    return []
+    return produced_files
 
 
-def run_graph_jobs(cfg: DictConfig, jobs: list) -> list:
+def run_graph_jobs(cfg: DictConfig, jobs: list) -> dict:
+    produced_files = {}
     for job in jobs:
-        graph_task(cfg.graph, **job)
+        produced_files = graph_task(cfg.graph, **job)
 
-    return []
-
-
-def run_collect_job(dataset_path: Path, graph_job: dict):
-    idx = len(list(dataset_path.glob("*.pt")))
-    src = graph_job["output_path"] / "raw" / "0.pt"
-    dst = dataset_path / f"{idx}.pt"
-    logger.info(f"Copying {src} to {dst}")
-    # shutil.move fails on alternative setup with SMB drive (permissions issue)
-    subprocess.run(f"cp {src} {dst}", shell=True)
+    return produced_files
 
 
-def run_cleanup_job(read_job: dict, assembly_job: dict, graph_job: dict):
-    shutil.rmtree(read_job["output_path"])
-    shutil.rmtree(assembly_job["output_path"])
-    shutil.rmtree(graph_job["output_path"])
+def run_collect_job(dataset_path: Path, graph_files: dict):
+    for graph_file in graph_files["artifacts"]:
+        # TODO: make this more robust as we might have multiple .pt files for some reason
+        if Path(graph_file).suffix == ".pt":
+            idx = len(list(dataset_path.glob("*.pt")))
+            src = str(graph_file)
+            dst = dataset_path / f"{idx}.pt"
+            logger.info(f"Copying {src} to {dst}")
+            # shutil.move fails on alternative setup with SMB drive (permissions issue)
+            subprocess.run(f"cp {src} {dst}", shell=True)
+            break
+
+
+def run_cleanup_job(step_files: dict):
+    for job, file_group in step_files.items():
+        for group, files in file_group.items():
+            logger.info(f"Cleaning up {job} {group} files")
+            for f in files:
+                if f.exists():
+                    logger.info(f"Removing {f}")
+                    f.unlink(missing_ok=True)
+                else:
+                    logger.warning(f"File {f} not found")
 
 
 def run(cfg: DictConfig):
@@ -179,12 +192,28 @@ def run(cfg: DictConfig):
         raw_dir.mkdir(parents=True, exist_ok=True)
         graph_jobs = create_graph_jobs(assembly_jobs)
 
-        for i in range(len(sequencing_jobs)):
-            logger.info(f"Running job {i+1} of {len(sequencing_jobs)}")
-            run_sequencing_jobs(cfg, [sequencing_jobs[i]])
-            run_assembly_jobs(cfg, [assembly_jobs[i]])
-            run_graph_jobs(cfg, [graph_jobs[i]])
-            run_collect_job(dataset_path, graph_jobs[i])
-            run_cleanup_job(sequencing_jobs[i], assembly_jobs[i], graph_jobs[i])
+        def create_sample(sequencing_job, assembly_job, graph_job):
+            step_files = {}
+            step_files["reads"] = run_sequencing_jobs(cfg, [sequencing_job])
+            step_files["assemblies"] = run_assembly_jobs(cfg, [assembly_job])
+            step_files["graph"] = run_graph_jobs(cfg, [graph_job])
+            return step_files
+
+        def collect_sample(dataset_path, step_files):
+            run_collect_job(dataset_path, step_files["graph"])
+            run_cleanup_job(step_files)
+
+        logger.info(f"Running {len(sequencing_jobs)} jobs in total")
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            future_produced_files = {
+                executor.submit(create_sample, s_job, a_job, g_job)
+                for s_job, a_job, g_job in zip(sequencing_jobs, assembly_jobs, graph_jobs)
+            }
+            job_cnt = 0
+            for future in concurrent.futures.as_completed(future_produced_files):
+                step_files = future.result()
+                collect_sample(dataset_path, step_files)
+                logger.info(f"Finished job {job_cnt}")
+                job_cnt += 1
 
         logger.info("Experiment finished.")
