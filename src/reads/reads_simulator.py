@@ -47,6 +47,11 @@ class RSimulator:
     def run(self, *args, **kwargs):
         pass
 
+    def __call__(self, *args, **kwargs):
+        self.pre_simulation_step(*args, **kwargs)
+        self.run(*args, **kwargs)
+        self.post_simulation_step(*args, **kwargs)
+
 
 class PbSim3(RSimulator):
     @typechecked

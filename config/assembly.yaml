@@ -1,8 +1,5 @@
 # this is top-level default config for assembly step
-# We need to provide the reads as well as the reference data in order to
-# be able to generate all the output files required for the downstream tasks
-# The reference path is constructed from paths.ref_dir and species name
-# Reads paths is constructed from reads_dir and species name
+# Not working with latest refactoring!!!
 
 defaults:
   - hydra: hydra

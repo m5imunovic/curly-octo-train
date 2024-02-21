@@ -5,6 +5,7 @@ from omegaconf import DictConfig
 from typeguard import typechecked
 
 import utils.path_helpers as ph
+from utils.io_utils import get_job_outputs
 
 
 class Assembler:
@@ -29,7 +30,6 @@ class Assembler:
         pass
 
     def __call__(self, *args, **kwargs):
-        # TODO: refactor reads simulator to use the same pattern
         self.pre_assembly_step(*args, **kwargs)
         self.run(**kwargs)
         self.post_assembly_step(*args, **kwargs)
@@ -43,7 +43,8 @@ def assembler_factory(assembler: str, cfg: DictConfig) -> Assembler:
         return LaJolla(cfg=cfg, vendor_dir=vendor_dir)
 
 
-def run(cfg: DictConfig, **kwargs):
+@typechecked
+def run(cfg: DictConfig, **kwargs) -> dict:
     exec_args = {
         "genome": None,
         "reads": None,
@@ -54,3 +55,5 @@ def run(cfg: DictConfig, **kwargs):
 
     assembler = assembler_factory(cfg.asm.name, cfg.asm)
     assembler(**exec_args)
+
+    return get_job_outputs(exec_args)
