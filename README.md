@@ -20,6 +20,13 @@ mamba env create --file=environment.yaml
 mamba activate menv
 ```
 
+## Install vendor tools
+
+```bash
+mkdir vendor
+bash scripts/install_vendors.sh vendor
+```
+
 ## Setup pre-commit hooks
 
 ```bash
