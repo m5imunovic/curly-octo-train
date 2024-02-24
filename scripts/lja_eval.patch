@@ -1,0 +1,38 @@
+diff --git a/src/projects/error_correction/coverage_ec_stage.hpp b/src/projects/error_correction/coverage_ec_stage.hpp
+index fe580fb..5eaf65c 100644
+--- a/src/projects/error_correction/coverage_ec_stage.hpp
++++ b/src/projects/error_correction/coverage_ec_stage.hpp
+@@ -32,6 +32,7 @@ CoverageEC(logging::Logger &logger, const std::experimental::filesystem::path &d
+     io::SeqReader reader(reads_lib);
+     readStorage.fill(reader.begin(), reader.end(), dbg, w + k - 1, logger, threads);
+     printDot(dir / "initial_dbg.dot", Component(dbg));
++    printGFA(dir / "initial_dbg.gfa", Component(dbg), true);
+     coverageStats(logger, dbg);
+     if(debug) {
+         PrintPaths(logger, threads, dir / "state_dump", "initial", dbg, readStorage, paths_lib, true);
+@@ -97,4 +98,4 @@ protected:
+         return CoverageEC(logger, dir, input.find("reads")->second, input.find("pseudo_reads")->second,
+                           input.find("paths")->second, threads, k, w, threshold, reliable_coverage, diploid, debug, load);
+     }
+-};
+\ No newline at end of file
++};
+diff --git a/src/projects/error_correction/topology_ec_stage.hpp b/src/projects/error_correction/topology_ec_stage.hpp
+index 0c01343..24f0298 100644
+--- a/src/projects/error_correction/topology_ec_stage.hpp
++++ b/src/projects/error_correction/topology_ec_stage.hpp
+@@ -31,6 +31,7 @@ TopologyEC(logging::Logger &logger, const std::experimental::filesystem::path &d
+     io::SeqReader reader(reads_lib);
+     readStorage.fill(reader.begin(), reader.end(), dbg, w + k - 1, logger, threads);
+     printDot(dir / "initial_dbg.dot", Component(dbg));
++    printGFA(dir / "initial_dbg.gfa", Component(dbg), true);
+     if(debug) {
+         DrawSplit(Component(dbg), dir / "before_figs", readStorage.labeler(), 25000);
+         PrintPaths(logger, threads, dir / "state_dump", "initial", dbg, readStorage, paths_lib, false);
+@@ -98,4 +99,4 @@ protected:
+         return TopologyEC(logger, dir, input.find("reads")->second, input.find("pseudo_reads")->second, input.find("paths")->second,
+                           threads, k, w, threshold, reliable_coverage, unique_threshold, diploid, debug, load);
+     }
+-};
+\ No newline at end of file
++};
