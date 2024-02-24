@@ -2,6 +2,8 @@ from pathlib import Path
 
 from omegaconf import DictConfig, OmegaConf
 
+# TODO: clean up path helpers as we don't need all of them, also, make config root configurable with envvar
+
 
 def get_project_root() -> Path:
     return Path(__file__).parent.parent.parent

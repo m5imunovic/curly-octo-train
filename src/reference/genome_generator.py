@@ -3,7 +3,11 @@ import logging
 import shutil
 from pathlib import Path
 
+from omegaconf import DictConfig, OmegaConf
+
+import experiment.experiment_utils as eu
 import reference.reference_utils as ru
+import utils.path_helpers as ph
 from reference.chm13 import get_chm13_reference
 from reference.random_genome import get_random_reference
 
@@ -44,3 +48,32 @@ def run(cfg):
         return None
 
     return species_path
+
+
+def ensure_references_exist(cfg: DictConfig, species_defs: set[str]) -> dict | None:
+    """Ensures that all species references exist for the given scenario.
+
+    Args:
+        species_defs (set[str]): The set of species definitions described in respective config file names.
+
+    Returns:
+        bool: True if all species references exist, False otherwise.
+    """
+    config_root = ph.get_config_root()
+    try:
+        eu.ensure_species_def_exists(config_root, species_defs)
+    except AssertionError as e:
+        logger.error(f"Species definition files error:\n {e}")
+        return False
+
+    # TODO: this is a candidate for parallelization
+    species_paths = {}
+    species_config_root = config_root / "reference" / "species"
+    for species_def in species_defs:
+        cfg.reference.species = OmegaConf.load(species_config_root / f"{species_def}")
+        reference_path = run(cfg)
+        if not reference_path:
+            return None
+        species_paths[species_def] = reference_path
+
+    return species_paths

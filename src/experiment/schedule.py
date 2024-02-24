@@ -4,49 +4,18 @@ import subprocess
 import tempfile
 from pathlib import Path
 
-from omegaconf import DictConfig, OmegaConf
+from omegaconf import DictConfig
 from typeguard import typechecked
 
 import experiment.experiment_utils as eu
 import reference.reference_utils as ru
-import utils.path_helpers as ph
 from asm.assembler import run as assembly_task
 from experiment.scenario_schema import Scenario, collect_all_species_defs, load_scenario
 from graph.db_graph import run as graph_task
 from reads.simulate_reads import run as sequencing_task
-from reference.genome_generator import run as reference_task
+from reference.genome_generator import ensure_references_exist
 
 logger = logging.Logger(__name__)
-
-
-def ensure_references_exist(cfg: DictConfig, scenario: Scenario) -> dict | None:
-    """Ensures that all species references exist for the given scenario.
-
-    Args:
-        scenario (Scenario): The scenario for which to ensure species references exist.
-
-    Returns:
-        bool: True if all species references exist, False otherwise.
-    """
-    species_defs = collect_all_species_defs(scenario)
-    config_root = ph.get_config_root()
-    try:
-        eu.ensure_species_def_exists(config_root, species_defs)
-    except AssertionError as e:
-        logger.error(f"Species definition files error:\n {e}")
-        return False
-
-    # TODO: this is a candidate for parallelization
-    species_paths = {}
-    species_config_root = config_root / "reference" / "species"
-    for species_def in species_defs:
-        cfg.reference.species = OmegaConf.load(species_config_root / f"{species_def}")
-        reference_path = reference_task(cfg)
-        if not reference_path:
-            return None
-        species_paths[species_def] = reference_path
-
-    return species_paths
 
 
 @typechecked
@@ -172,7 +141,8 @@ def run_cleanup_job(step_files: dict):
 def run(cfg: DictConfig):
     scenario = load_scenario(cfg.experiment.scenario.name)
     # get the species name and start the reference.py
-    reference_paths = ensure_references_exist(cfg, scenario)
+    species_defs = collect_all_species_defs(scenario)
+    reference_paths = ensure_references_exist(cfg, species_defs)
     if reference_paths is None:
         logger.error("Reference generation failed.")
         return

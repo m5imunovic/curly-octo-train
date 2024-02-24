@@ -6,12 +6,21 @@ defaults:
   - reads@sample: sample_reads_fastq
   - _self_
 
+# TODO: move this to wandb subconfig
+wandb:
+  metadata:
+    origin: ${sample.reads.origin}
+    genome: ${reads.params.long.genome}
+    seed: ${sample.reads.seed}
+    sample-profile-id: ${reads.params.long.sample-profile-id}
+    type: test
+
 reads:
   params:
     long:
-      seed: ${sample.seed}
-      sample-profile-id: pf_chm13_chr10_${sample.seed}
+      seed: ${sample.reads.seed}
+      sample-profile-id: pf_chm13_chr10_${sample.reads.seed}
       genome: ${paths.ref_dir}/homo_sapiens/chm13_v2/chromosomes/chr10.fasta
-      sample: ${sample.sampled_file}
+      sample: ${sample.reads.sampled_file}
   profile:
     path: ${paths.profile_dir}/pbsim3
