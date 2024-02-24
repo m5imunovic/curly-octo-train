@@ -1,7 +1,11 @@
 # @package sample
-origin: https://www.ncbi.nlm.nih.gov/sra/SRX7897688 # origin of sequencing file (either url or simulation params link)
-reads_file: ${paths.profile_dir}/SRR11292120.man.fastq # local file to which the reads are saved
+genome: # TODO: Either use just this or reference, both is confusing
+  species_name: chm13.yaml # species definition file in references/species config
 
-seed: 2402132228 #${now:%y%m%d%H%M}
-sampled_file: ${paths.profile_dir}/sampled/${sample.seed}/SRR11292120.sampled.fastq # local file to which the sampled reads are saved
-probability: 0.1 # probability of taking a read from sample
+reads:
+  origin: https://www.ncbi.nlm.nih.gov/sra/SRX7897688 # origin of sequencing file (either url or simulation params link)
+  reads_file: ${paths.profile_dir}/SRR11292120.man.fastq # local file to which the reads are saved
+
+  seed: ${now:%y%m%d%H%M}
+  sampled_file: ${paths.profile_dir}/sampled/${sample.reads.seed}/SRR11292120.sampled.fastq # local file to which the sampled reads are saved
+  probability: 0.1 # probability of taking a read from sample

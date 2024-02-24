@@ -94,3 +94,8 @@ def get_job_outputs(exec_args) -> dict:
     }
 
     return produced_files
+
+
+def ensure_parent_dir_exists(file_path: Path):
+    if not file_path.parent.exists():
+        file_path.parent.mkdir(parents=True, exist_ok=True)
