@@ -1,9 +1,10 @@
-"""Evaluates the corrected reads producesd by La Jolla Assembler.
+"""Evaluates the corrected reads produced by La Jolla Assembler.
 
 More specifically, it evaluates the corrected reads produced by the second step of the pipeline (i.e. the topology-
 based correction).
 """
 import json
+import logging
 import os
 import subprocess
 from pathlib import Path
@@ -17,6 +18,8 @@ import utils.path_helpers as ph
 from asm.lja_rc_map import get_rc_map_mp_pool_batch
 from asm.mult_info_parser import parse_mult_info, partition_mult_info_edges
 from utils.io_utils import compose_cmd_params
+
+logger = logging.Logger(__name__)
 
 
 def parse_alignments_entry(read_id: str, edge_ids: str):
@@ -65,16 +68,16 @@ def get_confusion_matrix(mult_info_path: Path, alignments_path: Path, rc_map: Di
     # get ground truth
     mult_info = parse_mult_info(mult_info_path)
     correct_edges_gt, incorrect_edges_gt = partition_mult_info_edges(mult_info)
-    print("Ground truth:")
-    print(f"Correct edges: {len(correct_edges_gt)}")
-    print(f"Incorrect edges: {len(incorrect_edges_gt)}")
+    logger.info("Ground truth:")
+    logger.info(f"Correct edges: {len(correct_edges_gt)}")
+    logger.info(f"Incorrect edges: {len(incorrect_edges_gt)}")
 
     # get mowerDBG edge assignments
     correct_edges = get_correct_edges(alignments_path, rc_map=rc_map)
     incorrect_edges = (correct_edges_gt | incorrect_edges_gt) - correct_edges
-    print("MowerDBG classified:")
-    print(f"\t{len(correct_edges)} as correct edges.")
-    print(f"\t{len(incorrect_edges)} as incorrect edges.")
+    logger.info("MowerDBG classified:")
+    logger.info(f"\t{len(correct_edges)} as correct edges.")
+    logger.info(f"\t{len(incorrect_edges)} as incorrect edges.")
 
     # true positives
     tp = len(correct_edges_gt & correct_edges)
@@ -116,13 +119,44 @@ def evaluate_la_jolla(mult_info_path: Path, alignments_path: Path, rc_map: Dict)
     return evaluations
 
 
+class PathDecoder(json.JSONDecoder):
+    def __init__(self, eval_dir: Path):
+        super().__init__()
+        self.eval_dir = eval_dir
+
+    def decode(self, s):
+        decoded = super().decode(s)
+        return self.replace_placeholder(decoded)
+
+    def replace_placeholder(self, data):
+        if isinstance(data, dict):
+            for key, value in data.items():
+                if isinstance(value, str):
+                    data[key] = value.replace("${eval_dir}", self.eval_dir)
+                elif isinstance(value, (dict, list)):
+                    self.replace_placeholder(value)
+        elif isinstance(data, list):
+            for index, item in enumerate(data):
+                if isinstance(item, str):
+                    data[index] = item.replace("${eval_dir}", self.eval_dir)
+                elif isinstance(item, (dict, list)):
+                    self.replace_placeholder(item)
+        return data
+
+
 @typechecked
 def construct_eval_commands(
-    lja_bin_path: Path, eval_cmds_path: Path, skip_cmds: MutableSequence, eval_stages: MutableSequence
+    lja_bin_path: Path,
+    eval_cmds_path: Path,
+    skip_cmds: MutableSequence,
+    eval_stages: MutableSequence,
+    decoder_path: str,
 ) -> List[str]:
     eval_cmds = {}
     with open(eval_cmds_path) as f:
-        eval_cmds = json.load(f)
+        json_data = f.read()
+        decoder = PathDecoder(decoder_path)
+        eval_cmds = decoder.decode(json_data)
     if not eval_cmds:
         raise ValueError("No commands found in eval_cmds.json file")
 
@@ -144,32 +178,37 @@ def construct_eval_commands(
     return cmds
 
 
-@hydra.main(version_base=None, config_path=str(ph.get_config_root()), config_name="eval.yaml")
-def main(cfg: DictConfig):
-    mult_info_path = Path(cfg.asm_path) / "mult.info"
+def eval_lja(cfg: DictConfig, subdir: str):
+    output_path_eval = Path(cfg.eval_path) / subdir / "eval_results"
+    if output_path_eval.exists():
+        logger.info(f"{output_path_eval} already exists, skipping evaluation for {subdir=}")
+        return
+
+    asm_path = Path(cfg.eval_path) / subdir / "assemblies"
+    mult_info_path = Path(asm_path) / "mult.info"
     assert mult_info_path.exists(), f"Mult info file {mult_info_path} does not exist"
-    lja_bin_path = Path(cfg.lja_bin_path)
-    assert lja_bin_path.exists(), f"LJA binary path {lja_bin_path} does not exist"
+    eval_cmds_path = asm_path / cfg.full_asm_subdir / cfg.eval_cmds_path
+    assert eval_cmds_path.exists(), f"Evaluation commands path {eval_cmds_path} does not exist"
 
     cmds = construct_eval_commands(
-        lja_bin_path=lja_bin_path,
-        eval_cmds_path=Path(cfg.asm_path) / cfg.full_asm_subdir / cfg.eval_cmd,
+        lja_bin_path=Path(cfg.lja_bin_path),
+        eval_cmds_path=eval_cmds_path,
         skip_cmds=cfg.skip_cmds,
         eval_stages=cfg.eval_stages,
+        decoder_path=cfg.eval_path,
     )
 
     for cmd in cmds:
-        print(f"Executing {cmd=}")
+        logger.info(f"Executing {cmd=}")
         subprocess.run(cmd, shell=True)
 
     for stage in cfg.eval_stages:
-        alignments_path = Path(cfg.asm_path) / stage / "alignments.txt"
+        alignments_path = asm_path / stage / "alignments.txt"
         assert alignments_path.exists(), f"Alignments file {alignments_path} does not exist"
-        initial_dbg_path = Path(cfg.asm_path) / cfg.full_asm_subdir / "00_CoverageBasedCorrection" / "initial_dbg.gfa"
+        initial_dbg_path = asm_path / cfg.full_asm_subdir / "00_CoverageBasedCorrection" / "initial_dbg.gfa"
         assert initial_dbg_path.exists(), f"Initial DBG file {initial_dbg_path} does not exist"
         k = cfg.k
-        threads = cfg.threads or os.cpu_count() - 1
-        output_path = Path(cfg.output_path) / stage
+        threads = min(cfg.threads, os.cpu_count() - 1)
         if cfg.rc_map_path:
             with open(cfg.rc_map_path) as f:
                 rc_map = json.load(f)
@@ -177,11 +216,31 @@ def main(cfg: DictConfig):
             rc_map = get_rc_map_mp_pool_batch(gfa_path=initial_dbg_path, k=k, threads=threads)
         evaluation = evaluate_la_jolla(mult_info_path, alignments_path, rc_map=rc_map)
 
+        output_path = output_path_eval / stage
         if not output_path.exists():
             output_path.mkdir(parents=True)
 
-        with open(output_path / "evaluation.json", "w") as f:
+        evaluation_file = output_path / "evaluation.json"
+        logger.info(f"Writing evaluation data to {evaluation_file}.")
+        with open(evaluation_file, "w") as f:
             json.dump(evaluation, f, indent=4)
+
+
+def config_check(cfg: DictConfig):
+    assert cfg.threads is not None, "Number of threads is not defined!"
+    assert Path(cfg.eval_path).exists(), f"{cfg.eval_path} does not exist!"
+    assert Path(cfg.lja_bin_path).exists(), f"{cfg.lja_bin_path} does not exist!"
+
+
+@hydra.main(version_base=None, config_path=str(ph.get_config_root()), config_name="eval.yaml")
+def main(cfg: DictConfig):
+    config_check(cfg)
+
+    for subdir in os.listdir(cfg.eval_path):
+        # This works for positive integers, but that is our only use case so far
+        if not subdir.isdigit():
+            continue
+        eval_lja(cfg, subdir=subdir)
 
 
 if __name__ == "__main__":
