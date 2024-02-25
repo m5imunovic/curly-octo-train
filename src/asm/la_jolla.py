@@ -48,6 +48,18 @@ class LaJolla(assembler.Assembler):
             params["short"].pop("K", None)
             k = params["short"].pop("k", None)
 
+            eval_cmds_dir = output_path / full_asm_subdir
+            eval_cmds_dir.mkdir(exist_ok=True, parents=True)
+            eval_cmds_file = eval_cmds_dir / "full_asm.json"
+            read_files = reads_cmd_params.split()
+            for idx, read_file in enumerate(read_files):
+                if idx % 2:
+                    rf = Path(read_file)
+                    rf = Path("${eval_dir}/") / rf.relative_to(rf.parent.parent.parent)
+                    read_files[idx] = str(rf)
+            reads_cmd_params = " ".join(read_files)
+
+            output_path = Path("${eval_dir}/") / output_path.relative_to(output_path.parent.parent)
             full_asm_path = output_path / full_asm_subdir
             params["short"]["o"] = str(full_asm_path)
             params["append"] = reads_cmd_params
@@ -74,8 +86,6 @@ class LaJolla(assembler.Assembler):
             # command for generating alignments
             cmds["align_and_print"]["eval_01"] = deepcopy(params)
 
-            full_asm_path.mkdir(exist_ok=True, parents=True)
-            eval_cmds_file = full_asm_path / "full_asm.json"
             with open(eval_cmds_file, "w") as f:
                 json.dump(cmds, f, indent=4)
             return eval_cmds_file
