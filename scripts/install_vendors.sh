@@ -17,10 +17,9 @@ NUM_PROCESSORS=8
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 pushd $VENDOR_DIR
-# ------> BEGIN PBSIM3 INSTALL <-------
-echo "Installing PbSim3 simulator..."
+echo "------------------------------> ENTER PBSIM3 INSTALL <------------------------------"
 
-if [ ! -d "$VENDOR_DIR/pbsim3" ]; then
+if [ ! -d "pbsim3/" ]; then
 
     git clone https://github.com/yukiteruono/pbsim3.git
     pushd "pbsim3/"
@@ -35,12 +34,11 @@ if [ ! -d "$VENDOR_DIR/pbsim3" ]; then
 else
     echo "$VENDOR_DIR/pbsim3 already exists, skipping install!"
 fi
-# ------> END PBSIM INSTALL <-------
+echo "------------------------------> EXIT PBSIM3 INSTALL <------------------------------"
 
-# ------> BEGIN LJA INSTALL <-------
-echo "Installing La Jolla assembler"
+echo "------------------------------> ENTER LJA INSTALL <------------------------------"
 
-if [ ! -d "$VENDOR_DIR/LJA" ]; then
+if [ ! -d "LJA" ]; then
 
     git clone https://github.com/AntonBankevich/LJA.git
     pushd "LJA/"
@@ -58,7 +56,7 @@ if [ ! -d "$VENDOR_DIR/LJA" ]; then
 else
     echo "$VENDOR_DIR/LJA already exists, skipping install!"
 fi
-# ------> END LJA INSTALL <-------
+echo "------------------------------> EXIT LJA INSTALL <------------------------------"
 
 popd # $VENDOR_DIR
 
