@@ -3,8 +3,10 @@ defaults:
   - hydra: hydra
   - _self_
 
+dataset_name: # REPLACE WITH YOUR DATASET NAME
+
 lja_bin_path: ${paths.root_dir}/vendor/LJA/bin
-eval_path: /data/experiments/eval/td
+eval_path: ${paths.datasets_dir}/${dataset_name}/eval
 rc_map_path: # if running eval after graph construction step this file will be available so some computation can be saved
 full_asm_subdir: full_asm
 eval_cmds_path: full_asm.json

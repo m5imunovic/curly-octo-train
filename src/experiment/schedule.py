@@ -1,5 +1,7 @@
 import concurrent.futures
+import fnmatch
 import logging
+import os
 import subprocess
 import tempfile
 from pathlib import Path
@@ -123,7 +125,57 @@ def run_collect_job(dataset_path: Path, graph_files: dict):
             logger.info(f"Copying {src} to {dst}")
             # shutil.move fails on alternative setup with SMB drive (permissions issue)
             subprocess.run(f"cp {src} {dst}", shell=True)
-            break
+            return idx
+
+    return None
+
+
+def should_keep_file(job: str, fpath: str, keep: DictConfig | None) -> bool:
+    if not keep:
+        return False
+
+    if job in keep:
+        keep_patterns = keep[job]
+        if any(fnmatch.fnmatch(fpath, pattern) for pattern in keep_patterns):
+            return True
+
+        if any(Path(fpath).name == pattern for pattern in keep_patterns):
+            return True
+
+    return False
+
+
+def run_keep_job(dataset_root: Path, step_files: dict, idx: int, keep: DictConfig | None):
+    """Runs the keep job of the files in experiment. Keeps some of the files for the evaluation and debugging purposes
+    by moving them into specified directory.
+
+    Args:
+        dataset_root: root path used for saving
+        step_files (dict): contains a mapping from a jobs (reads, assemblies, graph) to files.
+            Files are kept as dictionaries grouped as job metadata and artifacts
+        idx: index of data sample in the test dataset
+        keep (DictConfig): Filtering configuration, contains artifact_path as a location to keep
+        the files, either relative to dataset's train-val-test folders or absolute path location.
+        and job (reads, assemblies, graph) filters as lists of patterns matchable by regex expression
+    """
+
+    for job, file_group in step_files.items():
+        for group, files in file_group.items():
+            if group != "artifacts":
+                continue
+            for f in files:
+                if should_keep_file(job, str(f), keep):
+                    if not f.exists():
+                        logger.error(f"File {f} is missing but should be kept")
+                        continue
+
+                    relative_path = str(f).split(os.sep)[4:]  # ""/"tmp"/"tmpxyz"/ "job_id" /"relative_path..."
+                    # job_id and idx might be different if we are updating existing dataset
+                    output_path = (dataset_root / keep.artifacts_path / str(idx)).joinpath(*relative_path)
+                    output_path.parent.mkdir(parents=True)
+                    logger.info(f"Copy file {f} to {output_path}.")
+                    subprocess.run(f"cp {f} {output_path}", shell=True)
+                    logger.info(f"Copied file {f} to {output_path}.")
 
 
 def run_cleanup_job(step_files: dict):
@@ -169,12 +221,14 @@ def run(cfg: DictConfig):
             step_files["graph"] = run_graph_jobs(cfg, [graph_job])
             return step_files
 
-        def collect_sample(dataset_path, step_files):
-            run_collect_job(dataset_path, step_files["graph"])
+        def collect_sample(dataset_path, step_files, cfg):
+            idx = run_collect_job(dataset_path, step_files["graph"])
+            if scenario.subset == "test":
+                run_keep_job(dataset_path.parent.parent, step_files, idx, cfg.experiment.keep)
             run_cleanup_job(step_files)
 
         logger.info(f"Running {len(sequencing_jobs)} jobs in total")
-        with concurrent.futures.ThreadPoolExecutor() as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=cfg.experiment.max_workers) as executor:
             future_produced_files = {
                 executor.submit(create_sample, s_job, a_job, g_job)
                 for s_job, a_job, g_job in zip(sequencing_jobs, assembly_jobs, graph_jobs)
@@ -182,7 +236,7 @@ def run(cfg: DictConfig):
             job_cnt = 0
             for future in concurrent.futures.as_completed(future_produced_files):
                 step_files = future.result()
-                collect_sample(dataset_path, step_files)
+                collect_sample(dataset_path, step_files, cfg)
                 logger.info(f"Finished job {job_cnt}")
                 job_cnt += 1
 

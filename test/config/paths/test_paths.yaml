@@ -8,7 +8,7 @@ root_dir: ${oc.env:PROJECT_ROOT}
 # defined in the top level conftest.py via autouse fixture
 data_dir: ${oc.env:TEST_DATA_ROOT}
 # path to genome references
-ref_dir: ${paths.data_dir}/references/
+ref_dir: ${paths.data_dir}/references
 
 # path for storing the outputs of the specific run
 exp_dir: ${paths.data_dir}/experiments

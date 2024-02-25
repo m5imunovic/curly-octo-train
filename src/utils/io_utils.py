@@ -90,8 +90,9 @@ def get_job_outputs(exec_args) -> dict:
 
     produced_files = {
         "metadata": list(metadata_path.glob("**/*")),
-        "artifacts": list(f for f in exec_args["output_path"].glob("**/*") if f.is_file()),
     }
+    artifacts = list(f for f in exec_args["output_path"].glob("**/*") if f.is_file())
+    produced_files["artifacts"] = [a for a in artifacts if a not in produced_files["metadata"]]
 
     return produced_files
 
