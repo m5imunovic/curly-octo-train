@@ -36,3 +36,41 @@ index 0c01343..24f0298 100644
 -};
 \ No newline at end of file
 +};
+diff --git a/src/tools/common/logging.hpp b/src/tools/common/logging.hpp
+index 6124d4e..24d5350 100644
+--- a/src/tools/common/logging.hpp
++++ b/src/tools/common/logging.hpp
+@@ -19,6 +19,7 @@
+ #include <ostream>
+ #include <fstream>
+ #include <atomic>
++#include <stdexcept>
+ 
+ namespace logging {
+ 
+@@ -79,7 +80,9 @@ namespace logging {
+                 }
+             }
+             std::experimental::filesystem::path backup = backupDir / (itos(max + 1, 2) + ".log");
+-            std::experimental::filesystem::copy_file(logFile, backup);
++	    std::error_code ec;
++	    std::experimental::filesystem::rename(logFile, backup, ec);
++	    if(ec.value() != 0) std::cout << "Error while moving old log" << ec.message() << " " << ec.value() << std::endl;
+             std::experimental::filesystem::remove(logFile);
+             return std::move(backup);
+         }
+diff --git a/src/tools/common/pipeline_tools.cpp b/src/tools/common/pipeline_tools.cpp
+index 0a984c6..fd7b795 100644
+--- a/src/tools/common/pipeline_tools.cpp
++++ b/src/tools/common/pipeline_tools.cpp
+@@ -267,7 +267,9 @@ int LoggedProgram::run(const std::vector<std::string> &command_line) {
+         for(auto &rec : output) {
+             std::experimental::filesystem::path path = stage_output.at(rec.outout_id);
+             std::experimental::filesystem::remove(dir / rec.output_file_name);
+-            std::experimental::filesystem::copy(path, dir / rec.output_file_name);
++	    std::error_code ec;
++            std::experimental::filesystem::copy_file(path, dir / rec.output_file_name, ec);
++	    if(ec.value() != 0) logger.info() << "Error while copying file" << ec.message() << " " << ec.value() << std::endl;
+         }
+         for(auto &rec : output) {
+             logger.info() << rec.name << ": " << dir / rec.output_file_name << std::endl;

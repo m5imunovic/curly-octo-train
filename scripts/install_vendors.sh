@@ -7,6 +7,14 @@ fi
 
 VENDOR_DIR=$1
 
+if [ "$2" ]; then
+    VERSION=$2
+    echo "Using g++ version $VERSION"
+    export CC=gcc-$VERSION
+    export CXX=g++-$VERSION
+    export CPP=g++-$VERSION
+fi
+
 if [ ! -d "$VENDOR_DIR" ]; then
     echo "Directory $VENDOR_DIR does not exists, please create it"
     exit 1
