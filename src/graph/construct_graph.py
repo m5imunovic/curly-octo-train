@@ -66,6 +66,6 @@ def construct_nx_multigraph(segments: SegmentDict, k: int) -> tuple[nx.MultiDiGr
 
 
 @typechecked
-def construct_graph(gfa_path: Path, k: int) -> tuple[DbGraphType, dict]:
-    segments, _ = parse_gfa(path=gfa_path, k=k)
+def construct_graph(graph_path: Path, k: int) -> tuple[DbGraphType, dict]:
+    segments, _ = parse_gfa(path=graph_path, k=k)
     return construct_nx_multigraph(segments, k=k)

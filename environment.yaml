@@ -20,15 +20,16 @@ dependencies:
   #- scipy=1.9.1
 
   # ML
-  - pyg::pyg
-  - pyg::pytorch-sparse
-  - pyg::pytorch-cluster
-  - pytorch-cuda=11.8
-  - conda-forge::lightning
-  - pytorch::torchaudio
-  - pytorch::torchvision
+  - pytorch::pytorch=2.0.1
+  - pytorch::pytorch-cuda=11.8
+  - pytorch::torchaudio=2.0.2
+  - pytorch::torchvision=0.15.2
+  - pyg::pyg=2.3.1
+  - pyg::pytorch-sparse=0.6.18
+  - pyg::pytorch-cluster=1.6.3
+  - conda-forge::lightning=2.1.0
   - ogb
-  - conda-forge::torchmetrics
+  - conda-forge::torchmetrics=1.2.0
   - wandb
 
   # Math
@@ -55,7 +56,7 @@ dependencies:
 
   # Other
   - filelock
-  - more-itertools
+  - more-itertools==10.0.0
   - protobuf
   - tqdm
 

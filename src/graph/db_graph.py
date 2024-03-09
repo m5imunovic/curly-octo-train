@@ -13,6 +13,7 @@ from typeguard import typechecked
 from asm.mult_info_parser import parse_mult_info
 from graph.construct_features import FeatureDict, add_features
 from graph.construct_graph import DbGraphType, construct_graph
+from graph.dot_parser import custom_parse_dot
 from utils.io_utils import get_job_outputs
 
 logger = logging.getLogger(__name__)
@@ -65,28 +66,30 @@ def process_graph(idx: int, assembly_path: Path, cfg: DictConfig, output_path: P
         out_debug_path.mkdir(parents=True)
 
     # Process raw data
-    mult_info_path = assembly_path / "mult.info"
-    gfa_path = assembly_path / "graph.gfa"
-    logger.info(f"Processing {gfa_path}")
-
-    g, labels = construct_graph(gfa_path=gfa_path, k=cfg.k)
-
-    g, features = add_features(g, cfg.features)
+    graph_path = assembly_path / "graph.dot"
+    logger.info(f"Processing {graph_path}...")
+    if graph_path.suffix == ".gfa":
+        g, labels = construct_graph(graph_path=graph_path, k=cfg.k)
+        # TODO: only ever output these for the test data
+        with open(out_debug_path / f"{idx}.rcmap", "w") as f:
+            json.dump(labels, f, indent=4)
+    else:
+        g = custom_parse_dot(graph_path, k=cfg.k)
     logger.info(f"{idx}: Number of edges {g.number_of_edges()}")
     logger.info(f"{idx}: Number of nodes {g.number_of_nodes()}")
+
+    logger.info(f"Loading multiplicity info...")
+    mult_info_path = assembly_path / "mult.info"
     mult_info = parse_mult_info(mult_info_path)
+    g, features = add_features(g, cfg.features)
     g = add_mult_info_features(g, mult_info)
-    # TODO: only ever output these for the test data
-    if cfg.debug:
-        nx.write_graphml(g, out_debug_path / f"{idx}.graphml")
-
-    with open(out_debug_path / f"{idx}.rcmap", "w") as f:
-        json.dump(labels, f, indent=4)
-
+    logger.info(f"Converting to torch format...")
     pyg = convert_to_pyg_graph(g, features)
     pyg_filename = f"{idx}.pt"
     logger.info(f"Saving {out_raw_path / pyg_filename }")
     torch.save(pyg, out_raw_path / pyg_filename)
+    if cfg.debug:
+        nx.write_graphml(g, out_debug_path / f"{idx}.graphml")
 
     export_ids(g, out_debug_path / f"{idx}.idmap")
 

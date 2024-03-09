@@ -51,8 +51,8 @@ if [ ! -d "LJA" ]; then
     git clone https://github.com/AntonBankevich/LJA.git
     pushd "LJA/"
     git fetch
-    git checkout -t origin/anton_development
-    git checkout a0746e46ba6801bd6b2ff1fe3c91b19ecb42cb04
+    git checkout -t origin/experimental
+    git checkout e5ebe41
     git apply $SCRIPT_DIR/lja_eval.patch
     cmake .
     make -j $NUM_PROCESSORS lja

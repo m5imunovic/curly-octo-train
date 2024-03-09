@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 @typechecked
-def parse_gfa(path: Path, k=501, skip_links=False) -> Tuple:
+def parse_gfa(path: Path, k: int = 501, skip_links=False) -> Tuple:
     """_summary_
 
     Args:
