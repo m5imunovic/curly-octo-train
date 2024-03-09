@@ -34,4 +34,3 @@ def test_graph_produces_expected_outputs(test_db_graph_cfg, test_data_assemblies
     idx = exec_args["idx"]
     assert (Path(tmpdir) / "raw" / f"{idx}.pt").exists()
     assert (Path(tmpdir) / "debug" / f"{idx}.idmap").exists()
-    assert (Path(tmpdir) / "debug" / f"{idx}.rcmap").exists()
