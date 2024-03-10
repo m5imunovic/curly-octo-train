@@ -59,6 +59,7 @@ def test_la_jolla_produces_expected_output(
 
     assert output_path.exists()
 
+    assert (output_path / "graph.dot").exists()
     assert (output_path / "graph.gfa").exists()
     assert (output_path / "mult.info").exists()
     assert (output_path / "full_asm" / "full_asm.json").exists()

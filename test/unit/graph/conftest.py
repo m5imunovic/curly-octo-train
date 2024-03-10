@@ -3,10 +3,10 @@ from hydra import compose, initialize_config_dir
 
 
 @pytest.fixture
-def expected_lja():
+def expected_lja_dot():
     return {
-        "number_of_nodes": 188,
-        "number_of_edges": 160,
+        "number_of_nodes" : 20,
+        "number_of_edges" : 24,
     }
 
 

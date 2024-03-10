@@ -11,24 +11,12 @@ from torch_geometric.utils.convert import from_networkx
 from typeguard import typechecked
 
 from asm.mult_info_parser import parse_mult_info
-from graph.construct_features import FeatureDict, add_features
-from graph.construct_graph import DbGraphType, construct_graph
+from graph.construct_features import FeatureDict, add_features, add_mult_info_features
 from graph.dot_parser import custom_parse_dot
 from utils.io_utils import get_job_outputs
 
 logger = logging.getLogger(__name__)
-
-
-def add_mult_info_features(g: DbGraphType, mult_info: Dict[str, int]) -> DbGraphType:
-    # We use a small trick here. As we name this feature 'y' it automatically gets assigned to the y
-    # attribute of the exported pytorch geometric graph and can then be used for learning supervision
-    if isinstance(g, nx.MultiDiGraph):
-        for edge in g.edges(data=True, keys=True):
-            key = edge[2]
-            g.edges[edge[0], edge[1], key]["y"] = mult_info[key]
-    else:
-        raise TypeError(f"Graph type {type(g)} not supported")
-    return g
+DbGraphType = nx.MultiDiGraph
 
 
 def convert_to_pyg_multigraph(g: DbGraphType, group_attrs: Optional[FeatureDict] = None) -> Data:
@@ -68,13 +56,7 @@ def process_graph(idx: int, assembly_path: Path, cfg: DictConfig, output_path: P
     # Process raw data
     graph_path = assembly_path / "graph.dot"
     logger.info(f"Processing {graph_path}...")
-    if graph_path.suffix == ".gfa":
-        g, labels = construct_graph(graph_path=graph_path, k=cfg.k)
-        # TODO: only ever output these for the test data
-        with open(out_debug_path / f"{idx}.rcmap", "w") as f:
-            json.dump(labels, f, indent=4)
-    else:
-        g = custom_parse_dot(graph_path, k=cfg.k)
+    g = custom_parse_dot(graph_path, k=cfg.k)
     logger.info(f"{idx}: Number of edges {g.number_of_edges()}")
     logger.info(f"{idx}: Number of nodes {g.number_of_nodes()}")
 

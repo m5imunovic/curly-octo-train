@@ -9,7 +9,7 @@ params:
     # K: 2001 # not supported for jumboDBG
   append: "--compress"
 
-keep: ["graph.gfa", "mult.info", "ref.info"]
+keep: ["graph.gfa", "mult.info", "ref.info", "graph.dot"]
 exec: jumboDBG # name of the executable to use (jumboDBG or lja)
 species: random_species
 experiment: experiment_1 # this is the name of the folder where the assembly data is stored

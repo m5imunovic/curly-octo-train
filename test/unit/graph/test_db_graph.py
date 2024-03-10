@@ -2,24 +2,27 @@ from pathlib import Path
 
 from omegaconf import OmegaConf
 
-from graph.construct_graph import construct_graph
+from asm.mult_info_parser import parse_mult_info
+from graph.construct_features import add_mult_info_features
 from graph.db_graph import convert_to_pyg_graph, run
+from graph.dot_parser import custom_parse_dot
 
 
-def test_convert_to_pyg_graph(test_gfa_root, expected_lja):
-    cfg = OmegaConf.create({"gfa_path": test_gfa_root / "lja_graph.gfa", "k": 501})
+def test_convert_to_pyg_graph_dot(test_dot_root, expected_lja_dot):
+    cfg = OmegaConf.create({"graph_path": test_dot_root / "example1.dot", "k": 501})
 
-    g, _ = construct_graph(cfg.gfa_path, cfg.k)
+    g = custom_parse_dot(cfg.graph_path, cfg.k)
 
     features = {"node": None, "edge": ["kc", "ln"]}
-
-    expected_number_of_nodes = expected_lja["number_of_nodes"]
-    expected_number_of_edges = expected_lja["number_of_edges"]
-
+    mult_info_path = test_dot_root / "example1_mult.info"
+    mult_info = parse_mult_info(mult_info_path)
+    g = add_mult_info_features(g, mult_info=mult_info)
     pyg = convert_to_pyg_graph(g, features)
-
+    expected_number_of_nodes = expected_lja_dot["number_of_nodes"]
+    expected_number_of_edges = expected_lja_dot["number_of_edges"]
     assert pyg.num_nodes == expected_number_of_nodes
     assert pyg.edge_index.shape[1] == expected_number_of_edges
+    assert pyg.y.shape[0] == expected_number_of_edges
 
 
 def test_graph_produces_expected_outputs(test_db_graph_cfg, test_data_assemblies, tmpdir):
