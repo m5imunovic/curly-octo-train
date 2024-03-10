@@ -7,10 +7,8 @@ dataset_name: # REPLACE WITH YOUR DATASET NAME
 
 lja_bin_path: ${paths.root_dir}/vendor/LJA/bin
 eval_path: ${paths.datasets_dir}/${dataset_name}/eval
-rc_map_path: # if running eval after graph construction step this file will be available so some computation can be saved
 full_asm_subdir: full_asm
 eval_cmds_path: full_asm.json
 skip_cmds: [] # possible options are lja and align_and_print
 eval_stages: ["eval_00", "eval_01"] # possible options are eval_00 and eval_01
-k: 501
 threads: 20 # min of this value or (max available cpus - 1)

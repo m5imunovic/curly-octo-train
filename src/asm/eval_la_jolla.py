@@ -15,7 +15,6 @@ from omegaconf import DictConfig
 from typeguard import typechecked
 
 import utils.path_helpers as ph
-from asm.lja_rc_map import get_rc_map_mp_pool_batch
 from asm.mult_info_parser import parse_mult_info, partition_mult_info_edges
 from utils.io_utils import compose_cmd_params
 
@@ -28,7 +27,7 @@ def parse_alignments_entry(read_id: str, edge_ids: str):
     Returns a tuple of (read_id, edge_ids, is_rc) where is_rc is a list of 0s and 1s indicating whether the
     corresponding edge string is reverse complemented.
     """
-    read_id = read_id.strip()[1:]
+    read_id = read_id.strip()[1:] # remove starting '>'
     edge_ids = edge_ids.strip().split()
     is_rc = [edge_id.startswith("-") for edge_id in edge_ids]
     edge_ids = [edge_id[1:] if is_rc else edge_id for edge_id, is_rc in zip(edge_ids, is_rc)]
@@ -41,23 +40,23 @@ def parse_alignments(alignments_path: Path) -> set:
     with open(alignments_path) as f:
         correct_reads = set()
         for read_line in f:
-            _, edge_ids, _ = parse_alignments_entry(read_line, next(f))
-            correct_reads.update(edge_ids)
+            _, edge_ids_with_rc, _ = parse_alignments_entry(read_line, next(f))
+            for edge_id_with_rc in edge_ids_with_rc:
+                fw, rc = edge_id_with_rc.split("_")
+                correct_reads.add(fw)
+                correct_reads.add(rc)
 
     return correct_reads
 
 
 @typechecked
-def get_correct_edges(alignments_path: Path, rc_map: Dict) -> set:
-    correct_edges = parse_alignments(alignments_path)
-    # if read_id does not exist we simply re-add it as we are doing union with input set anyway
-    correct_edges_rc = {rc_map.get(read_id, read_id) for read_id in correct_edges}
-
-    return correct_edges | correct_edges_rc
+def get_correct_edges(alignments_path: Path) -> set:
+    correct_edges_with_rc = parse_alignments(alignments_path)
+    return correct_edges_with_rc
 
 
 @typechecked
-def get_confusion_matrix(mult_info_path: Path, alignments_path: Path, rc_map: Dict) -> tuple:
+def get_confusion_matrix(mult_info_path: Path, alignments_path: Path) -> tuple:
     """Requires the following files:
 
     - alignments.txt
@@ -73,7 +72,7 @@ def get_confusion_matrix(mult_info_path: Path, alignments_path: Path, rc_map: Di
     logger.info(f"Incorrect edges: {len(incorrect_edges_gt)}")
 
     # get mowerDBG edge assignments
-    correct_edges = get_correct_edges(alignments_path, rc_map=rc_map)
+    correct_edges = get_correct_edges(alignments_path)
     incorrect_edges = (correct_edges_gt | incorrect_edges_gt) - correct_edges
     logger.info("MowerDBG classified:")
     logger.info(f"\t{len(correct_edges)} as correct edges.")
@@ -102,8 +101,8 @@ def calculate_metrics(tp: int, tn: int, fp: int, fn: int) -> Dict[str, float]:
     }
 
 
-def evaluate_la_jolla(mult_info_path: Path, alignments_path: Path, rc_map: Dict) -> Dict:
-    tp, tn, fp, fn = get_confusion_matrix(mult_info_path, alignments_path=alignments_path, rc_map=rc_map)
+def evaluate_la_jolla(mult_info_path: Path, alignments_path: Path) -> Dict:
+    tp, tn, fp, fn = get_confusion_matrix(mult_info_path, alignments_path=alignments_path)
     metrics = calculate_metrics(tp, tn, fp, fn)
 
     evaluations = {
@@ -200,6 +199,7 @@ def eval_lja(cfg: DictConfig, subdir: str):
 
     for cmd in cmds:
         logger.info(f"Executing {cmd=}")
+        print(cmd)
         subprocess.run(cmd, shell=True)
 
     for stage in cfg.eval_stages:
@@ -207,14 +207,7 @@ def eval_lja(cfg: DictConfig, subdir: str):
         assert alignments_path.exists(), f"Alignments file {alignments_path} does not exist"
         initial_dbg_path = asm_path / cfg.full_asm_subdir / "00_CoverageBasedCorrection" / "initial_dbg.gfa"
         assert initial_dbg_path.exists(), f"Initial DBG file {initial_dbg_path} does not exist"
-        k = cfg.k
-        threads = min(cfg.threads, os.cpu_count() - 1)
-        if cfg.rc_map_path:
-            with open(cfg.rc_map_path) as f:
-                rc_map = json.load(f)
-        else:
-            rc_map = get_rc_map_mp_pool_batch(gfa_path=initial_dbg_path, k=k, threads=threads)
-        evaluation = evaluate_la_jolla(mult_info_path, alignments_path, rc_map=rc_map)
+        evaluation = evaluate_la_jolla(mult_info_path, alignments_path)
 
         output_path = output_path_eval / stage
         if not output_path.exists():

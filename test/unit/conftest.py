@@ -26,13 +26,13 @@ def test_reads_root(test_data_root):
 
 
 @pytest.fixture(scope="session")
-def test_gfa_root(test_data_root):
-    return test_data_root / "gfa"
+def test_graph_root(test_data_root):
+    return test_data_root / "graph"
 
 
 @pytest.fixture(scope="session")
-def test_graph_root(test_data_root):
-    return test_data_root / "graph"
+def test_dot_root(test_graph_root):
+    return test_graph_root / "dot"
 
 
 @pytest.fixture(scope="session")

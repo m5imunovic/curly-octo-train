@@ -19,3 +19,11 @@ def test_graph_dot_correctly(test_graph_root):
     assert g2.number_of_nodes() == 6722
     assert g3.number_of_edges() == 9788
     assert g3.number_of_nodes() == 6722
+
+
+def test_construct_lja_graph_dot(test_dot_root, expected_lja_dot):
+
+    dot_path = test_dot_root / "example1.dot"
+    g = custom_parse_dot(dot_path, k=501)
+    assert g.number_of_nodes() == expected_lja_dot["number_of_nodes"]
+    assert g.number_of_edges() == expected_lja_dot["number_of_edges"]

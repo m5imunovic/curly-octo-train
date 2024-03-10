@@ -20,26 +20,26 @@ index d1d9052..552d82d 100644
          if(vert.size() < 10)
              os << " label=" << vert.getSeq();
 diff --git a/src/projects/error_correction/coverage_ec_stage.hpp b/src/projects/error_correction/coverage_ec_stage.hpp
-index d358ac5..efbb068 100644
+index d358ac5..6173d86 100644
 --- a/src/projects/error_correction/coverage_ec_stage.hpp
 +++ b/src/projects/error_correction/coverage_ec_stage.hpp
 @@ -34,6 +34,7 @@ CoverageEC(logging::Logger &logger, const std::experimental::filesystem::path &d
      io::SeqReader reader(reads_lib);
      readStorage.fill(logger, threads, reader.begin(), reader.end(), dbg, index);
      printDot(dir / "initial_dbg.dot", Component(dbg));
-+    printGFA(dir / "initial_dbg.gfa", Component(dbg), true);
++    printGFA(dir / "initial_dbg.gfa", Component(dbg), true, &ag::SaveEdgeName<DBGTraits>);
      coverageStats(logger, dbg);
      if(debug) {
          PrintPaths(logger, threads, dir / "state_dump", "initial", dbg, readStorage, paths_lib, true);
 diff --git a/src/projects/error_correction/topology_ec_stage.hpp b/src/projects/error_correction/topology_ec_stage.hpp
-index 6ca848f..7da6c86 100644
+index 6ca848f..6a4f093 100644
 --- a/src/projects/error_correction/topology_ec_stage.hpp
 +++ b/src/projects/error_correction/topology_ec_stage.hpp
 @@ -34,6 +34,7 @@ TopologyEC(logging::Logger &logger, const std::experimental::filesystem::path &d
          readStorage.fill(logger, threads, reader.begin(), reader.end(), dbg, index);
      }
      printDot(dir / "initial_dbg.dot", Component(dbg));
-+    printGFA(dir / "initial_dbg.gfa", Component(dbg), true);
++    printGFA(dir / "initial_dbg.gfa", Component(dbg), true, &ag::SaveEdgeName<DBGTraits>);
      if(debug) {
          DrawSplit(Component(dbg), dir / "before_figs", readStorage.labeler(), 25000);
          PrintPaths(logger, threads, dir / "state_dump", "initial", dbg, readStorage, paths_lib, false);
@@ -66,7 +66,7 @@ index 6124d4e..6c0916d 100644
              return std::move(backup);
          }
 diff --git a/src/tools/common/pipeline_tools.cpp b/src/tools/common/pipeline_tools.cpp
-index 67e16b5..7ac6d3c 100644
+index 67e16b5..67a9756 100644
 --- a/src/tools/common/pipeline_tools.cpp
 +++ b/src/tools/common/pipeline_tools.cpp
 @@ -5,6 +5,7 @@
@@ -77,13 +77,14 @@ index 67e16b5..7ac6d3c 100644
  
  void
  SubstageRun::runSubstage(logging::Logger &logger, size_t threads, const std::experimental::filesystem::path &dir, bool debug, const AlgorithmParameterValues &parameterValues) {
-@@ -271,6 +272,9 @@ int LoggedProgram::run(const std::vector<std::string> &command_line) {
+@@ -270,7 +271,9 @@ int LoggedProgram::run(const std::vector<std::string> &command_line) {
+         for(auto &rec : output) {
              std::experimental::filesystem::path path = stage_output.at(rec.outout_id);
              std::experimental::filesystem::remove(dir / rec.output_file_name);
-             std::experimental::filesystem::copy(path, dir / rec.output_file_name);
+-            std::experimental::filesystem::copy(path, dir / rec.output_file_name);
 +            std::error_code ec;
 +            std::experimental::filesystem::copy_file(path, dir / rec.output_file_name, ec);
-+            if(ec.value() != 0) logger.info() << "Error while copying file" << ec.message() << " " << ec.value() << std::endl;
++            if(ec.value() != 0) logger.info() << "Error while copying file " << ec.message() << " " << ec.value() << std::endl;
          }
          for(auto &rec : output) {
              logger.info() << rec.name << ": " << dir / rec.output_file_name << std::endl;
