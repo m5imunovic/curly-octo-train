@@ -44,7 +44,6 @@ def test_datasets_root(test_data_root):
 def test_data_reference(test_data_root):
     return test_data_root / "references"
 
-
 @pytest.fixture(scope="session")
 def test_cfg_path(test_data_root):
     return test_data_root / "config" / "config.yaml"
@@ -60,6 +59,11 @@ def test_species_genome(test_data_reference) -> list[Path]:
     chr_path = test_data_reference / "test_species" / "S_0001" / "chromosomes"
     return list(chr_path.glob("*.fasta"))
 
+
+@pytest.fixture(scope="session")
+def test_species_reads_root(test_data_reference) -> list[Path]:
+    chr_path = test_data_reference / "test_species" / "S_0001" / "reads"
+    return chr_path
 
 @pytest.fixture(scope="session")
 def test_data_reads(test_data_root) -> Path:

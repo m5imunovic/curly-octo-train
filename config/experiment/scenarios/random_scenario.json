@@ -10,7 +10,8 @@
             }
           ],
           "count": 10,
-          "init_seed": 1
+          "init_seed": 1,
+          "probability": null
         }
       ],
       "species_name": "random_species.yaml"

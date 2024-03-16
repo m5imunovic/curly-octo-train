@@ -19,8 +19,8 @@ def test_scenarios_root(test_cfg_root) -> Path:
 
 
 @pytest.fixture(scope="session")
-def test_scenario(test_cfg_root) -> Scenario:
-    test_scenario_path = test_cfg_root / "experiment" / "scenarios" / "test_scenario.json"
+def test_scenario_sim(test_cfg_root) -> Scenario:
+    test_scenario_path = test_cfg_root / "experiment" / "scenarios" / "test_scenario_sim.json"
     with open(test_scenario_path) as f:
         scenario = Scenario.from_json(f.read())
 
@@ -28,8 +28,24 @@ def test_scenario(test_cfg_root) -> Scenario:
 
 
 @pytest.fixture(scope="session")
-def test_experiment_cfg(test_cfg_root):
+def test_scenario_sample(test_cfg_root) -> Scenario:
+    test_scenario_path = test_cfg_root / "experiment" / "scenarios" / "test_scenario_sample.json"
+    with open(test_scenario_path) as f:
+        scenario = Scenario.from_json(f.read())
+
+    return scenario
+
+@pytest.fixture(scope="session")
+def test_experiment_sim_cfg(test_cfg_root):
     test_experiment_config_dir = test_cfg_root
     with initialize_config_dir(version_base=None, config_dir=str(test_experiment_config_dir), job_name="test_exp"):
-        cfg = compose(config_name="test_config.yaml")
+        cfg = compose(config_name="test_config_sim.yaml")
+        return cfg
+
+
+@pytest.fixture(scope="session")
+def test_experiment_sampler_cfg(test_cfg_root):
+    test_experiment_config_dir = test_cfg_root
+    with initialize_config_dir(version_base=None, config_dir=str(test_experiment_config_dir), job_name="test_exp"):
+        cfg = compose(config_name="test_config_sampler.yaml")
         return cfg

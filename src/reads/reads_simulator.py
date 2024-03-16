@@ -2,12 +2,12 @@ import logging
 import shutil
 import subprocess
 import tempfile
-from abc import abstractmethod
 from pathlib import Path
 
-from omegaconf import DictConfig, OmegaConf
+from omegaconf import OmegaConf
 from typeguard import typechecked
 
+from reads.rsimulator import RSimulator
 from utils import path_helpers as ph
 from utils.io_utils import compose_cmd_params
 
@@ -15,42 +15,6 @@ OmegaConf.register_new_resolver("project_root", ph.project_root_append, replace=
 
 
 logger = logging.getLogger(__name__)
-
-
-class RSimulator:
-    def __init__(self, cfg: DictConfig, vendor_dir: Path):
-        self.cfg = cfg
-        self.name = self.cfg.name
-        if "install_script" in cfg and cfg.install_script is not None:
-            assert cfg.exec_root is not None
-            self._install_from_script(Path(cfg.script_path))
-            self.simulator_exec = Path(cfg.exec_root)
-        else:
-            self.simulator_exec = self._install(vendor_dir)
-
-    @typechecked
-    @abstractmethod
-    def _install(self, vendor_dir: Path):
-        pass
-
-    @typechecked
-    def _install_from_script(self, script_path: Path):
-        raise NotImplementedError(f"Ignoring {script_path} commands. Installation from script is not implemented!")
-
-    def pre_simulation_step(self, *args, **kwargs):
-        pass
-
-    def post_simulation_step(self, *args, **kwargs):
-        pass
-
-    @abstractmethod
-    def run(self, *args, **kwargs):
-        pass
-
-    def __call__(self, *args, **kwargs):
-        self.pre_simulation_step(*args, **kwargs)
-        self.run(*args, **kwargs)
-        self.post_simulation_step(*args, **kwargs)
 
 
 class PbSim3(RSimulator):
@@ -145,9 +109,3 @@ class PbSim3(RSimulator):
             shutil.copytree(staging_dir, output_path, dirs_exist_ok=True, copy_function=shutil.move)
 
 
-@typechecked
-def simulator_factory(simulator: str, cfg: DictConfig) -> RSimulator:
-    vendor_dir: Path = ph.get_vendor_path() if "paths" in cfg else ph.get_vendor_path()
-    if simulator == "pbsim3":
-        return PbSim3(cfg=cfg, vendor_dir=vendor_dir)
-    raise ValueError(f"Unknown simulator name {simulator}")
