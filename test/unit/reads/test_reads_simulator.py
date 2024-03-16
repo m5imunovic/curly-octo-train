@@ -6,7 +6,8 @@ from pathlib import Path
 import pytest
 
 from reads import reads_simulator
-from reads.reads_simulator import simulator_factory
+from reads.simulate_reads import simulator_factory
+from reads.rsimulator import READ_FILE
 
 SEED = 3
 
@@ -42,9 +43,9 @@ def test_generator_produces_expected_output(test_pbsim3_pf_cfg, test_species_gen
     simulator = simulator_factory("pbsim3", test_pbsim3_pf_cfg)
     simulator.run(genome=test_species_genome, output_path=Path(tmpdir))
 
-    simulated_fastq = tmpdir / "sim_0001.fastq"
+    simulated_fastq = tmpdir / READ_FILE
     assert simulated_fastq.exists(), "Simulated fastq file does not exist"
-    expected_fastq = test_data_reads / "simulated" / "sim_0001.fastq"
+    expected_fastq = test_data_reads / "simulated" / READ_FILE
     assert filecmp.cmp(simulated_fastq, expected_fastq), "Simulated fastq file does not match expected file"
 
 

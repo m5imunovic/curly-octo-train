@@ -1,0 +1,31 @@
+{
+  "dataset": "unittest_dataset",
+  "items": [
+    {
+      "samples": [
+        {
+          "chromosomes": [
+            {
+              "name": "chr1"
+            }
+          ],
+          "count": 1,
+          "init_seed": 1,
+          "probability": "0.93:0.98:0.05"
+        },
+        {
+          "chromosomes": [
+            {
+              "name": "chr2"
+            }
+          ],
+          "count": 1,
+          "init_seed": 1,
+          "probability": null
+        }
+      ],
+      "species_name": "test_species.yaml"
+    }
+  ],
+  "subset": "train"
+}

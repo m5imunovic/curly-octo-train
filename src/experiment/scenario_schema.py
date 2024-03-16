@@ -7,7 +7,6 @@ from dataclass_wizard import JSONWizard
 
 import experiment.experiment_utils as eu
 
-
 @dataclass
 class Scenario(JSONWizard):
     """Data dataclass."""
@@ -31,6 +30,7 @@ class Sample:
 
     init_seed: int
     count: int
+    probability: str | None
     chromosomes: list["Chromosome"]
 
 

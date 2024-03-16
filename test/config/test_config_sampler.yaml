@@ -1,0 +1,5 @@
+defaults:
+  - test_config
+  - override reads: test_sampler
+  - override experiment: test_experiment_sampler
+  - _self_

@@ -3,6 +3,7 @@ import re
 import pytest
 
 import experiment.experiment_utils as eu
+from experiment.scenario_schema import Chromosome
 
 
 def test_ensure_species_def_exists(test_cfg_root):
@@ -22,6 +23,18 @@ def test_ensure_species_def_exists_invalid_extension(test_cfg_root):
     # Call the function with the species definition file with invalid extension
     with pytest.raises(AssertionError, match="Species definition file must have a .yaml extension: species_def.txt"):
         eu.ensure_species_def_exists(test_cfg_root, ["species_def.txt"])
+
+
+def test_get_real_read_path(test_species_reads_root):
+    reads = eu.get_read_paths(test_species_reads_root, chromosomes=[Chromosome(name="chr1")])
+    expected_file1 = test_species_reads_root / "chr1" / "chr1_part1.fastq"
+    expected_file2 = test_species_reads_root / "chr1" / "chr1_part2.fastq"
+    assert len(reads) == 2
+    assert expected_file1 in reads
+    assert expected_file2 in reads
+
+    reads = eu.get_read_paths(test_species_reads_root, chromosomes=[Chromosome(name="chr3")])
+    assert not reads, "Unexpected reads found for chromosome chr3"
 
 
 def test_get_sequencing_seeds():
@@ -47,3 +60,26 @@ def test_get_sequencing_seeds_erroneous_input():
         eu.get_sequencing_seeds(subset="test", count=100, init_seed=9900)
     with pytest.raises(AssertionError, match="Initial seed must be between 1 and 9999"):
         eu.get_sequencing_seeds(subset="test", count=100, init_seed=10000)
+
+
+def test_get_sequencing_probability():
+    none_probability = None
+    probabilities = eu.get_sequencing_probabilities(none_probability) 
+    assert probabilities == [1.0]
+
+    probability_range = "0.92:0.92:0.01"
+    probabilities = eu.get_sequencing_probabilities(probability_range)
+    assert probabilities == pytest.approx([0.92])
+
+    probability_range = "0.92:0.98:0.02"
+    probabilities = eu.get_sequencing_probabilities(probability_range)
+    assert probabilities == pytest.approx([0.92, 0.94, 0.96, 0.98])
+
+    probability_range = "0.98:1.00:0.02"
+    probabilities = eu.get_sequencing_probabilities(probability_range)
+    assert probabilities == pytest.approx([0.98, 1.00])
+    
+    probability_range = "0.98:1.00:0.25"
+    probabilities = eu.get_sequencing_probabilities(probability_range)
+    assert probabilities == pytest.approx([0.98])
+

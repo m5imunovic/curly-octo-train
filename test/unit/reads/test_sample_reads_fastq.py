@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from reads.sample_reads_fastq import sample_reads_with_probability
+from reads.sample_reads import sample_reads_with_probability
 
 
 @pytest.fixture(scope="module")

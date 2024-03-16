@@ -4,6 +4,7 @@ import logging
 import os
 import subprocess
 import tempfile
+from itertools import product
 from pathlib import Path
 
 from omegaconf import DictConfig
@@ -15,6 +16,7 @@ from asm.assembler import run as assembly_task
 from experiment.scenario_schema import Scenario, collect_all_species_defs, load_scenario
 from graph.db_graph import run as graph_task
 from reads.simulate_reads import run as sequencing_task
+from reads.rsimulator import READ_FILE
 from reference.genome_generator import ensure_references_exist
 
 logger = logging.Logger(__name__)
@@ -31,21 +33,19 @@ def create_sequencing_jobs(scenario: Scenario, staging_root: Path, reference_pat
             # create path to reference files and check they exist
             reference_root = reference_paths[item.species_name]
             genome = eu.get_genome_paths(ru.ref_chromosomes_path(reference_root), sample.chromosomes)
+            reads = eu.get_read_paths(ru.ref_real_reads_path(reference_root), sample.chromosomes)
+            probabilities = eu.get_sequencing_probabilities(sample.probability)
             # get the seeds and create the list of jobs
             sequencing_seeds = eu.get_sequencing_seeds(scenario.subset, sample.count, sample.init_seed)
-            # chr_str = "_".join([chr.name for chr in sample.chromosomes])
-            jobs.extend(
-                [
-                    {
-                        "genome": genome,
-                        "seed": seed,
-                        "output_path": Path(staging_root / f"{job_nr + offset}" / "reads"),
-                        # "name": f"{item.species_name.removesuffix('.yaml')}_S{seed:05d}_{chr_str}",
-                    }
-                    for offset, seed in enumerate(sequencing_seeds)
-                ]
-            )
-            job_nr += len(sequencing_seeds)
+            for (probability, seed) in product(probabilities, sequencing_seeds):
+                jobs.append({
+                    "genome": genome,
+                    "seed": seed,
+                    "reads": reads,
+                    "output_path": Path(staging_root / f"{job_nr}" / "reads"),
+                    "probability": probability,
+                })
+                job_nr += 1
 
     return jobs
 
@@ -59,7 +59,7 @@ def create_assembly_jobs(read_jobs: list) -> list:
                 {
                     "genome": read_job["genome"],
                     # TODO: should be dynamic fastq name based on the reads config or (better) returned from the reads job
-                    "reads": [read_job["output_path"] / "sim_0001.fastq"],
+                    "reads": [read_job["output_path"] / READ_FILE],
                     "output_path": read_job["output_path"].parent / "assemblies",
                     "threads": 15,
                 }
@@ -89,7 +89,7 @@ def run_sequencing_jobs(cfg: DictConfig, jobs: list) -> dict:
     produced_files = {}
     for job in jobs:
         cfg.reads.params.long.seed = job["seed"]
-        produced_files = sequencing_task(cfg, genome=job["genome"], output_path=job["output_path"])
+        produced_files = sequencing_task(cfg, **job)
 
     return produced_files
 

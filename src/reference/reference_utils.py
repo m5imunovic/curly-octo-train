@@ -32,6 +32,11 @@ def ref_chromosomes_path(species_root: Path) -> Path:
 
 
 @typechecked
+def ref_real_reads_path(species_root: Path) -> Path:
+    return species_root / "reads"
+
+
+@typechecked
 def check_reference_exists(references_root: Path, species_cfg: DictConfig) -> bool:
     # e.g. home_sapiens/chm13_v2 or random_species/S_0001
     # TODO: expand check to stat the files in species info

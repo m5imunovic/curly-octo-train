@@ -1,8 +1,8 @@
 defaults:
   - paths: test_paths
   - reference: test_reference
-  - reads: test_pbsim3_pf
+  - reads: null
   - asm: test_la_jolla
   - graph: test_db_graph
-  - experiment: test_experiment
+  - experiment: null
   - _self_
