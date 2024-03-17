@@ -47,4 +47,4 @@ def test_schedule_run_sample_creates_expected_outputs(test_cfg_root, test_experi
 
     assert (Path(tmpdir) / "unittest_dataset").exists()
 
-    assert len((Path(tmpdir) / "unittest_dataset" / "train" / "raw").iterdir()) == 3
+    assert len(list((Path(tmpdir) / "unittest_dataset" / "train" / "raw").iterdir())) == 3

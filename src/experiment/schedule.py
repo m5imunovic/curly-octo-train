@@ -61,7 +61,6 @@ def create_assembly_jobs(read_jobs: list) -> list:
                     # TODO: should be dynamic fastq name based on the reads config or (better) returned from the reads job
                     "reads": [read_job["output_path"] / READ_FILE],
                     "output_path": read_job["output_path"].parent / "assemblies",
-                    "threads": 15,
                 }
             ]
         )
@@ -97,12 +96,7 @@ def run_sequencing_jobs(cfg: DictConfig, jobs: list) -> dict:
 def run_assembly_jobs(cfg: DictConfig, jobs: list) -> dict:
     produced_files = {}
     for job in jobs:
-        # Warning, this modifies the input jobs
-        threads = job.pop("threads")
-        cfg.asm.params.long.threads = threads
         produced_files = assembly_task(cfg, **job)
-        # restore original job
-        job["threads"] = threads
 
     return produced_files
 
