@@ -5,8 +5,8 @@ from pathlib import Path
 from omegaconf import DictConfig
 
 from reads.sample_reads import sample_reads_with_probability
-from reads.simulate_reads import simulator_factory
 from reads.sequencing_utils import upload_pbsim3_profile_to_wandb
+from reads.simulate_reads import simulator_factory
 from reference.genome_generator import ensure_references_exist
 from utils.io_utils import compose_cmd_params
 

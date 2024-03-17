@@ -1,10 +1,9 @@
 import logging
 from pathlib import Path
 
+import wandb
 from hydra.core.hydra_config import HydraConfig
 from omegaconf import DictConfig, OmegaConf
-
-import wandb  # TODO: resolve black and isort conflict on this line
 
 logger = logging.Logger(__name__)
 

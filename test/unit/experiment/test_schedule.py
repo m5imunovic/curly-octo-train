@@ -27,7 +27,9 @@ def test_create_sequencing_jobs(tmpdir, test_scenario_sim, test_data_reference):
     assert job["output_path"].relative_to(staging_root) == Path("2/reads")
 
 
-def test_schedule_run_sim_creates_expected_outputs(test_cfg_root, test_experiment_sim_cfg, test_scenarios_root, tmpdir):
+def test_schedule_run_sim_creates_expected_outputs(
+    test_cfg_root, test_experiment_sim_cfg, test_scenarios_root, tmpdir
+):
     test_experiment_sim_cfg.paths.exp_dir = str(tmpdir)
     test_experiment_sim_cfg.paths.datasets_dir = str(tmpdir)
     with mock.patch("experiment.experiment_utils.get_scenario_root", return_value=test_scenarios_root), mock.patch(
@@ -37,7 +39,10 @@ def test_schedule_run_sim_creates_expected_outputs(test_cfg_root, test_experimen
 
     assert (Path(tmpdir) / "unittest_dataset").exists()
 
-def test_schedule_run_sample_creates_expected_outputs(test_cfg_root, test_experiment_sampler_cfg, test_scenarios_root, tmpdir):
+
+def test_schedule_run_sample_creates_expected_outputs(
+    test_cfg_root, test_experiment_sampler_cfg, test_scenarios_root, tmpdir
+):
     test_experiment_sampler_cfg.paths.exp_dir = str(tmpdir)
     test_experiment_sampler_cfg.paths.datasets_dir = str(tmpdir)
     with mock.patch("experiment.experiment_utils.get_scenario_root", return_value=test_scenarios_root), mock.patch(
@@ -47,4 +52,4 @@ def test_schedule_run_sample_creates_expected_outputs(test_cfg_root, test_experi
 
     assert (Path(tmpdir) / "unittest_dataset").exists()
 
-    assert len((Path(tmpdir) / "unittest_dataset" / "train" / "raw").iterdir()) == 3
+    assert len(list((Path(tmpdir) / "unittest_dataset" / "train" / "raw").iterdir())) == 3

@@ -43,5 +43,3 @@ def sample_reads_with_probability(reads_file: Path, sampled_file: Path, probabil
         logger.info(f"Selected {selected} samples")
 
     return selected
-
-

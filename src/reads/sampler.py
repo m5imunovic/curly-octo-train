@@ -5,7 +5,7 @@ from pathlib import Path
 
 from typeguard import typechecked
 
-from reads.rsimulator import RSimulator, READ_FILE
+from reads.rsimulator import READ_FILE, RSimulator
 from reads.sample_reads import sample_reads_with_probability
 
 logger = logging.Logger(__name__)
@@ -13,10 +13,10 @@ logger.setLevel(logging.INFO)
 
 
 class ReadSampler(RSimulator):
-    def _install(self, vendor_dir:Path):
+    def _install(self, vendor_dir: Path):
         return vendor_dir
 
-    def _sample_reads(self, reads: list[Path], output_path: Path, probability: float, seed: int) ->int:
+    def _sample_reads(self, reads: list[Path], output_path: Path, probability: float, seed: int) -> int:
         with tempfile.TemporaryDirectory() as staging_dir:
             sampled_file = Path(staging_dir) / READ_FILE
             total_selected = 0
@@ -31,13 +31,9 @@ class ReadSampler(RSimulator):
 
             return total_selected
 
-
     @typechecked
     def run(self, reads: list[Path], output_path: Path, probability: float, seed: int, *args, **kwargs) -> bool:
         logger.info("Sampling reads...")
         selected = self._sample_reads(reads, output_path, probability, seed)
         logging.info(f"Selected total {selected} reads in {len(reads)} files.")
         return True
-
-
-

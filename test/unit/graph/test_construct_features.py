@@ -1,7 +1,6 @@
 # TODO:
 # test that the order (i.e. adjacency operations are OK) is preserved
 # test with real data
-import networkx as nx
 import pytest
 from omegaconf import OmegaConf
 

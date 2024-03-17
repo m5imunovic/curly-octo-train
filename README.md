@@ -22,6 +22,8 @@ mamba activate menv
 
 ## Install vendor tools
 
+Use script to pre-install vendors, this makes sure that appropriate patches are applied:
+
 ```bash
 mkdir vendor
 bash scripts/install_vendors.sh vendor

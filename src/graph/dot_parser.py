@@ -1,5 +1,5 @@
-import re
 import logging
+import re
 from pathlib import Path
 
 import networkx as nx
@@ -7,10 +7,11 @@ from typeguard import typechecked
 
 logger = logging.getLogger(__name__)
 
+
 @typechecked
 def parse_dot(path: Path, k: int = 501) -> nx.MultiDiGraph:
     """Parse DBG from LJA graph.dot file"
-    NOTE: this is thousand times slower than the custom implementation bellow.
+    NOTE: this is thousand times slower than the custom implementation below.
     We don't need extra stuff as we know two possible line formats that appear in file
 
     Args:
@@ -22,9 +23,10 @@ def parse_dot(path: Path, k: int = 501) -> nx.MultiDiGraph:
 
     return g
 
+
 @typechecked
 def custom_parse_dot(path: Path, k: int = 501, verify=True) -> nx.MultiDiGraph:
-    """Parses entries for edges 
+    """Parses entries for edges
         "-2255" -> "-3481" [label="-2255.2 C 498(1 498)" color="black"]
         "2867" -> "665" [label="2867.1 T 66(16 1056)" color="black"]
     and nodes:
@@ -53,10 +55,10 @@ def custom_parse_dot(path: Path, k: int = 501, verify=True) -> nx.MultiDiGraph:
             if "->" in l_id:
                 # edge entry
                 start, stop = l_id.split(" -> ")
-                start = start.strip("\"")
-                stop = stop.strip("\"")
+                start = start.strip('"')
+                stop = stop.strip('"')
                 # label and attributes
-                l_label = l_meta.removesuffix(" color=\"black\"").removeprefix("label=").strip("\"")
+                l_label = l_meta.removesuffix(' color="black"').removeprefix("label=").strip('"')
                 edge_id, _, trunc_size_cov = l_label.split(" ")
                 trunc_size, cov = trunc_size_cov.split("(")
                 cov = float(cov.strip(")"))
@@ -70,7 +72,7 @@ def custom_parse_dot(path: Path, k: int = 501, verify=True) -> nx.MultiDiGraph:
             else:
                 # node entry
                 if verify:
-                    nodes.add(l_id.strip("\""))
+                    nodes.add(l_id.strip('"'))
     if verify:
         assert nodes == edge_induced_nodes, "Nodes induced from edges don't match node list"
 
@@ -97,7 +99,7 @@ def custom_parse_dot2(path: Path, k: int = 501) -> nx.MultiDiGraph:
         for line in f:
             if line.startswith("digraph") or line.startswith("nodesep") or line.startswith("}"):
                 continue
-            if not "->" in line:
+            if "->" not in line:
                 continue
 
             # TODO: match this in two stages to make it more readable (edge part + attrs part)

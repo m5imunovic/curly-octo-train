@@ -64,7 +64,7 @@ def test_get_sequencing_seeds_erroneous_input():
 
 def test_get_sequencing_probability():
     none_probability = None
-    probabilities = eu.get_sequencing_probabilities(none_probability) 
+    probabilities = eu.get_sequencing_probabilities(none_probability)
     assert probabilities == [1.0]
 
     probability_range = "0.92:0.92:0.01"
@@ -78,8 +78,7 @@ def test_get_sequencing_probability():
     probability_range = "0.98:1.00:0.02"
     probabilities = eu.get_sequencing_probabilities(probability_range)
     assert probabilities == pytest.approx([0.98, 1.00])
-    
+
     probability_range = "0.98:1.00:0.25"
     probabilities = eu.get_sequencing_probabilities(probability_range)
     assert probabilities == pytest.approx([0.98])
-

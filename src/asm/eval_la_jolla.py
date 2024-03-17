@@ -27,7 +27,7 @@ def parse_alignments_entry(read_id: str, edge_ids: str):
     Returns a tuple of (read_id, edge_ids, is_rc) where is_rc is a list of 0s and 1s indicating whether the
     corresponding edge string is reverse complemented.
     """
-    read_id = read_id.strip()[1:] # remove starting '>'
+    read_id = read_id.strip()[1:]  # remove starting '>'
     edge_ids = edge_ids.strip().split()
     is_rc = [edge_id.startswith("-") for edge_id in edge_ids]
     edge_ids = [edge_id[1:] if is_rc else edge_id for edge_id, is_rc in zip(edge_ids, is_rc)]
