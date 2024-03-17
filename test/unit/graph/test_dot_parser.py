@@ -1,4 +1,5 @@
 from datetime import datetime
+
 from graph.dot_parser import custom_parse_dot, custom_parse_dot2
 
 
@@ -22,7 +23,6 @@ def test_graph_dot_correctly(test_graph_root):
 
 
 def test_construct_lja_graph_dot(test_dot_root, expected_lja_dot):
-
     dot_path = test_dot_root / "example1.dot"
     g = custom_parse_dot(dot_path, k=501)
     assert g.number_of_nodes() == expected_lja_dot["number_of_nodes"]

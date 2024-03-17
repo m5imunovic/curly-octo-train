@@ -7,6 +7,7 @@ from dataclass_wizard import JSONWizard
 
 import experiment.experiment_utils as eu
 
+
 @dataclass
 class Scenario(JSONWizard):
     """Data dataclass."""

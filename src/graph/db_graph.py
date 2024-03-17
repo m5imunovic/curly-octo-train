@@ -1,7 +1,7 @@
 import json
 import logging
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Optional
 
 import networkx as nx
 import torch
@@ -60,12 +60,12 @@ def process_graph(idx: int, assembly_path: Path, cfg: DictConfig, output_path: P
     logger.info(f"{idx}: Number of edges {g.number_of_edges()}")
     logger.info(f"{idx}: Number of nodes {g.number_of_nodes()}")
 
-    logger.info(f"Loading multiplicity info...")
+    logger.info("Loading multiplicity info...")
     mult_info_path = assembly_path / "mult.info"
     mult_info = parse_mult_info(mult_info_path)
     g, features = add_features(g, cfg.features)
     g = add_mult_info_features(g, mult_info)
-    logger.info(f"Converting to torch format...")
+    logger.info("Converting to torch format...")
     pyg = convert_to_pyg_graph(g, features)
     pyg_filename = f"{idx}.pt"
     logger.info(f"Saving {out_raw_path / pyg_filename }")

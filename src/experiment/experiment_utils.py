@@ -2,6 +2,7 @@ import logging
 from pathlib import Path
 
 import numpy as np
+
 import utils.path_helpers as ph
 
 logger = logging.Logger(__name__)
@@ -97,9 +98,10 @@ def get_sequencing_seeds(subset: str, count: int, init_seed: int) -> list[int]:
 
 
 def get_sequencing_probabilities(probability: str | None) -> list[float]:
-    """Parse probability setting in format of a range `start:stop:step`. However,
-       unlike most of the range functions we include stop and clamp range to [0., 1.00]
-       If value ommitted the returned probability is 1.00.
+    """Parse probability setting in format of a range `start:stop:step`.
+
+    However, unlike most of the range functions we include stop and clamp range to [0., 1.00] If value omitted the
+    returned probability is 1.00.
     """
     if probability is None:
         return [1.0]
@@ -111,10 +113,7 @@ def get_sequencing_probabilities(probability: str | None) -> list[float]:
         logger.error(f"Could not parse {probability} range into meaningful numbers")
         logger.error(f"Exception {ex}")
 
-    r = np.arange(start, stop+step, step)
-    r = r[r <= min(1.00, stop+1e-6)]
+    r = np.arange(start, stop + step, step)
+    r = r[r <= min(1.00, stop + 1e-6)]
     r = r[r >= 0.00]
     return r.tolist()
-
-
-    

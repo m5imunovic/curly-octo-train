@@ -6,8 +6,8 @@ from pathlib import Path
 import pytest
 
 from reads import reads_simulator
-from reads.simulate_reads import simulator_factory
 from reads.rsimulator import READ_FILE
+from reads.simulate_reads import simulator_factory
 
 SEED = 3
 

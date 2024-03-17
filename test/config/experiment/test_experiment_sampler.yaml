@@ -1,7 +1,7 @@
 # TODO: check if I can simply use
 # defaults:
 # - test_experiment.yaml
-# and delete everything bellow scenario.name
+# and delete everything below scenario.name
 scenario:
   name: test_scenario_sampler.json # can be with or without .json
 

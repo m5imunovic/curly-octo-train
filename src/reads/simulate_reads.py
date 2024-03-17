@@ -1,10 +1,11 @@
 from pathlib import Path
+
 from omegaconf import DictConfig
 from typeguard import typechecked
 
 import utils.path_helpers as ph
-from reads.rsimulator import RSimulator
 from reads.reads_simulator import PbSim3
+from reads.rsimulator import RSimulator
 from reads.sampler import ReadSampler
 from utils.io_utils import get_job_outputs
 
@@ -21,7 +22,6 @@ def simulator_factory(simulator: str, cfg: DictConfig) -> RSimulator:
 
 @typechecked
 def run(cfg: DictConfig, **kwargs) -> dict:
-
     exec_args = {
         # Top level output path
         "output_path": None,

@@ -4,7 +4,6 @@ from pathlib import Path
 from omegaconf import DictConfig
 from typeguard import typechecked
 
-
 READ_FILE = "sim_0001.fastq"
 
 
@@ -42,5 +41,3 @@ class RSimulator:
         self.pre_simulation_step(*args, **kwargs)
         self.run(*args, **kwargs)
         self.post_simulation_step(*args, **kwargs)
-
-

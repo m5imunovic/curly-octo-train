@@ -15,8 +15,8 @@ import reference.reference_utils as ru
 from asm.assembler import run as assembly_task
 from experiment.scenario_schema import Scenario, collect_all_species_defs, load_scenario
 from graph.db_graph import run as graph_task
-from reads.simulate_reads import run as sequencing_task
 from reads.rsimulator import READ_FILE
+from reads.simulate_reads import run as sequencing_task
 from reference.genome_generator import ensure_references_exist
 
 logger = logging.Logger(__name__)
@@ -37,14 +37,16 @@ def create_sequencing_jobs(scenario: Scenario, staging_root: Path, reference_pat
             probabilities = eu.get_sequencing_probabilities(sample.probability)
             # get the seeds and create the list of jobs
             sequencing_seeds = eu.get_sequencing_seeds(scenario.subset, sample.count, sample.init_seed)
-            for (probability, seed) in product(probabilities, sequencing_seeds):
-                jobs.append({
-                    "genome": genome,
-                    "seed": seed,
-                    "reads": reads,
-                    "output_path": Path(staging_root / f"{job_nr}" / "reads"),
-                    "probability": probability,
-                })
+            for probability, seed in product(probabilities, sequencing_seeds):
+                jobs.append(
+                    {
+                        "genome": genome,
+                        "seed": seed,
+                        "reads": reads,
+                        "output_path": Path(staging_root / f"{job_nr}" / "reads"),
+                        "probability": probability,
+                    }
+                )
                 job_nr += 1
 
     return jobs

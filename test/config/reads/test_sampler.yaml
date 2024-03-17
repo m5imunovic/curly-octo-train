@@ -2,7 +2,7 @@ name: sampler
 
 params:
   long:
-    probability:  0.95 # in range 0 to 1 (probability of taking a read from sample)
+    probability: 0.95 # in range 0 to 1 (probability of taking a read from sample)
     seed: 1 # seed used for sampling
 
 reads: # path to root directory of real reads from which we sample

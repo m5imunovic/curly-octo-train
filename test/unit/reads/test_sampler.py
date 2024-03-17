@@ -3,9 +3,10 @@ from pathlib import Path
 
 from omegaconf import DictConfig
 
+from reads.rsimulator import READ_FILE
 from reads.sampler import ReadSampler
 from reads.simulate_reads import simulator_factory
-from reads.rsimulator import READ_FILE
+
 
 def test_read_sampler_produces_expected_outputs(test_species_reads_root, tmpdir, caplog):
     cfg = DictConfig({"name": "sampler"})
@@ -23,5 +24,5 @@ def test_read_sampler_produces_expected_outputs(test_species_reads_root, tmpdir,
 
     with caplog.at_level(logging.DEBUG, logger="reads.sampler"):
         reads_simulator.run(**exec_args)
-    
+
     assert (output_path / READ_FILE).exists()

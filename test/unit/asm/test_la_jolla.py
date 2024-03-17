@@ -66,5 +66,5 @@ def test_la_jolla_produces_expected_output(
     expected_mult_info = parse_mult_info(test_data_assemblies / "mult.info")
     mult_info = parse_mult_info(output_path / "mult.info")
     assert sorted(mult_info.values()) == sorted(expected_mult_info.values())
-    # after switching to the number based IDs keys are not same accross the runs
+    # after switching to the number based IDs keys are not same across the runs
     assert len(mult_info.keys()) == len(expected_mult_info.keys())

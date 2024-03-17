@@ -107,5 +107,3 @@ class PbSim3(RSimulator):
                 output_path.mkdir(parents=True)
             # shutil.move would also include staging dir
             shutil.copytree(staging_dir, output_path, dirs_exist_ok=True, copy_function=shutil.move)
-
-

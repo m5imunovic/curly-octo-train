@@ -35,6 +35,7 @@ def test_scenario_sample(test_cfg_root) -> Scenario:
 
     return scenario
 
+
 @pytest.fixture(scope="session")
 def test_experiment_sim_cfg(test_cfg_root):
     test_experiment_config_dir = test_cfg_root

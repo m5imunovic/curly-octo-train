@@ -11,11 +11,11 @@ import subprocess
 from itertools import pairwise, repeat
 from pathlib import Path
 
+import wandb
 from omegaconf import DictConfig
 from torch_geometric.data import download_url, extract_gz
 
 import reference.reference_utils as ru
-import wandb  # TODO: resolve black and isort conflict on this line
 
 logger = logging.getLogger(__name__)
 # URLs of the chm13 reference genomes

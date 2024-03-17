@@ -46,4 +46,3 @@ def add_mult_info_features(g: DbGraphType, mult_info: dict[str, int]) -> DbGraph
     else:
         raise TypeError(f"Graph type {type(g)} not supported")
     return g
-
