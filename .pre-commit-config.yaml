@@ -24,6 +24,7 @@ repos:
       - id: pretty-format-json
         args: [--autofix]
       - id: trailing-whitespace
+        exclude: "scripts/lja_eval.patch"
 
   # python code formatting
   - repo: https://github.com/psf/black
