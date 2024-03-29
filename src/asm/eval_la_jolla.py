@@ -19,7 +19,7 @@ from asm.collect_evaluation import get_eval_table
 from asm.mult_info_parser import parse_mult_info, partition_mult_info_edges
 from utils.io_utils import compose_cmd_params
 
-logger = logging.Logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 def parse_alignments_entry(read_id: str, edge_ids: str):
@@ -181,7 +181,7 @@ def construct_eval_commands(
 def eval_lja(cfg: DictConfig, subdir: str):
     output_path_eval = Path(cfg.eval_path) / subdir / "eval_results"
     if output_path_eval.exists():
-        logger.info(f"{output_path_eval} already exists, skipping evaluation for {subdir=}")
+        logger.warning(f"{output_path_eval} already exists, skipping evaluation for {subdir=}")
         return
 
     asm_path = Path(cfg.eval_path) / subdir / "assemblies"

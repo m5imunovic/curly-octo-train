@@ -5,7 +5,7 @@ import wandb
 from hydra.core.hydra_config import HydraConfig
 from omegaconf import DictConfig, OmegaConf
 
-logger = logging.Logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 def upload_pbsim3_profile_to_wandb(cfg: DictConfig) -> bool:
