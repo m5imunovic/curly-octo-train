@@ -8,8 +8,7 @@ from typeguard import typechecked
 from reads.rsimulator import READ_FILE, RSimulator
 from reads.sample_reads import sample_reads_with_probability
 
-logger = logging.Logger(__name__)
-logger.setLevel(logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 class ReadSampler(RSimulator):

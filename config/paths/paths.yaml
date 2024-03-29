@@ -17,5 +17,6 @@ profile_dir: ${paths.data_dir}/profile
 output_dir: ${hydra:runtime.output_dir}
 exp_dir: ${paths.data_dir}/experiments
 
+storage_dir: ${paths.data_dir}/storage
 # path to logging directory
-log_dir: ${paths.root_dir}/logs/
+log_dir: ${paths.storage_dir}/logs/curly

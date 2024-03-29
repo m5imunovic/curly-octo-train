@@ -19,7 +19,7 @@ from reads.rsimulator import READ_FILE
 from reads.simulate_reads import run as sequencing_task
 from reference.genome_generator import ensure_references_exist
 
-logger = logging.Logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 @typechecked

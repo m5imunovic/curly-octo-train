@@ -11,7 +11,7 @@ import utils.path_helpers as ph
 from reference.chm13 import get_chm13_reference
 from reference.random_genome import get_random_reference
 
-logger = logging.Logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 def run(cfg):
