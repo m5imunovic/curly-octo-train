@@ -15,6 +15,7 @@ from omegaconf import DictConfig
 from typeguard import typechecked
 
 import utils.path_helpers as ph
+from asm.collect_evaluation import get_eval_table
 from asm.mult_info_parser import parse_mult_info, partition_mult_info_edges
 from utils.io_utils import compose_cmd_params
 
@@ -234,6 +235,10 @@ def main(cfg: DictConfig):
         if not subdir.isdigit():
             continue
         eval_lja(cfg, subdir=subdir)
+
+    eval_path = Path(cfg.eval_path)
+    df = get_eval_table(eval_path)
+    df.to_csv(eval_path / "eval_summary.csv", index=None)
 
 
 if __name__ == "__main__":

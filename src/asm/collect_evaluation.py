@@ -18,7 +18,7 @@ def get_eval_table(eval_path: Path):
     data = []
     columns = ["sample", "phase"]
     columns_ready = False
-    for eval_file in eval_files:
+    for eval_file in sorted(eval_files):
         values = []
         values.append(eval_file.parent.parent.parent.name)  # sample name
         values.append(eval_file.parent.name)  # phase name
@@ -45,7 +45,6 @@ def get_eval_table(eval_path: Path):
             if not columns_ready:
                 columns.append("edge_cnt")
             values.append(edge_cnt)
-            print(columns, values)
 
         data.append(values)
         columns_ready = True
