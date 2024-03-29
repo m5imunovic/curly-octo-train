@@ -231,10 +231,13 @@ def main(cfg: DictConfig):
     config_check(cfg)
 
     for subdir in os.listdir(cfg.eval_path):
-        # This works for positive integers, but that is our only use case so far
-        if not subdir.isdigit():
-            continue
-        eval_lja(cfg, subdir=subdir)
+        try:
+            # This works for positive integers, but that is our only use case so far
+            if not subdir.isdigit():
+                continue
+            eval_lja(cfg, subdir=subdir)
+        except Exception:
+            logger.warn(f"Failed evaluating {subdir} sample, continue with next sample...")
 
     eval_path = Path(cfg.eval_path)
     df = get_eval_table(eval_path)
