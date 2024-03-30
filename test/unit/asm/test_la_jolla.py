@@ -21,9 +21,9 @@ def fake_vendor_root():
         yield vendor_dir
 
 
-def test_la_jolla_construct_exe_cmd(fake_vendor_root, test_la_jolla_cfg):
+def test_la_jolla_construct_exe_cmd(fake_vendor_root, test_la_jolla_cfg, tmpdir):
     lja = la_jolla.LaJolla(test_la_jolla_cfg, fake_vendor_root)
-    output_path = Path("fake/output")
+    output_path = Path(tmpdir) / "fake/output"
     reads = [Path("/fake/reads/chr1/0_0001.fastq"), Path("/fake/reads/chr1/1_0001.fastq")]
     genome = [Path("/fake/reference/chromosomes/chr1.fasta")]
     with patch("json.dump") as mock_dump, patch("builtins.open") as mock_open:

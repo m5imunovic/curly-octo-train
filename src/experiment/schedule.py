@@ -236,4 +236,5 @@ def run(cfg: DictConfig):
                 logger.info(f"Finished job {job_cnt}")
                 job_cnt += 1
 
-        logger.info("Experiment finished.")
+    experiment_root.rmdir()
+    logger.info("Experiment finished.")
