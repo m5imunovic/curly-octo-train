@@ -13,26 +13,6 @@ def get_vendor_path() -> Path:
     return get_project_root() / "vendor"
 
 
-def get_data_path() -> Path:
-    return get_project_root() / "data"
-
-
-def get_ref_path() -> Path:
-    return get_data_path() / "references"
-
-
-def get_assemblies_path() -> Path:
-    return get_data_path() / "assemblies"
-
-
-def get_datasets_path() -> Path:
-    return get_data_path() / "datasets"
-
-
-def get_experiment_root() -> Path:
-    return get_data_path() / "experiments"
-
-
 def get_config_root() -> Path:
     return get_project_root() / "config"
 
