@@ -38,6 +38,7 @@ def test_schedule_run_sim_creates_expected_outputs(
         run(test_experiment_sim_cfg)
 
     assert (Path(tmpdir) / "unittest_dataset").exists()
+    assert len(list((Path(tmpdir) / "unittest_dataset" / "train").glob("**/*.pt"))) == 3
 
 
 def test_schedule_run_sample_creates_expected_outputs(
