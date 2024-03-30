@@ -1,16 +1,4 @@
-# TODO: check if I can simply use
-# defaults:
-# - test_experiment.yaml
-# and delete everything below scenario.name
+defaults:
+  - test_experiment_sim.yaml
 scenario:
   name: test_scenario_sampler.json # can be with or without .json
-
-experiment_id: ${now:%Y%m%d_%H%M}
-max_workers: 1
-
-keep:
-  artifacts_path: "eval"
-  # either matches as fnmatch.fnmatch(path, pattern) or pathlib.Path(path).name == pattern
-  reads: ["*.fastq"]
-  assemblies: ["mult.info", "full_asm.json"]
-  graph: []
