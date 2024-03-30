@@ -30,5 +30,5 @@
       "species_name": "test_species.yaml"
     }
   ],
-  "subset": "train"
+  "subset": "test"
 }
