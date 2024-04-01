@@ -62,15 +62,14 @@ def get_confusion_matrix(mult_info_path: Path, alignments_path: Path) -> tuple:
 
     - alignments.txt
     - mult.info
-    - initial_dbg.gfa
     """
 
     # get ground truth
     mult_info = parse_mult_info(mult_info_path)
     correct_edges_gt, incorrect_edges_gt = partition_mult_info_edges(mult_info)
     logger.info("Ground truth:")
-    logger.info(f"Correct edges: {len(correct_edges_gt)}")
-    logger.info(f"Incorrect edges: {len(incorrect_edges_gt)}")
+    logger.info(f"\tCorrect edges: {len(correct_edges_gt)}")
+    logger.info(f"\tIncorrect edges: {len(incorrect_edges_gt)}")
 
     # get mowerDBG edge assignments
     correct_edges = get_correct_edges(alignments_path)
@@ -184,12 +183,14 @@ def eval_lja(cfg: DictConfig, subdir: str):
         logger.warning(f"{output_path_eval} already exists, skipping evaluation for {subdir=}")
         return
 
+    # First check that required directories and files are available
     asm_path = Path(cfg.eval_path) / subdir / "assemblies"
     mult_info_path = Path(asm_path) / "mult.info"
     assert mult_info_path.exists(), f"Mult info file {mult_info_path} does not exist"
     eval_cmds_path = asm_path / cfg.full_asm_subdir / cfg.eval_cmds_path
     assert eval_cmds_path.exists(), f"Evaluation commands path {eval_cmds_path} does not exist"
 
+    logger.info("Constructing execution commands...")
     cmds = construct_eval_commands(
         lja_bin_path=Path(cfg.lja_bin_path),
         eval_cmds_path=eval_cmds_path,
@@ -200,10 +201,10 @@ def eval_lja(cfg: DictConfig, subdir: str):
 
     for cmd in cmds:
         logger.info(f"Executing {cmd=}")
-        print(cmd)
-        subprocess.run(cmd, shell=True)
+        subprocess.run(cmd, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
 
     for stage in cfg.eval_stages:
+        logger.info(f"Evaluation {stage=}...")
         alignments_path = asm_path / stage / "alignments.txt"
         assert alignments_path.exists(), f"Alignments file {alignments_path} does not exist"
         initial_dbg_path = asm_path / cfg.full_asm_subdir / "00_CoverageBasedCorrection" / "initial_dbg.gfa"
@@ -236,8 +237,9 @@ def main(cfg: DictConfig):
             if not subdir.isdigit():
                 continue
             eval_lja(cfg, subdir=subdir)
-        except Exception:
-            logger.warn(f"Failed evaluating {subdir} sample, continue with next sample...")
+        except Exception as ex:
+            logger.warning(f"Exception {ex}")
+            logger.warning(f"Failed evaluating {subdir} sample, continue with next sample...")
 
     eval_path = Path(cfg.eval_path)
     df = get_eval_table(eval_path)
