@@ -35,6 +35,7 @@ scripts/*.py
 scripts/*.png
 scripts/*.dot
 wandb/*
+.virtual_documents/*
 
 
 .vscode/launch.json
