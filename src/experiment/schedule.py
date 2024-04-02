@@ -151,7 +151,7 @@ def run_keep_job(dataset_root: Path, step_files: dict, idx: int, keep: DictConfi
         step_files (dict): contains a mapping from a jobs (reads, assemblies, graph) to files.
             Files are kept as dictionaries grouped as job metadata and artifacts
         idx: index of data sample in the test dataset
-        keep (DictConfig): Filtering configuration, contains artifact_path as a location to keep
+        keep (DictConfig): Filtering configuration, contains artifact_path as a location go keep
         the files, either relative to dataset's train-val-test folders or absolute path location.
         and job (reads, assemblies, graph) filters as lists of patterns matchable by regex expression
     """
@@ -169,7 +169,7 @@ def run_keep_job(dataset_root: Path, step_files: dict, idx: int, keep: DictConfi
                     relative_path = str(f).split(os.sep)[4:]  # ""/"tmp"/"tmpxyz"/ "job_id" /"relative_path..."
                     # job_id and idx might be different if we are updating existing dataset
                     output_path = (dataset_root / keep.artifacts_path / str(idx)).joinpath(*relative_path)
-                    output_path.parent.mkdir(parents=True)
+                    output_path.parent.mkdir(parents=True, exist_ok=True)
                     logger.info(f"Copy file {f} to {output_path}.")
                     subprocess.run(f"cp {f} {output_path}", shell=True)
                     logger.info(f"Copied file {f} to {output_path}.")
