@@ -88,3 +88,128 @@ index 67e16b5..67a9756 100644
          }
          for(auto &rec : output) {
              logger.info() << rec.name << ": " << dir / rec.output_file_name << std::endl;
+diff --git a/src/projects/dbg/visualization.hpp b/src/projects/dbg/visualization.hpp
+index d1d9052..552d82d 100644
+--- a/src/projects/dbg/visualization.hpp
++++ b/src/projects/dbg/visualization.hpp
+@@ -6,6 +6,7 @@
+ #include <utility>
+ #include "component.hpp"
+ #include "dbg_graph_aligner.hpp"
++#include <iomanip>
+ 
+ //TODO rewrite for AssemblyGraph
+ class GraphPathStorage {
+@@ -150,7 +151,7 @@ inline void printDot(std::ostream &os, const dbg::Component &component, const st
+     for(dbg::VertexId vid : extended) {
+         dbg::Vertex &vert = *vid;
+         std::string color = component.covers(vert) ? "white" : "yellow";
+-        os << vert.getShortId();
++        os << std::quoted(vert.getShortId());
+         os << " [style=filled fillcolor=\"" + color + "\"";
+         if(vert.size() < 10)
+             os << " label=" << vert.getSeq();
+diff --git a/src/projects/error_correction/coverage_ec_stage.hpp b/src/projects/error_correction/coverage_ec_stage.hpp
+index d358ac5..5f26d4c 100644
+--- a/src/projects/error_correction/coverage_ec_stage.hpp
++++ b/src/projects/error_correction/coverage_ec_stage.hpp
+@@ -34,6 +34,7 @@ CoverageEC(logging::Logger &logger, const std::experimental::filesystem::path &d
+     io::SeqReader reader(reads_lib);
+     readStorage.fill(logger, threads, reader.begin(), reader.end(), dbg, index);
+     printDot(dir / "initial_dbg.dot", Component(dbg));
++    printGFA(dir / "initial_dbg.gfa", Component(dbg), true, &ag::SaveEdgeName<DBGTraits>);
+     coverageStats(logger, dbg);
+     if(debug) {
+         PrintPaths(logger, threads, dir / "state_dump", "initial", dbg, readStorage, paths_lib, true);
+@@ -99,4 +100,4 @@ protected:
+         return CoverageEC(logger, dir, input.find("reads")->second, input.find("pseudo_reads")->second,
+                           input.find("paths")->second, threads, k, w, threshold, reliable_coverage, diploid, debug, load);
+     }
+-};
+\ No newline at end of file
++};
+diff --git a/src/projects/error_correction/topology_ec_stage.hpp b/src/projects/error_correction/topology_ec_stage.hpp
+index 6ca848f..6a4f093 100644
+--- a/src/projects/error_correction/topology_ec_stage.hpp
++++ b/src/projects/error_correction/topology_ec_stage.hpp
+@@ -34,6 +34,7 @@ TopologyEC(logging::Logger &logger, const std::experimental::filesystem::path &d
+         readStorage.fill(logger, threads, reader.begin(), reader.end(), dbg, index);
+     }
+     printDot(dir / "initial_dbg.dot", Component(dbg));
++    printGFA(dir / "initial_dbg.gfa", Component(dbg), true, &ag::SaveEdgeName<DBGTraits>);
+     if(debug) {
+         DrawSplit(Component(dbg), dir / "before_figs", readStorage.labeler(), 25000);
+         PrintPaths(logger, threads, dir / "state_dump", "initial", dbg, readStorage, paths_lib, false);
+diff --git a/src/projects/lja/dbg.cpp b/src/projects/lja/dbg.cpp
+index 017ea32..b4a3d13 100644
+--- a/src/projects/lja/dbg.cpp
++++ b/src/projects/lja/dbg.cpp
+@@ -451,9 +451,9 @@ int main(int argc, char **argv) {
+             printAssembly(dir / "graph.fasta", Component(dbg));
+         }
+         logger.info() << "Printing graph to gfa file " << (dir / "graph.gfa") << std::endl;
+-        printGFA(dir / "graph.gfa", Component(dbg), calculate_coverage);
++        printGFA(dir / "graph.gfa", Component(dbg), calculate_coverage, &ag::SaveEdgeName<DBGTraits>);
+         logger.info() << "Printing graph to dot file " << (dir / "graph.dot") << std::endl;
+-        printDot(dir / "graph.dot", Component(dbg));
++        printDot(dir / "graph.dot", Component(dbg), readStorage.labeler());
+     }
+ 
+     if (params.getCheck("tip-correct")) {
+diff --git a/src/projects/lja/lja.cpp b/src/projects/lja/lja.cpp
+index b625e3d..c5e02e8 100644
+--- a/src/projects/lja/lja.cpp
++++ b/src/projects/lja/lja.cpp
+@@ -6,6 +6,7 @@
+ #include "polishing/polishing_stage.hpp"
+ #include "repeat_resolution/mdbg_stage.hpp"
+ 
++
+ std::string constructMessage() {
+     std::stringstream ss;
+     ss << "LJA: genome assembler for PacBio HiFi reads based on de Bruijn graph.\n";
+diff --git a/src/tools/common/logging.hpp b/src/tools/common/logging.hpp
+index 6124d4e..6c0916d 100644
+--- a/src/tools/common/logging.hpp
++++ b/src/tools/common/logging.hpp
+@@ -19,6 +19,7 @@
+ #include <ostream>
+ #include <fstream>
+ #include <atomic>
++#include <stdexcept>
+ 
+ namespace logging {
+ 
+@@ -80,6 +81,9 @@ namespace logging {
+             }
+             std::experimental::filesystem::path backup = backupDir / (itos(max + 1, 2) + ".log");
+             std::experimental::filesystem::copy_file(logFile, backup);
++            std::error_code ec;
++            std::experimental::filesystem::rename(logFile, backup, ec);
++            if(ec.value() != 0) std::cout << "Error while moving old log" << ec.message() << " " << ec.value() << std::endl;
+             std::experimental::filesystem::remove(logFile);
+             return std::move(backup);
+         }
+diff --git a/src/tools/common/pipeline_tools.cpp b/src/tools/common/pipeline_tools.cpp
+index 67e16b5..67a9756 100644
+--- a/src/tools/common/pipeline_tools.cpp
++++ b/src/tools/common/pipeline_tools.cpp
+@@ -5,6 +5,7 @@
+ #include "verify.hpp"
+ #include <string>
+ #include <unordered_set>
++#include <system_error>
+ 
+ void
+ SubstageRun::runSubstage(logging::Logger &logger, size_t threads, const std::experimental::filesystem::path &dir, bool debug, const AlgorithmParameterValues &parameterValues) {
+@@ -270,7 +271,9 @@ int LoggedProgram::run(const std::vector<std::string> &command_line) {
+         for(auto &rec : output) {
+             std::experimental::filesystem::path path = stage_output.at(rec.outout_id);
+             std::experimental::filesystem::remove(dir / rec.output_file_name);
+-            std::experimental::filesystem::copy(path, dir / rec.output_file_name);
++            std::error_code ec;
++            std::experimental::filesystem::copy_file(path, dir / rec.output_file_name, ec);
++            if(ec.value() != 0) logger.info() << "Error while copying file " << ec.message() << " " << ec.value() << std::endl;
+         }
+         for(auto &rec : output) {
+             logger.info() << rec.name << ": " << dir / rec.output_file_name << std::endl;
