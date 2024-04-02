@@ -13,6 +13,7 @@ from typeguard import typechecked
 from asm.mult_info_parser import parse_mult_info
 from graph.construct_features import FeatureDict, add_features, add_mult_info_features
 from graph.dot_parser import custom_parse_dot
+from graph.tools.gfa_parser import parse_gfa, save_gfa_hashmap
 from utils.io_utils import get_job_outputs
 
 logger = logging.getLogger(__name__)
@@ -44,7 +45,7 @@ def export_ids(g: DbGraphType, out_path: str) -> None:
         json.dump(id_map, handle, indent=4)
 
 
-def process_graph(idx: int, assembly_path: Path, cfg: DictConfig, output_path: Path):
+def process_graph(idx: int, assembly_path: Path, cfg: DictConfig, output_path: Path, subset: str):
     out_raw_path = output_path / "raw"
     out_debug_path = output_path / "debug"
 
@@ -73,6 +74,12 @@ def process_graph(idx: int, assembly_path: Path, cfg: DictConfig, output_path: P
     if cfg.debug:
         nx.write_graphml(g, out_debug_path / f"{idx}.graphml")
 
+    if subset == "test":
+        # We need this information only for inference and evaluation of results
+        gfa_path = assembly_path / "graph.gfa"
+        segments, links = parse_gfa(gfa_path, k=cfg.k)
+        save_gfa_hashmap(segments, out_debug_path / f"{idx}.hashmap")
+
     export_ids(g, out_debug_path / f"{idx}.idmap")
 
 
@@ -80,13 +87,15 @@ def run(cfg: DictConfig, **kwargs) -> dict:
     exec_args = {
         "assembly_path": None,
         "output_path": None,
+        "subset": None,
     }
 
     exec_args.update(kwargs)
 
     output_path = exec_args["output_path"]
     assembly_path = exec_args["assembly_path"]
+    subset = exec_args["subset"]
     idx = 0
-    process_graph(idx, assembly_path, cfg, output_path)
+    process_graph(idx, assembly_path, cfg, output_path, subset)
 
     return get_job_outputs(exec_args)

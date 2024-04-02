@@ -71,7 +71,7 @@ def create_assembly_jobs(read_jobs: list) -> list:
 
 
 @typechecked
-def create_graph_jobs(assembly_jobs: list) -> list:
+def create_graph_jobs(assembly_jobs: list, subset: str) -> list:
     jobs = []
     for assembly_job in assembly_jobs:
         # find assembly files in assemblies
@@ -80,6 +80,7 @@ def create_graph_jobs(assembly_jobs: list) -> list:
                 {
                     "assembly_path": assembly_job["output_path"],
                     "output_path": assembly_job["output_path"].parent / "graph",
+                    "subset": subset,
                 }
             ]
         )
@@ -208,7 +209,7 @@ def run(cfg: DictConfig):
         assembly_jobs = create_assembly_jobs(sequencing_jobs)
         raw_dir = experiment_root.parent / "raw"
         raw_dir.mkdir(parents=True, exist_ok=True)
-        graph_jobs = create_graph_jobs(assembly_jobs)
+        graph_jobs = create_graph_jobs(assembly_jobs, scenario.subset)
 
         def create_sample(sequencing_job, assembly_job, graph_job):
             step_files = {}

@@ -1,3 +1,4 @@
+import json
 import logging
 from pathlib import Path
 from typing import Any
@@ -47,14 +48,19 @@ def parse_gfa(path: Path, k: int = 501, skip_links: bool = True) -> tuple:
             if line.startswith("S"):
                 _, sid, seq, kc = line.strip().split()
                 # LJA stores an id of forward and revese strand together separated by underline
-                fw, rc = sid.split("_")
                 kc = int(kc[len("KC:i:") :])
                 ln = len(seq)
 
+                split_id = sid.split("_")
+                fw = split_id[0]
                 hash_fw = rh.hash(seq)
-                hash_rc = rh.hash(reverse_complement(seq))
                 segments[fw] = {"hash": hash_fw, "kc": float(kc / (ln - k)), "ln": ln}
-                segments[rc] = {"hash": hash_rc, "kc": float(kc / (ln - k)), "ln": ln}
+
+                has_rc = len(split_id) == 2
+                if has_rc:
+                    rc = split_id[1]
+                    hash_rc = rh.hash(reverse_complement(seq))
+                    segments[rc] = {"hash": hash_rc, "kc": float(kc / (ln - k)), "ln": ln}
             if not skip_links:
                 raise NotImplementedError("This functionality is not ported to new format yet")
     #                 if line.startswith("L"):
@@ -70,3 +76,15 @@ def parse_gfa(path: Path, k: int = 501, skip_links: bool = True) -> tuple:
         logger.info("Skipped links loading")
 
     return segments, links
+
+
+@typechecked
+def save_gfa_hashmap(gfa: dict, output_path: Path):
+    """Saves the result of `parser_gfa` into file for use in evaluation phase."""
+
+    hashmap = {}
+    for seg_id, metadata in gfa.items():
+        hashmap[metadata["hash"]] = seg_id
+
+    with open(output_path, "w") as f:
+        json.dump(hashmap, f)

@@ -6,3 +6,4 @@ name: db_graph
 features: # [kc, ln]
 k: 501
 debug: False # if true outputs the graph in GML format for visualization purposes
+eval: False # if producing the data for testing
