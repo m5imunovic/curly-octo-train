@@ -17,6 +17,7 @@ from typeguard import typechecked
 import utils.path_helpers as ph
 from asm.collect_evaluation import get_eval_table
 from asm.mult_info_parser import parse_mult_info, partition_mult_info_edges
+from graph.tools.gfa_parser import parse_gfa
 from utils.io_utils import compose_cmd_params
 
 logger = logging.getLogger(__name__)
@@ -56,8 +57,29 @@ def get_correct_edges(alignments_path: Path) -> set:
     return correct_edges_with_rc
 
 
+def map_lja_ids_to_jumbo_ids(initial_dbg_path, graph_dbg_path):
+    logger.info("Get the LJA to JumboDBG mapping...")
+    segments, _ = parse_gfa(initial_dbg_path)
+    with open(graph_dbg_path / "0.hashmap") as f:
+        jumbo_hashmap = json.load(f)
+
+    lja_jumbo_map = {}
+    count_misses = 0
+    logger.info("Parsed LJA graph, perform mapping...")
+    for seg_id, metadata in segments.items():
+        hash = metadata["hash"]
+        if hash in jumbo_hashmap:
+            lja_jumbo_map[seg_id] = jumbo_hashmap[hash]
+        else:
+            count_misses += 1
+
+    logger.info(f"Could not find {count_misses} LJA hashes in Jumbo hash map")
+
+    return lja_jumbo_map
+
+
 @typechecked
-def get_confusion_matrix(mult_info_path: Path, alignments_path: Path) -> tuple:
+def get_confusion_matrix(mult_info_path: Path, alignments_path: Path, mapped_ids) -> tuple:
     """Requires the following files:
 
     - alignments.txt
@@ -73,6 +95,7 @@ def get_confusion_matrix(mult_info_path: Path, alignments_path: Path) -> tuple:
 
     # get mowerDBG edge assignments
     correct_edges = get_correct_edges(alignments_path)
+    correct_edges = {mapped_ids[sid] for sid in correct_edges if sid in mapped_ids}
     incorrect_edges = (correct_edges_gt | incorrect_edges_gt) - correct_edges
     logger.info("MowerDBG classified:")
     logger.info(f"\t{len(correct_edges)} as correct edges.")
@@ -101,8 +124,8 @@ def calculate_metrics(tp: int, tn: int, fp: int, fn: int) -> Dict[str, float]:
     }
 
 
-def evaluate_la_jolla(mult_info_path: Path, alignments_path: Path) -> Dict:
-    tp, tn, fp, fn = get_confusion_matrix(mult_info_path, alignments_path=alignments_path)
+def evaluate_la_jolla(mult_info_path: Path, alignments_path: Path, mapped_ids: Dict) -> Dict:
+    tp, tn, fp, fn = get_confusion_matrix(mult_info_path, alignments_path, mapped_ids)
     metrics = calculate_metrics(tp, tn, fp, fn)
 
     evaluations = {
@@ -189,6 +212,9 @@ def eval_lja(cfg: DictConfig, subdir: str):
     assert mult_info_path.exists(), f"Mult info file {mult_info_path} does not exist"
     eval_cmds_path = asm_path / cfg.full_asm_subdir / cfg.eval_cmds_path
     assert eval_cmds_path.exists(), f"Evaluation commands path {eval_cmds_path} does not exist"
+    graph_dbg_path = Path(cfg.eval_path) / subdir / "graph" / "debug"
+    assert (graph_dbg_path / "0.idmap").exists()
+    assert (graph_dbg_path / "0.hashmap").exists()
 
     logger.info("Constructing execution commands...")
     cmds = construct_eval_commands(
@@ -203,13 +229,16 @@ def eval_lja(cfg: DictConfig, subdir: str):
         logger.info(f"Executing {cmd=}")
         subprocess.run(cmd, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
 
+    initial_dbg_path = asm_path / cfg.full_asm_subdir / "00_CoverageBasedCorrection" / "initial_dbg.gfa"
+    assert initial_dbg_path.exists(), f"Initial DBG file {initial_dbg_path} does not exist"
+    mapped_ids = map_lja_ids_to_jumbo_ids(initial_dbg_path, graph_dbg_path)
+
     for stage in cfg.eval_stages:
         logger.info(f"Evaluation {stage=}...")
         alignments_path = asm_path / stage / "alignments.txt"
         assert alignments_path.exists(), f"Alignments file {alignments_path} does not exist"
-        initial_dbg_path = asm_path / cfg.full_asm_subdir / "00_CoverageBasedCorrection" / "initial_dbg.gfa"
-        assert initial_dbg_path.exists(), f"Initial DBG file {initial_dbg_path} does not exist"
-        evaluation = evaluate_la_jolla(mult_info_path, alignments_path)
+
+        evaluation = evaluate_la_jolla(mult_info_path, alignments_path, mapped_ids)
 
         output_path = output_path_eval / stage
         if not output_path.exists():
