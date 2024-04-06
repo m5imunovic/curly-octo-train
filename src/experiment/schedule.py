@@ -4,6 +4,7 @@ import logging
 import os
 import subprocess
 import tempfile
+import yaml
 from itertools import product
 from pathlib import Path
 
@@ -14,6 +15,7 @@ import experiment.experiment_utils as eu
 import reference.reference_utils as ru
 from asm.assembler import run as assembly_task
 from experiment.scenario_schema import Scenario, collect_all_species_defs, load_scenario
+from experiment.dataset_summary import create_entries_summary, entries_summary_to_csv
 from graph.db_graph import run as graph_task
 from reads.rsimulator import READ_FILE
 from reads.simulate_reads import run as sequencing_task
@@ -112,13 +114,13 @@ def run_graph_jobs(cfg: DictConfig, jobs: list) -> dict:
     return produced_files
 
 
-def run_collect_job(dataset_path: Path, graph_files: dict):
+def run_collect_job(raw_path: Path, graph_files: dict) -> int | None:
     for graph_file in graph_files["artifacts"]:
         # TODO: make this more robust as we might have multiple .pt files for some reason
         if Path(graph_file).suffix == ".pt":
-            idx = len(list(dataset_path.glob("*.pt")))
+            idx = len(list(raw_path.glob("*.pt")))
             src = str(graph_file)
-            dst = dataset_path / f"{idx}.pt"
+            dst = raw_path / f"{idx}.pt"
             logger.info(f"Copying {src} to {dst}")
             # shutil.move fails on alternative setup with SMB drive (permissions issue)
             subprocess.run(f"cp {src} {dst}", shell=True)
@@ -187,6 +189,19 @@ def run_cleanup_job(step_files: dict):
                     logger.warning(f"File {f} not found")
 
 
+def save_run_metadata(cfg: DictConfig, scenario: Scenario, dataset_root: Path):
+    logger.info("Saving dataset metadata")
+    metadata_path = dataset_root / "metadata"
+    metadata_path.mkdir(parents=True, exist_ok=True)
+    run_path = metadata_path / "run" / cfg.experiment.experiment_id
+    run_path.mkdir(parents=True)
+    with open(run_path / "scenario.yaml", "w") as handle:
+        yaml.safe_dump(scenario.to_dict(), handle)
+
+    entries_summary = create_entries_summary(cfg, scenario)
+    entries_summary_to_csv(entries_summary, run_path)
+
+
 def run(cfg: DictConfig):
     scenario = load_scenario(cfg.experiment.scenario.name)
     # get the species name and start the reference.py
@@ -200,10 +215,12 @@ def run(cfg: DictConfig):
         Path(cfg.paths.exp_dir), scenario.dataset, scenario.subset, cfg.experiment.experiment_id
     )
 
-    dataset_path = Path(cfg.paths.datasets_dir) / scenario.dataset / scenario.subset / "raw"
-    dataset_path.mkdir(parents=True, exist_ok=True)
+    dataset_root = Path(cfg.paths.datasets_dir) / scenario.dataset
+    dataset_root.mkdir(parents=True, exist_ok=True)
 
     with tempfile.TemporaryDirectory() as staging_dir:
+        raw_path = dataset_root / scenario.subset / "raw"
+        raw_path.mkdir(parents=True, exist_ok=True)
         staging_dir = Path(staging_dir)
         sequencing_jobs = create_sequencing_jobs(scenario, staging_dir, reference_paths)
         assembly_jobs = create_assembly_jobs(sequencing_jobs)
@@ -218,10 +235,10 @@ def run(cfg: DictConfig):
             step_files["graph"] = run_graph_jobs(cfg, [graph_job])
             return step_files
 
-        def collect_sample(dataset_path, step_files, cfg):
-            idx = run_collect_job(dataset_path, step_files["graph"])
+        def collect_sample(raw_path, step_files, cfg):
+            idx = run_collect_job(raw_path, step_files["graph"])
             if scenario.subset == "test":
-                run_keep_job(dataset_path.parent.parent, step_files, idx, cfg.experiment.keep)
+                run_keep_job(raw_path.parent.parent, step_files, idx, cfg.experiment.keep)
             run_cleanup_job(step_files)
 
         logger.info(f"Running {len(sequencing_jobs)} jobs in total")
@@ -233,9 +250,10 @@ def run(cfg: DictConfig):
             job_cnt = 0
             for future in concurrent.futures.as_completed(future_produced_files):
                 step_files = future.result()
-                collect_sample(dataset_path, step_files, cfg)
+                collect_sample(raw_path, step_files, cfg)
                 logger.info(f"Finished job {job_cnt}")
                 job_cnt += 1
 
+    save_run_metadata(cfg, scenario, dataset_root)
     experiment_root.rmdir()
     logger.info("Experiment finished.")

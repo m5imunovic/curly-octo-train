@@ -1,6 +1,7 @@
 """
 Generated with dataclass-wizard -> cat scenario.json | wiz gs - scenario_schema
 """
+
 from dataclasses import dataclass
 
 from dataclass_wizard import JSONWizard
@@ -12,6 +13,7 @@ import experiment.experiment_utils as eu
 class Scenario(JSONWizard):
     """Data dataclass."""
 
+    schema: str
     dataset: str
     subset: str
     items: list["Item"]
