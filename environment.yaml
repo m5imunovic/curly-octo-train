@@ -52,6 +52,7 @@ dependencies:
   - icontract
   - pre-commit
   - pytest
+  - pytest-xdist
   - typeguard
 
   # Other
