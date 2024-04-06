@@ -126,7 +126,7 @@ repos:
         name: Run unit tests
         stages: [commit]
         language: system
-        entry: zsh -c 'PYTHONPATH="src" PROJECT_ROOT="./" pytest test/unit'
+        entry: zsh -c 'PYTHONPATH="src" PROJECT_ROOT="./" pytest -n auto --dist=load test/unit'
         types: [python]
         pass_filenames: false
         always_run: true
