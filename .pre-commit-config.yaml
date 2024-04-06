@@ -33,9 +33,10 @@ repos:
     hooks:
       # Run the linter.
       - id: ruff
-        args: [--fix]
+        args: [--fix, --line-length=120]
       # Run the formatter.
       - id: ruff-format
+        args: [--line-length=120]
 
   # python upgrading syntax to newer version
   - repo: https://github.com/asottile/pyupgrade
