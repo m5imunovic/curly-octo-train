@@ -27,5 +27,6 @@
       "species_name": "test_species.yaml"
     }
   ],
+  "schema": "0.0.1",
   "subset": "train"
 }

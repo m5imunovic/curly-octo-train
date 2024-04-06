@@ -17,5 +17,6 @@
       "species_name": "chm13.yaml"
     }
   ],
+  "schema": "0.0.1",
   "subset": "test"
 }
