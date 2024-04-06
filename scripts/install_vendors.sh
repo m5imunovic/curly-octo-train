@@ -24,19 +24,19 @@ NUM_PROCESSORS=8
 
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
-pushd $VENDOR_DIR
+pushd "$VENDOR_DIR" || exit
 echo "------------------------------> ENTER PBSIM3 INSTALL <------------------------------"
 
 if [ ! -d "pbsim3/" ]; then
 
     git clone https://github.com/yukiteruono/pbsim3.git
-    pushd "pbsim3/"
+    pushd "pbsim3/" || exit
     # TODO: hardcode checkout commit
     git checkout f3e5f1cf3d0e8346b5e4598ac238b2b570b223e8
     ./configure
     make -j
 
-    popd # "pbsim3"
+    popd || exit # "pbsim3"
     echo "Finished installing PbSim3 simulator"
 
 else
@@ -49,16 +49,16 @@ echo "------------------------------> ENTER LJA INSTALL <-----------------------
 if [ ! -d "LJA" ]; then
 
     git clone https://github.com/AntonBankevich/LJA.git
-    pushd "LJA/"
+    pushd "LJA/" || exit
     git fetch
     git checkout -t origin/experimental
-    git checkout e5ebe41
-    git apply $SCRIPT_DIR/lja_eval.patch
+    git checkout 4e2173b8e2f130a963da8699533bd6e4aa3054aa
+    git apply "$SCRIPT_DIR/lja_eval.patch"
     cmake .
     make -j $NUM_PROCESSORS lja
     make -j $NUM_PROCESSORS jumboDBG
     make -j $NUM_PROCESSORS align_and_print
-    popd # "LJA"
+    popd || exit # "LJA"
     echo "Finished installing La Jolla assembler"
 
 else
@@ -66,6 +66,6 @@ else
 fi
 echo "------------------------------> EXIT LJA INSTALL <------------------------------"
 
-popd # $VENDOR_DIR
+popd || exit # $VENDOR_DIR
 
 exit 0

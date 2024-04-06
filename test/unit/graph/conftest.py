@@ -5,8 +5,8 @@ from hydra import compose, initialize_config_dir
 @pytest.fixture
 def expected_lja_dot():
     return {
-        "number_of_nodes": 20,
-        "number_of_edges": 24,
+        "number_of_nodes": 3502,
+        "number_of_edges": 5116,
     }
 
 

@@ -27,8 +27,8 @@ def parse_dot(path: Path, k: int = 501) -> nx.MultiDiGraph:
 @typechecked
 def custom_parse_dot(path: Path, k: int = 501, verify=True) -> nx.MultiDiGraph:
     """Parses entries for edges
-        "-2255" -> "-3481" [label="-2255.2 C 498(1 498)" color="black"]
-        "2867" -> "665" [label="2867.1 T 66(16 1056)" color="black"]
+        -1365" -> "-1299" [label="-1365.13 T 58(20)" labeltooltip="-1365.13_1299.13" color="black"]
+        "1366" -> "1927" [label="1366.13 T 24(17)" labeltooltip="1366.13_-1927.13" color="black"]
     and nodes:
         "2867" [style=filled fillcolor="white"]
         "-665" [style=filled fillcolor="white"]
@@ -59,8 +59,12 @@ def custom_parse_dot(path: Path, k: int = 501, verify=True) -> nx.MultiDiGraph:
                 stop = stop.strip('"')
                 # label and attributes
                 l_label = l_meta.removesuffix(' color="black"').removeprefix("label=").strip('"')
-                edge_id, _, trunc_size_cov = l_label.split(" ")
+                # print(f"{l_label=}")
+                l_label = l_label.split(" labeltooltip=")[0]
+                # print(f"{l_label=}")
+                edge_id, _, trunc_size_cov = l_label.strip('"').split(" ")
                 trunc_size, cov = trunc_size_cov.split("(")
+                # print(f"{l_id=}, {l_meta=}")
                 cov = float(cov.strip(")"))
                 edge_len = int(trunc_size) + k
                 attrs = {"kc": cov, "ln": edge_len}
