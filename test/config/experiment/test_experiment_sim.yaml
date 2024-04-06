@@ -1,7 +1,7 @@
 scenario:
   name: test_scenario_sim.json # can be with or without .json
 
-experiment_id: ${now:%Y%m%d_%H%M}
+experiment_id: ${now:%y%m%d_%H%M}
 max_workers: 1
 
 keep:
