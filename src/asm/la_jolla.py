@@ -120,7 +120,7 @@ class LaJolla(assembler.Assembler):
 
         for cmd in commands:
             logger.info(f"RUN::assembler::\n{cmd}")
-            subprocess.run(cmd, shell=True, cwd=output_path)
+            subprocess.run(cmd, shell=True, cwd=output_path, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
 
     @typechecked
     def pre_assembly_step(self, output_path: Path, *args, **kwargs):
