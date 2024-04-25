@@ -1,4 +1,4 @@
-name: menv
+name: cenv
 
 channels:
   - pyg
@@ -9,32 +9,21 @@ channels:
   - defaults
 
 dependencies:
-  - python=3.10.4
-  - pip=22.2.2
-  - cmake=3.20.2
-
-  # Math and numerics
-  #- numba=0.56.4
-  #- numpy=1.23.3
-  #- scikit-learn=1.1.2
-  #- scipy=1.9.1
+  - python=3.11
+  - pip
+  - cmake
 
   # ML
-  - pytorch::pytorch=2.0.1
-  - pytorch::pytorch-cuda=11.8
-  - pytorch::torchaudio=2.0.2
-  - pytorch::torchvision=0.15.2
-  - pyg::pyg=2.3.1
-  - pyg::pytorch-sparse=0.6.18
-  - pyg::pytorch-cluster=1.6.3
-  - conda-forge::lightning=2.1.0
-  - ogb
-  - conda-forge::torchmetrics=1.2.0
+  - pytorch::pytorch-cuda
+  - pytorch::torchaudio
+  - pytorch::torchvision
+  - pyg::pyg
   - wandb
 
-  # Math
+  # Stats
   - numpy
   - scipy
+  - pandas
 
   # Bio
   - biopython
