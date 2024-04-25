@@ -3,12 +3,13 @@
 More specifically, it evaluates the corrected reads produced by the second step of the pipeline (i.e. the topology-
 based correction).
 """
+
 import json
 import logging
 import os
 import subprocess
 from pathlib import Path
-from typing import Dict, List, MutableSequence
+from typing import MutableSequence
 
 import hydra
 from omegaconf import DictConfig
@@ -26,15 +27,12 @@ logger = logging.getLogger(__name__)
 def parse_alignments_entry(read_id: str, edge_ids: str):
     """First line is read ID, second line is list of edge IDs.
 
-    Returns a tuple of (read_id, edge_ids, is_rc) where is_rc is a list of 0s and 1s indicating whether the
-    corresponding edge string is reverse complemented.
+    Returns a tuple of (read_id, edge_ids)
     """
     read_id = read_id.strip()[1:]  # remove starting '>'
     edge_ids = edge_ids.strip().split()
-    is_rc = [edge_id.startswith("-") for edge_id in edge_ids]
-    edge_ids = [edge_id[1:] if is_rc else edge_id for edge_id, is_rc in zip(edge_ids, is_rc)]
 
-    return read_id, edge_ids, is_rc
+    return read_id, edge_ids
 
 
 @typechecked
@@ -42,11 +40,8 @@ def parse_alignments(alignments_path: Path) -> set:
     with open(alignments_path) as f:
         correct_reads = set()
         for read_line in f:
-            _, edge_ids_with_rc, _ = parse_alignments_entry(read_line, next(f))
-            for edge_id_with_rc in edge_ids_with_rc:
-                fw, rc = edge_id_with_rc.split("_")
-                correct_reads.add(fw)
-                correct_reads.add(rc)
+            _, edge_ids = parse_alignments_entry(read_line, next(f))
+            correct_reads.update(edge_ids)
 
     return correct_reads
 
@@ -111,7 +106,7 @@ def get_confusion_matrix(mult_info_path: Path, alignments_path: Path, mapped_ids
 
 
 @typechecked
-def calculate_metrics(tp: int, tn: int, fp: int, fn: int) -> Dict[str, float]:
+def calculate_metrics(tp: int, tn: int, fp: int, fn: int) -> dict[str, float]:
     precision = tp / (tp + fp)
     recall = tp / (tp + fn)
     accuracy = (tp + tn) / (tp + tn + fp + fn)
@@ -124,7 +119,7 @@ def calculate_metrics(tp: int, tn: int, fp: int, fn: int) -> Dict[str, float]:
     }
 
 
-def evaluate_la_jolla(mult_info_path: Path, alignments_path: Path, mapped_ids: Dict) -> Dict:
+def evaluate_la_jolla(mult_info_path: Path, alignments_path: Path, mapped_ids: dict) -> dict:
     tp, tn, fp, fn = get_confusion_matrix(mult_info_path, alignments_path, mapped_ids)
     metrics = calculate_metrics(tp, tn, fp, fn)
 
@@ -173,7 +168,7 @@ def construct_eval_commands(
     skip_cmds: MutableSequence,
     eval_stages: MutableSequence,
     decoder_path: str,
-) -> List[str]:
+) -> list[str]:
     eval_cmds = {}
     with open(eval_cmds_path) as f:
         json_data = f.read()

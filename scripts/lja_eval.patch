@@ -20,13 +20,13 @@ index d1d9052..552d82d 100644
          if(vert.size() < 10)
              os << " label=" << vert.getSeq();
 diff --git a/src/projects/error_correction/coverage_ec_stage.hpp b/src/projects/error_correction/coverage_ec_stage.hpp
-index d358ac5..5f26d4c 100644
+index f821754..f9a01d7 100644
 --- a/src/projects/error_correction/coverage_ec_stage.hpp
 +++ b/src/projects/error_correction/coverage_ec_stage.hpp
 @@ -34,6 +34,7 @@ CoverageEC(logging::Logger &logger, const std::experimental::filesystem::path &d
      io::SeqReader reader(reads_lib);
      readStorage.fill(logger, threads, reader.begin(), reader.end(), dbg, index);
-     printDot(dir / "initial_dbg.dot", Component(dbg));
+     printDot(dir / "initial_dbg.dot", Component(dbg), ag::SaveEdgeName<DBGTraits>);
 +    printGFA(dir / "initial_dbg.gfa", Component(dbg), true, &ag::SaveEdgeName<DBGTraits>);
      coverageStats(logger, dbg);
      if(debug) {
@@ -39,13 +39,13 @@ index d358ac5..5f26d4c 100644
 \ No newline at end of file
 +};
 diff --git a/src/projects/error_correction/topology_ec_stage.hpp b/src/projects/error_correction/topology_ec_stage.hpp
-index 6ca848f..68ebc13 100644
+index da7b919..2dd7d0b 100644
 --- a/src/projects/error_correction/topology_ec_stage.hpp
 +++ b/src/projects/error_correction/topology_ec_stage.hpp
 @@ -34,6 +34,7 @@ TopologyEC(logging::Logger &logger, const std::experimental::filesystem::path &d
          readStorage.fill(logger, threads, reader.begin(), reader.end(), dbg, index);
      }
-     printDot(dir / "initial_dbg.dot", Component(dbg));
+     printDot(dir / "initial_dbg.dot", Component(dbg), ag::SaveEdgeName<DBGTraits>);
 +    printGFA(dir / "initial_dbg.gfa", Component(dbg), true, &ag::SaveEdgeName<DBGTraits>);
      if(debug) {
          DrawSplit(Component(dbg), dir / "before_figs", readStorage.labeler(), 25000);
