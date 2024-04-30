@@ -52,7 +52,7 @@ if [ ! -d "LJA" ]; then
     pushd "LJA/" || exit
     git fetch
     git checkout -t origin/experimental
-    git checkout 9f712d68d7500096250d16d02bbcc6892a940c90
+    git checkout c8cdeaf629c78adcde0603f3e4fa4241eedf9e2e
     git apply "$SCRIPT_DIR/lja_eval.patch"
     cmake .
     make -j $NUM_PROCESSORS lja

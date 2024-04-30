@@ -1,5 +1,5 @@
 diff --git a/src/projects/dbg/visualization.hpp b/src/projects/dbg/visualization.hpp
-index d1d9052..552d82d 100644
+index 094b728..1e1da4d 100644
 --- a/src/projects/dbg/visualization.hpp
 +++ b/src/projects/dbg/visualization.hpp
 @@ -6,6 +6,7 @@
@@ -10,12 +10,14 @@ index d1d9052..552d82d 100644
  
  //TODO rewrite for AssemblyGraph
  class GraphPathStorage {
-@@ -150,7 +151,7 @@ inline void printDot(std::ostream &os, const dbg::Component &component, const st
+@@ -135,7 +136,9 @@ inline void printDot(std::ostream &os, const dbg::Component &component, const st
      for(dbg::VertexId vid : extended) {
          dbg::Vertex &vert = *vid;
          std::string color = component.covers(vert) ? "white" : "yellow";
--        os << vert.getShortId();
-+        os << std::quoted(vert.getShortId());
+-        os << vert.getId();
++        std::stringstream ss;
++        ss << vert.getId();
++        os << std::quoted(ss.str());
          os << " [style=filled fillcolor=\"" + color + "\"";
          if(vert.size() < 10)
              os << " label=" << vert.getSeq();
