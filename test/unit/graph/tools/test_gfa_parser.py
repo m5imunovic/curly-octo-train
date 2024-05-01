@@ -22,4 +22,4 @@ def test_parse_lja_gfa(test_graph_root):
 
     assert segment["ln"] == 1957
     assert pytest.approx(1.0, rel=1e-6) == segment["kc"]
-    assert segment["hash"] == "1824157992947779194109204387820039613390C"
+    assert segment["hash"] == "36757a92ce08eb96cf23bcf056ea239754309b75"

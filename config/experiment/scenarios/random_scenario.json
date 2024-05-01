@@ -17,6 +17,6 @@
       "species_name": "random_species.yaml"
     }
   ],
-  "schema": "0.0.1",
+  "schema": "0.0.2",
   "subset": "train"
 }
