@@ -45,6 +45,7 @@ def test_schedule_run_sim_creates_expected_outputs(test_cfg_root, test_experimen
         # do hard-coded checking, actually should be cross-checked with experiment.keep option
         assert eval_path / sample_idx / "reads" / "sim_0001.fastq"
         assert eval_path / sample_idx / "assemblies" / "mult.info"
+        assert eval_path / sample_idx / "assemblies" / "graph.gfa"
         assert eval_path / sample_idx / "graph" / "debug" / "0.idmap"
         assert eval_path / sample_idx / "graph" / "debug" / "0.hashmap"
 
