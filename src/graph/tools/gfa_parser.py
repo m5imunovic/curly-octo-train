@@ -1,3 +1,4 @@
+import hashlib
 import json
 import logging
 from pathlib import Path
@@ -5,10 +6,7 @@ from typing import Any
 
 from typeguard import typechecked
 
-from graph.tools.rolling_hash import RollingHash
-
 SegmentDict = dict[str, dict[str, Any]]
-
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +41,6 @@ def parse_gfa(path: Path, k: int = 501, skip_links: bool = True) -> tuple:
     with open(path) as f:
         version = f.readline().strip()
         assert "VN:Z:1.0" in version
-        rh = RollingHash(k=k)
         for line in f:
             if line.startswith("S"):
                 _, sid, seq, kc = line.strip().split()
@@ -53,13 +50,13 @@ def parse_gfa(path: Path, k: int = 501, skip_links: bool = True) -> tuple:
 
                 split_id = sid.split("_")
                 fw = split_id[0]
-                hash_fw = rh.hash(seq)
+                hash_fw = hashlib.sha1(seq.encode("utf-8"), usedforsecurity=False).hexdigest()
                 segments[fw] = {"hash": hash_fw, "kc": float(kc / (ln - k)), "ln": ln}
 
                 has_rc = len(split_id) == 2
                 if has_rc:
                     rc = split_id[1]
-                    hash_rc = rh.hash(reverse_complement(seq))
+                    hash_rc = hashlib.sha1(seq.encode("utf-8"), usedforsecurity=False).hexdigest()
                     segments[rc] = {"hash": hash_rc, "kc": float(kc / (ln - k)), "ln": ln}
             if not skip_links:
                 raise NotImplementedError("This functionality is not ported to new format yet")
