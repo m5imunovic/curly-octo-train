@@ -1,0 +1,4 @@
+name: homo_sapiens
+release: "hg002_v_1_0_1" # only supported version so far
+keep_metadata: true # keep downloaded files
+store_artifacts: false # wandb logging, need to set up wandb access on the machine first

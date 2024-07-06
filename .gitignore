@@ -47,3 +47,5 @@ wandb/*
 assembly.sh
 graph.sh
 sequencing.sh
+
+lib/*
