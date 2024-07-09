@@ -18,6 +18,14 @@ def is_random_reference(species: DictConfig) -> bool:
     return "seed" in species
 
 
+def is_chm13_reference(species: DictConfig) -> bool:
+    return "chm13" in species["release"]
+
+
+def is_hg002_reference(species: DictConfig) -> bool:
+    return "hg002" in species["release"]
+
+
 @typechecked
 def get_species_root(reference_root: Path, species: DictConfig) -> Path:
     if is_random_reference(species):
