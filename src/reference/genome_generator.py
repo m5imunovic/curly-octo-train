@@ -9,6 +9,7 @@ import experiment.experiment_utils as eu
 import reference.reference_utils as ru
 import utils.path_helpers as ph
 from reference.chm13 import get_chm13_reference
+from reference.hg002 import get_hg002_reference
 from reference.random_genome import get_random_reference
 
 logger = logging.getLogger(__name__)
@@ -27,16 +28,20 @@ def run(cfg):
 
     try:
         species_path = ru.get_species_root(Path(reference_root), species)
-        species_path.mkdir(parents=True)
+        species_path.mkdir(parents=True, exist_ok=True)
 
         if ru.is_random_reference(species):
             genome = get_random_reference(dict(species.chromosomes), species.seed, species.gc_content)
             ru.save_genome_to_fasta(ru.ref_chromosomes_path(species_path), genome, multiline=False)
             msg = f"Generated random reference genome for species `{species.name}` at:  \n{reference_root}"
             logger.info(msg)
-        else:
+        elif ru.is_chm13_reference(species):
             # TODO: save url from which reference was downloaded to species_info.json
             get_chm13_reference(species_path, species)
+        elif ru.is_hg002_reference(species):
+            get_hg002_reference(species_path, species)
+        else:
+            raise ValueError(f"Unsupported reference {species}")
 
         with open(species_path / "species_info.json", "w") as handle:
             species_info = ru.create_species_info(species)
