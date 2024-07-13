@@ -1,0 +1,4 @@
+defaults:
+  - hg002.yaml
+
+release: bed_hg002_v1_0_1

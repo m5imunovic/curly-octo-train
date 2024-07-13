@@ -25,3 +25,24 @@ def test_save_genome_to_fasta():
         path = Path(output_dir)
         ru.save_genome_to_fasta(path, {"chr1": "ACTGCTGATC"}, "Test Genome")
         assert (path / "chr1.fasta").exists()
+
+
+def test_query_chr_paths(test_data_reference, test_species_cfg):
+    species_root = ru.get_species_root(test_data_reference, test_species_cfg)
+    chromosomes_path = ru.ref_chromosomes_path(species_root)
+    chromosome_paths = ru.query_chr_paths(chromosomes_path)
+    assert len(chromosome_paths) == 2
+    assert "chr1" in chromosome_paths
+    assert "chr2" in chromosome_paths
+    assert chromosome_paths["chr1"].name == "chr1.fasta"
+
+
+def test_extract_chromosome_range():
+    with tempfile.TemporaryDirectory() as output_dir:
+        path = Path(output_dir)
+        ru.save_genome_to_fasta(path, {"chr1": "ACTGCTGATC"}, "Test Genome")
+        chr1_path = path / "chr1.fasta"
+        assert chr1_path.exists()
+        chr_subref = ru.extract_chromosome_range(chr1_path, subrange=(2, 5))
+        assert "chr1" in chr_subref
+        assert chr_subref["chr1"] == "TGC"

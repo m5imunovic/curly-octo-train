@@ -83,3 +83,20 @@ def save_genome_to_fasta(output_path: Path, genome: dict[str, str], description:
         output_path.mkdir(parents=True)
     for chr_name, chr_seq in genome.items():
         save_chr_to_fasta(output_path, chr_name, chr_seq, description, multiline)
+
+
+@typechecked
+def query_chr_paths(chromosomes_path: Path) -> dict:
+    chromosome_paths = chromosomes_path.glob("*.fasta")
+    chromosomes = {}
+    for path in chromosome_paths:
+        chromosomes[path.stem] = path
+    return chromosomes
+
+
+@typechecked
+def extract_chromosome_range(chr_path: Path, subrange: tuple) -> dict:
+    for record in SeqIO.parse(chr_path, "fasta"):
+        start, stop = subrange
+        subrecord = str(record.seq)[start:stop]
+        return {chr_path.stem: subrecord}
