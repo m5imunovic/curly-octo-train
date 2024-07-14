@@ -95,8 +95,20 @@ def query_chr_paths(chromosomes_path: Path) -> dict:
 
 
 @typechecked
-def extract_chromosome_range(chr_path: Path, subrange: tuple) -> dict:
+def extract_chromosome_range(chr_path: Path, subrange: tuple) -> tuple[dict, tuple]:
+    """Extract the subrange from original chromosome path.
+
+    The input subrange is recommendation based on bed file solely. We modify it by shifting the start of the range to
+    the first non-N nucleotide and return this modified range for logging purposes, along the subchromosome string we
+    extracted.
+    """
     for record in SeqIO.parse(chr_path, "fasta"):
         start, stop = subrange
+        stop = min(stop, len(record.seq))
         subrecord = str(record.seq)[start:stop]
-        return {chr_path.stem: subrecord}
+        # sometimes in the reference, unassembled regions are replaced with Ns
+        # this is for example case in the chr13 Maternal of HG002 reference
+        last_N = subrecord.rfind("N")
+        start = max(start, start + last_N + 1)
+        subrecord = subrecord[last_N + 1 :]
+        return {chr_path.stem: subrecord}, (start, stop)

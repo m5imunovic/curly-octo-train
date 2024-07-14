@@ -7,7 +7,7 @@ from pathlib import Path
 from torch_geometric.data import download_url
 
 import reference.reference_utils as ru
-from reference.bed.bed_parser import parse_bed_file, merge_bed_regions
+from reference.bed.bed_parser import parse_bed_file, merge_bed_regions, pretty_print_regions
 
 logger = logging.getLogger(__name__)
 
@@ -46,10 +46,17 @@ def run(cfg, neighborhood: int = 100000, gap: int = 20000):
             chr_name: chr_path for chr_name, chr_path in chromosome_paths.items() if chr_name not in missing_chrs
         }
 
+        extracted_meta = {}
         for chromosome_name, chromosome_path in chromosome_paths.items():
-            subreference = ru.extract_chromosome_range(chromosome_path, bed_entries[chromosome_name])
+            if bed_entries[chromosome_name] is None:
+                logger.warning(f"Skipping {chromosome_name} as the range is not well defined")
+                continue
+            subreference, interval = ru.extract_chromosome_range(chromosome_path, bed_entries[chromosome_name])
             # save into bed reference
             ru.save_genome_to_fasta(ru.ref_chromosomes_path(bed_species_path), subreference, multiline=False)
+            extracted_meta[chromosome_name] = interval
+
+        pretty_print_regions(extracted_meta, bed_species_path / "regions.tsv")
 
         with open(bed_species_path / "species_info.json", "w") as handle:
             species_info = ru.create_species_info(bed_species)

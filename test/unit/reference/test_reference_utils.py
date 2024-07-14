@@ -43,6 +43,8 @@ def test_extract_chromosome_range():
         ru.save_genome_to_fasta(path, {"chr1": "ACTGCTGATC"}, "Test Genome")
         chr1_path = path / "chr1.fasta"
         assert chr1_path.exists()
-        chr_subref = ru.extract_chromosome_range(chr1_path, subrange=(2, 5))
+        subrange = (2, 5)
+        chr_subref, interval = ru.extract_chromosome_range(chr1_path, subrange=subrange)
         assert "chr1" in chr_subref
         assert chr_subref["chr1"] == "TGC"
+        assert interval == subrange

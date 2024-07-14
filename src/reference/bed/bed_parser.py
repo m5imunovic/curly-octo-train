@@ -1,11 +1,8 @@
 """Based on 'Enhancing GNN training for de novo genome assembly by targeting decision nodes'."""
 
+import sys
 from collections import defaultdict
 from pathlib import Path
-
-
-# Specify the path to your BED file
-bed_file_path = Path("/home/marijo/Downloads/hg002v1.0.1.cenSatv1.0.bed")
 
 
 def parse_bed_file(bed_file_path: Path) -> dict[str, list]:
@@ -74,7 +71,7 @@ def merge_bed_regions(bed_intervals: dict, neighborhood: int = 100000, gap: int 
             start_interval = largest_interval[0] - neighborhood
             end_interval = largest_interval[1] + neighborhood
             # Store the adjusted interval in the dictionary
-            largest_regions[current_chr] = (start_interval, end_interval)
+            largest_regions[current_chr] = (max(0, start_interval), end_interval)
         else:
             # In case there are no centromeric intervals for the chromosome, you could choose to either skip it
             # or assign a default value such as None or an empty tuple.
@@ -84,6 +81,23 @@ def merge_bed_regions(bed_intervals: dict, neighborhood: int = 100000, gap: int 
     return largest_regions
 
 
-# largest_regions = merge_bed_regions(parse_bed_file(bed_file_path))
-# for region, span in largest_regions.items():
-#    print(f"{region}: {span[1] - span[0]}")
+def pretty_print_regions(regions: dict, output_file: Path):
+    """Store the selected regions in chromosome to a file.
+
+    Outputs chromosome name, length of the range start and end offsets in the reference chromosome
+    """
+    with open(output_file, "w") as f:
+        header = f"{'Name'.ljust(15)}\t{'Lenght'.rjust(10)}\t{'Start'.rjust(10)}\t{'Stop'.rjust(10)}\n"
+        f.write(header)
+        for chr, subrange in regions.items():
+            length = str(subrange[1] - subrange[0])
+            start, stop = str(subrange[0]), str(subrange[1])
+            line = f"{chr.ljust(15)}\t{length.rjust(10)}\t{start.rjust(10)}\t{stop.rjust(10)}\n"
+            f.write(line)
+
+
+if __name__ == "__main__":
+    bed_file_path = Path(sys.argv[1])
+    output_path = Path(sys.argv[2])
+    largest_regions = merge_bed_regions(parse_bed_file(bed_file_path))
+    pretty_print_regions(largest_regions, output_path)
