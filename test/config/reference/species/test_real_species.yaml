@@ -1,0 +1,4 @@
+name: test_species
+release: S_0001
+keep_metadata: false
+store_artifacts: false

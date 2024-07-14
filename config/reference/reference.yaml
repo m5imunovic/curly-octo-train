@@ -1,2 +1,3 @@
 defaults:
   - species: random_species
+  - bed: null
