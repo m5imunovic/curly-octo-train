@@ -8,5 +8,5 @@ keep:
   artifacts_path: "eval"
   # either matches as fnmatch.fnmatch(path, pattern) or pathlib.Path(path).name == pattern
   reads: ["*.fastq"]
-  assemblies: ["mult.info", "full_asm.json", "graph.gfa"]
+  assemblies: ["mult.info", "full_asm.json", "graph.gfa", "graph.dot"]
   graph: ["*.idmap", "*.hashmap"]

@@ -8,6 +8,7 @@ from omegaconf import DictConfig, OmegaConf
 import experiment.experiment_utils as eu
 import reference.reference_utils as ru
 import utils.path_helpers as ph
+from reference.bed_genome_generator import run as bed_run
 from reference.chm13 import get_chm13_reference
 from reference.hg002 import get_hg002_reference
 from reference.random_genome import get_random_reference
@@ -72,13 +73,23 @@ def ensure_references_exist(cfg: DictConfig, species_defs: set[str]) -> dict | N
         return False
 
     # TODO: this is a candidate for parallelization
+    # TODO: this is a bit ugly now how it is handled, we should use hydra compose to load the files
     species_paths = {}
     species_config_root = config_root / "reference" / "species"
     for species_def in species_defs:
-        cfg.reference.species = OmegaConf.load(species_config_root / f"{species_def}")
+        cfg_species = OmegaConf.load(species_config_root / f"{species_def}")
+        defaults = cfg_species.pop("defaults", None)
+        if defaults is not None:
+            # we assume only one defaults entry and that it exists
+            cfg_defaults = OmegaConf.load(species_config_root / f"{defaults[0]}.yaml")
+            cfg_species = OmegaConf.merge(cfg_defaults, cfg_species)
+
+        cfg.reference.species = cfg_species
         reference_path = run(cfg)
         if not reference_path:
-            return None
+            reference_path = bed_run(cfg)
+            if not reference_path:
+                return None
         species_paths[species_def] = reference_path
 
     return species_paths

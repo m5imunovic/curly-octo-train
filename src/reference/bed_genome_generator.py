@@ -23,7 +23,11 @@ def run(cfg, neighborhood: int = 100000, gap: int = 20000):
     bed_species_path = ru.get_species_root(Path(reference_root), bed_species)
     bed_species_path.mkdir(parents=True, exist_ok=True)
 
-    # TODO: check bed species exists
+    # TODO: this function should accept species_path
+    if ru.check_reference_exists(reference_root, bed_species):
+        msg = f"Reference genome for species `{species.name}` already exists at:  \n{reference_root}"
+        logger.info(msg)
+        return bed_species_path
 
     try:
         # download bed file
