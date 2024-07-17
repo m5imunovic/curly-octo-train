@@ -18,6 +18,9 @@ keep:
     "disjointigs.fasta",
     "graph.dot",
     "alignments.txt",
+    "edge_index.pt",
+    "edge_attrs.pt",
+    "nodes.pt",
   ]
 exec: jumboDBG # name of the executable to use (jumboDBG or lja)
 full_asm: full_asm # execute LJA so that we have all the files for comparison and save in this dir
