@@ -8,12 +8,13 @@ from dataclass_wizard import JSONWizard
 
 import experiment.experiment_utils as eu
 
+SCHEMA = "0.0.3"
+
 
 @dataclass
 class Scenario(JSONWizard):
     """Data dataclass."""
 
-    schema: str
     dataset: str
     subset: str
     items: list["Item"]

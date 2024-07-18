@@ -1,5 +1,6 @@
 import concurrent.futures
 import fnmatch
+import json
 import logging
 import os
 import subprocess
@@ -8,6 +9,7 @@ import yaml
 from itertools import product
 from pathlib import Path
 
+import pandas as pd
 from omegaconf import DictConfig
 from typeguard import typechecked
 
@@ -114,17 +116,19 @@ def run_graph_jobs(cfg: DictConfig, jobs: list) -> dict:
     return produced_files
 
 
-def run_collect_job(raw_path: Path, graph_files: dict) -> int | None:
+def run_collect_job(raw_path: Path, graph_files: dict) -> tuple[int, dict] | None:
     for graph_file in graph_files["artifacts"]:
         # TODO: make this more robust as we might have multiple .pt files for some reason
         if Path(graph_file).suffix == ".pt":
             idx = len(list(raw_path.glob("*.pt")))
             src = str(graph_file)
+            with open(Path(graph_file).with_suffix(".json")) as fh:
+                features = json.load(fh)
             dst = raw_path / f"{idx}.pt"
             logger.info(f"Copying {src} to {dst}")
             # shutil.move fails on alternative setup with SMB drive (permissions issue)
             subprocess.run(f"cp {src} {dst}", shell=True)
-            return idx
+            return idx, features
 
     return None
 
@@ -189,17 +193,32 @@ def run_cleanup_job(step_files: dict):
                     logger.warning(f"File {f} not found")
 
 
-def save_run_metadata(cfg: DictConfig, scenario: Scenario, dataset_root: Path):
-    logger.info("Saving dataset metadata")
+def save_run_metadata(cfg: DictConfig, scenario: Scenario, collected_samples: dict, dataset_root: Path) -> Path:
     metadata_path = dataset_root / "metadata"
     metadata_path.mkdir(parents=True, exist_ok=True)
     run_path = metadata_path / "run" / cfg.experiment.experiment_id
     run_path.mkdir(parents=True)
+    logger.info("Saving dataset metadata")
     with open(run_path / "scenario.yaml", "w") as handle:
         yaml.safe_dump(scenario.to_dict(), handle)
 
-    entries_summary = create_entries_summary(cfg, scenario)
+    entries_summary = create_entries_summary(cfg, scenario, collected_samples)
     entries_summary_to_csv(entries_summary, run_path)
+    return run_path
+
+
+def merge_run_metadata(subset_path: Path, run_path: Path):
+    new_summary = pd.read_csv(run_path / "summary.csv", index_col=False)
+    subset_summary_path = subset_path / "summary.csv"
+    if subset_summary_path.exists():
+        subset_summary = pd.read_csv(subset_summary_path, index_col=False)
+        latest_revision = subset_summary["Revision"].astype("int").max()
+        new_summary["Revision"] = latest_revision + 1
+        new_summary = subset_summary.append(new_summary, ignore_index=True)
+    else:
+        new_summary["Revision"] = 1
+
+    new_summary.to_csv(subset_summary_path, index=False, float_format="%.3f")
 
 
 def run(cfg: DictConfig):
@@ -236,12 +255,14 @@ def run(cfg: DictConfig):
             return step_files
 
         def collect_sample(raw_path, step_files, cfg):
-            idx = run_collect_job(raw_path, step_files["graph"])
+            idx, features = run_collect_job(raw_path, step_files["graph"])
             if scenario.subset == "test":
                 run_keep_job(raw_path.parent.parent, step_files, idx, cfg.experiment.keep)
             run_cleanup_job(step_files)
+            return idx, features
 
         logger.info(f"Running {len(sequencing_jobs)} jobs in total")
+        collected_samples = {}
         with concurrent.futures.ThreadPoolExecutor(max_workers=cfg.experiment.max_workers) as executor:
             future_produced_files = {
                 executor.submit(create_sample, s_job, a_job, g_job)
@@ -250,10 +271,12 @@ def run(cfg: DictConfig):
             job_cnt = 0
             for future in concurrent.futures.as_completed(future_produced_files):
                 step_files = future.result()
-                collect_sample(raw_path, step_files, cfg)
+                idx, features = collect_sample(raw_path, step_files, cfg)
+                collected_samples[idx] = features
                 logger.info(f"Finished job {job_cnt}")
                 job_cnt += 1
 
-    save_run_metadata(cfg, scenario, dataset_root)
+    run_path = save_run_metadata(cfg, scenario, collected_samples, dataset_root)
+    merge_run_metadata(dataset_root / scenario.subset, run_path)
     experiment_root.rmdir()
     logger.info("Experiment finished.")
