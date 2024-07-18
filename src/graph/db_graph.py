@@ -71,6 +71,14 @@ def process_graph(idx: int, assembly_path: Path, cfg: DictConfig, output_path: P
     pyg_filename = f"{idx}.pt"
     logger.info(f"Saving {out_raw_path / pyg_filename }")
     torch.save(pyg, out_raw_path / pyg_filename)
+    with open(out_raw_path / f"{idx}.json", "w") as fh:
+        features = {
+            "num_nodes": pyg.num_nodes,
+            # shape is [2, num_edges]
+            "num_edges": pyg.edge_index.shape[1],
+        }
+        json.dump(features, fh, indent=4)
+
     if cfg.debug:
         nx.write_graphml(g, out_debug_path / f"{idx}.graphml")
 

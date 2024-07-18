@@ -6,7 +6,7 @@ import pandas as pd
 from omegaconf import DictConfig
 
 import experiment.experiment_utils as eu
-from experiment.scenario_schema import Scenario
+from experiment.scenario_schema import Scenario, SCHEMA
 
 
 @dataclass
@@ -15,20 +15,24 @@ class DatasetInfoEntry:
     Id: int
     Species: str
     Chromosomes: list[str]
+    Nodes: int
+    Edges: int
     Seed: int
     Probability: float
     ProfileId: str | None
+    Depth: str | None
     RunId: str
-    Version: str
+    Schema: str
 
 
-def create_entries_summary(cfg: DictConfig, scenario: Scenario) -> list:
+def create_entries_summary(cfg: DictConfig, scenario: Scenario, collected_samples: dict) -> list:
     # first constants
     subset = scenario.subset
     read_sampling = "simulate" if cfg.reads.name == "pbsim3" else "sample"
     profile_id = cfg.reads.params.long["sample-profile-id"] if read_sampling == "simulate" else ""
+    depth = cfg.reads.params.long["depth"] if read_sampling == "simulate" else ""
     run_id = cfg.experiment.experiment_id
-    version = scenario.schema
+    schema = SCHEMA
 
     summary = []
     id = 0
@@ -39,8 +43,22 @@ def create_entries_summary(cfg: DictConfig, scenario: Scenario) -> list:
             probabilities = eu.get_sequencing_probabilities(sample.probability)
             sequencing_seeds = eu.get_sequencing_seeds(scenario.subset, sample.count, sample.init_seed)
             for probability, seed in product(probabilities, sequencing_seeds):
+                features_key = list(collected_samples)[id]
+                features = collected_samples[features_key]
+                num_nodes, num_edges = features["num_nodes"], features["num_edges"]
                 entry = DatasetInfoEntry(
-                    subset, id, species, chromosomes, seed, probability, profile_id, run_id, version
+                    subset,
+                    id,
+                    species,
+                    chromosomes,
+                    num_nodes,
+                    num_edges,
+                    seed,
+                    probability,
+                    profile_id,
+                    depth,
+                    run_id,
+                    schema,
                 )
                 summary.append(entry)
                 id += 1

@@ -35,12 +35,15 @@ def test_schedule_run_sim_creates_expected_outputs(test_cfg_root, test_experimen
     ):
         run(test_experiment_sim_cfg)
 
-    assert (Path(tmpdir) / "unittest_dataset").exists()
-    assert len(list((Path(tmpdir) / "unittest_dataset" / "test").glob("**/*.pt"))) == 3
-    eval_path = Path(tmpdir) / "unittest_dataset" / "eval"
+    dataset_root_path = Path(tmpdir) / "unittest_dataset"
+    assert dataset_root_path.exists()
+    assert len(list((dataset_root_path / "test").glob("**/*.pt"))) == 3
+    eval_path = dataset_root_path / "eval"
     assert eval_path.exists()
-    metadata_path = Path(tmpdir) / "unittest_dataset" / "metadata"
+    metadata_path = dataset_root_path / "metadata"
     assert metadata_path.exists()
+    summary_path = dataset_root_path / "test" / "summary.csv"
+    assert summary_path.exists()
     for sample_idx in ["0", "1", "2"]:
         # do hard-coded checking, actually should be cross-checked with experiment.keep option
         assert eval_path / sample_idx / "reads" / "sim_0001.fastq"
@@ -60,7 +63,9 @@ def test_schedule_run_sample_creates_expected_outputs(
     ):
         run(test_experiment_sampler_cfg)
 
-    assert (Path(tmpdir) / "unittest_dataset").exists()
-    assert (Path(tmpdir) / "unittest_dataset" / "metadata").exists()
+    dataset_root_path = Path(tmpdir) / "unittest_dataset"
+    assert dataset_root_path.exists()
+    assert (dataset_root_path / "metadata").exists()
+    assert (dataset_root_path / "train" / "summary.csv").exists()
 
-    assert len(list((Path(tmpdir) / "unittest_dataset" / "train" / "raw").iterdir())) == 3
+    assert len(list((dataset_root_path / "train" / "raw").iterdir())) == 3
