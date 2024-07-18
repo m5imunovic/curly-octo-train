@@ -1,6 +1,11 @@
 scenario:
   name: test_scenario_sim.json # can be with or without .json
 
+profiles:
+  test: pf1 #
+  train: #
+  val: #
+
 experiment_id: ${now:%y%m%d_%H%M}
 max_workers: 1
 
