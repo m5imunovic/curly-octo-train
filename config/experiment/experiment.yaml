@@ -4,6 +4,13 @@ scenario:
 experiment_id: ${now:%y%m%d_%H%M}
 max_workers: 1
 
+# here we define the available profiles for simulation
+# this way we can verify that the scenario uses right setting
+profiles:
+  val: #
+  test: #
+  train: #
+
 keep:
   artifacts_path: "eval"
   # either matches as fnmatch.fnmatch(path, pattern) or pathlib.Path(path).name == pattern

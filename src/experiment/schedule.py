@@ -221,8 +221,24 @@ def merge_run_metadata(subset_path: Path, run_path: Path):
     new_summary.to_csv(subset_summary_path, index=False, float_format="%.3f")
 
 
+def verify_sim_profile(cfg: DictConfig, subset: str):
+    """Checks if the used simulation profile is defined and matches the subset.
+
+    This is to prevent using same profile across test/train/val subsets
+    """
+    # check if simulation is used
+    if "pbsim" in cfg.reads.name:
+        expected_profile = cfg.experiment.profiles[subset]
+        if expected_profile is None:
+            raise ValueError("Failed! Expected profiles not defined for simulation experiment.")
+        used_profile = cfg.reads.params.long["sample-profile-id"]
+        if expected_profile != used_profile:
+            raise ValueError(f"Expected profile {expected_profile} does not match {used_profile}")
+
+
 def run(cfg: DictConfig):
     scenario = load_scenario(cfg.experiment.scenario.name)
+    verify_sim_profile(cfg, scenario.subset)
     # get the species name and start the reference.py
     species_defs = collect_all_species_defs(scenario)
     reference_paths = ensure_references_exist(cfg, species_defs)
