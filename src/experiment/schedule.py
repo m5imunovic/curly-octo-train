@@ -214,7 +214,9 @@ def merge_run_metadata(subset_path: Path, run_path: Path):
         subset_summary = pd.read_csv(subset_summary_path, index_col=False)
         latest_revision = subset_summary["Revision"].astype("int").max()
         new_summary["Revision"] = latest_revision + 1
-        new_summary = subset_summary.append(new_summary, ignore_index=True)
+        latest_id = subset_summary["Id"].astype("int").max()
+        new_summary["Id"] = new_summary["Id"].astype("int") + latest_id + 1
+        new_summary = pd.concat([subset_summary, new_summary], ignore_index=True)
     else:
         new_summary["Revision"] = 1
 
@@ -280,10 +282,10 @@ def run(cfg: DictConfig):
         logger.info(f"Running {len(sequencing_jobs)} jobs in total")
         collected_samples = {}
         with concurrent.futures.ThreadPoolExecutor(max_workers=cfg.experiment.max_workers) as executor:
-            future_produced_files = {
+            future_produced_files = [
                 executor.submit(create_sample, s_job, a_job, g_job)
                 for s_job, a_job, g_job in zip(sequencing_jobs, assembly_jobs, graph_jobs)
-            }
+            ]
             job_cnt = 0
             for future in concurrent.futures.as_completed(future_produced_files):
                 step_files = future.result()
