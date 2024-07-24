@@ -27,6 +27,18 @@ def test_create_sequencing_jobs(tmpdir, test_scenario_sim, test_data_reference):
     assert job["output_path"].relative_to(staging_root) == Path("2/reads")
 
 
+def test_schedule_run_sim_timeouts(test_cfg_root, test_experiment_sim_cfg, test_scenarios_root, tmpdir):
+    test_experiment_sim_cfg.paths.exp_dir = str(tmpdir)
+    test_experiment_sim_cfg.paths.datasets_dir = str(tmpdir)
+    # gives jobs just 1 second of time to complete so they all fail
+    test_experiment_sim_cfg.experiment.timeout_in_minutes = 0
+    with mock.patch("experiment.experiment_utils.get_scenario_root", return_value=test_scenarios_root), mock.patch(
+        "utils.path_helpers.get_config_root", return_value=test_cfg_root
+    ):
+        jobs_completed = run(test_experiment_sim_cfg)
+        assert jobs_completed == 0
+
+
 def test_schedule_run_sim_creates_expected_outputs(test_cfg_root, test_experiment_sim_cfg, test_scenarios_root, tmpdir):
     test_experiment_sim_cfg.paths.exp_dir = str(tmpdir)
     test_experiment_sim_cfg.paths.datasets_dir = str(tmpdir)
