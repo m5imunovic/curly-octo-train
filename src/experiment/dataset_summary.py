@@ -25,7 +25,7 @@ class DatasetInfoEntry:
     Schema: str
 
 
-def create_entries_summary(cfg: DictConfig, scenario: Scenario, collected_samples: dict) -> list:
+def create_entries_summary(cfg: DictConfig, scenario: Scenario, collected_samples: list) -> list:
     # first constants
     subset = scenario.subset
     read_sampling = "simulate" if cfg.reads.name == "pbsim3" else "sample"
@@ -43,25 +43,28 @@ def create_entries_summary(cfg: DictConfig, scenario: Scenario, collected_sample
             probabilities = eu.get_sequencing_probabilities(sample.probability)
             sequencing_seeds = eu.get_sequencing_seeds(scenario.subset, sample.count, sample.init_seed)
             for probability, seed in product(probabilities, sequencing_seeds):
-                features_key = list(collected_samples)[id]
-                features = collected_samples[features_key]
-                num_nodes, num_edges = features["num_nodes"], features["num_edges"]
-                entry = DatasetInfoEntry(
-                    subset,
-                    id,
-                    species,
-                    chromosomes,
-                    num_nodes,
-                    num_edges,
-                    seed,
-                    probability,
-                    profile_id,
-                    depth,
-                    run_id,
-                    schema,
-                )
-                summary.append(entry)
-                id += 1
+                if id < len(collected_samples):
+                    entry = collected_samples[id]
+                    id += 1
+                    if entry is None:
+                        continue
+                    sample_id, features = entry
+                    num_nodes, num_edges = features["num_nodes"], features["num_edges"]
+                    entry = DatasetInfoEntry(
+                        subset,
+                        sample_id,
+                        species,
+                        chromosomes,
+                        num_nodes,
+                        num_edges,
+                        seed,
+                        probability,
+                        profile_id,
+                        depth,
+                        run_id,
+                        schema,
+                    )
+                    summary.append(entry)
 
     return summary
 

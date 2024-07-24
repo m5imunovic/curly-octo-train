@@ -24,6 +24,7 @@ from reads.simulate_reads import run as sequencing_task
 from reference.genome_generator import ensure_references_exist
 
 logger = logging.getLogger(__name__)
+TIMEOUT = 120  # minutes
 
 
 @typechecked
@@ -193,12 +194,20 @@ def run_cleanup_job(step_files: dict):
                     logger.warning(f"File {f} not found")
 
 
-def save_run_metadata(cfg: DictConfig, scenario: Scenario, collected_samples: dict, dataset_root: Path) -> Path:
+def save_run_metadata(cfg: DictConfig, scenario: Scenario, collected_samples: list, dataset_root: Path) -> Path:
+    """Saves run metadata.
+
+    The `collected` samples list contains either tuples of sample id - sample features pairs
+    or None if job failed. It can also happen that this list is shorter than the list of scenario of items - if
+    we cannot recover from failure and we could not iterate over all jobs. Therefore we need to filter out the
+    items from original scenario which weren't processed.
+    """
     metadata_path = dataset_root / "metadata"
     metadata_path.mkdir(parents=True, exist_ok=True)
     run_path = metadata_path / "run" / cfg.experiment.experiment_id
     run_path.mkdir(parents=True)
     logger.info("Saving dataset metadata")
+
     with open(run_path / "scenario.yaml", "w") as handle:
         yaml.safe_dump(scenario.to_dict(), handle)
 
@@ -214,8 +223,6 @@ def merge_run_metadata(subset_path: Path, run_path: Path):
         subset_summary = pd.read_csv(subset_summary_path, index_col=False)
         latest_revision = subset_summary["Revision"].astype("int").max()
         new_summary["Revision"] = latest_revision + 1
-        latest_id = subset_summary["Id"].astype("int").max()
-        new_summary["Id"] = new_summary["Id"].astype("int") + latest_id + 1
         new_summary = pd.concat([subset_summary, new_summary], ignore_index=True)
     else:
         new_summary["Revision"] = 1
@@ -280,21 +287,34 @@ def run(cfg: DictConfig):
             return idx, features
 
         logger.info(f"Running {len(sequencing_jobs)} jobs in total")
-        collected_samples = {}
         with concurrent.futures.ThreadPoolExecutor(max_workers=cfg.experiment.max_workers) as executor:
-            future_produced_files = [
-                executor.submit(create_sample, s_job, a_job, g_job)
-                for s_job, a_job, g_job in zip(sequencing_jobs, assembly_jobs, graph_jobs)
-            ]
-            job_cnt = 0
-            for future in concurrent.futures.as_completed(future_produced_files):
-                step_files = future.result()
-                idx, features = collect_sample(raw_path, step_files, cfg)
-                collected_samples[idx] = features
-                logger.info(f"Finished job {job_cnt}")
-                job_cnt += 1
+            future_produced_files = []
+            for s_job, a_job, g_job in zip(sequencing_jobs, assembly_jobs, graph_jobs):
+                future_produced_files.append(executor.submit(create_sample, s_job, a_job, g_job))
 
-    run_path = save_run_metadata(cfg, scenario, collected_samples, dataset_root)
-    merge_run_metadata(dataset_root / scenario.subset, run_path)
+            collected_samples = []
+            jobs_completed = 0
+            try:
+                timeout_in_seconds = 1 + 60 * (
+                    cfg.experiment.timeout_in_minutes if "timeout_in_minutes" in cfg.experiment else TIMEOUT
+                )
+                for future in concurrent.futures.as_completed(future_produced_files, timeout=timeout_in_seconds):
+                    try:
+                        step_files = future.result()
+                        idx, features = collect_sample(raw_path, step_files, cfg)
+                        collected_samples.append((idx, features))
+                        logger.info(f"Finished job {jobs_completed}")
+                    except Exception as ex:
+                        logger.error(f"Exception {ex} during job {jobs_completed}, going to next job...")
+                        collected_samples.append(None)
+                    jobs_completed += 1
+            except Exception as ex:
+                logger.error(f"Unrecoverable exception {ex} occureed in job {jobs_completed}, aborting...")
+
+            if jobs_completed > 0:
+                run_path = save_run_metadata(cfg, scenario, collected_samples, dataset_root)
+                merge_run_metadata(dataset_root / scenario.subset, run_path)
+
     experiment_root.rmdir()
     logger.info("Experiment finished.")
+    return jobs_completed

@@ -14,14 +14,14 @@ dependencies:
   - cmake
 
   # ML
-  - pytorch::pytorch-cuda
+  - pytorch::pytorch
   - pytorch::torchaudio
   - pytorch::torchvision
   - pyg::pyg
   - wandb
 
   # Stats
-  - numpy
+  - numpy=1.26.4
   - scipy
   - pandas
 
