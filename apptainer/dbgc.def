@@ -1,0 +1,38 @@
+Bootstrap: docker
+From: ubuntu:22.04
+
+%files
+    $HOME/work/curly-octo-train/ /work/
+
+%post
+    apt update -y
+    apt autoremove -y
+    DEBIAN_FRONTEND=noninteractive apt install -y python3.11 python3.11-venv vim git curl
+    DEBIAN_FRONTEND=noninteractive TZ="Europe/Berlin" apt install -y tzdata zlib1g zlib1g-dev build-essential cmake
+    curl -L -O "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh"
+    bash Miniforge3-$(uname)-$(uname -m).sh -b
+    /root/miniforge3/bin/mamba env create --file=/work/curly-octo-train/environment.yaml
+    /root/miniforge3/bin/mamba init
+
+
+    mkdir -p /data
+    mkdir -p /work
+    cd /work/curly-octo-train && bash scripts/install_vendors.sh vendor
+    # clear warnings
+    touch /etc/environment
+    mkdir -p /lustre/group
+
+%environment
+    export LC_ALL=C
+    export PYTHONPATH="/work/curly-octo-train/src"
+    export PROJECT_ROOT="/work/curly-octo-train"
+    export WANDB_DIR="/data"
+    export PATH="/root/miniforge3/bin/envs/cenv:$PATH"
+
+%runscript
+    cd $PROJECT_ROOT
+    /root/miniforge3/bin/mamba run -n cenv $@
+
+%labels
+    Author m5imunovic
+    Version v0.0.1
