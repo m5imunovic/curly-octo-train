@@ -38,6 +38,7 @@ def create_sequencing_jobs(scenario: Scenario, staging_root: Path, reference_pat
             # create path to reference files and check they exist
             reference_root = reference_paths[item.species_name]
             genome = eu.get_genome_paths(ru.ref_chromosomes_path(reference_root), sample.chromosomes)
+            # TODO: this should just be required when doing the sampling
             reads = eu.get_read_paths(ru.ref_real_reads_path(reference_root), sample.chromosomes)
             probabilities = eu.get_sequencing_probabilities(sample.probability)
             # get the seeds and create the list of jobs

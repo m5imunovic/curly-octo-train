@@ -1,0 +1,6 @@
+name: test_diploid_species
+chromosomes:
+  chr1_MATERNAL: 103000
+  chr1_PATERNAL: 101000
+seed: 1
+gc_content: 0.44

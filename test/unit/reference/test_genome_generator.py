@@ -46,3 +46,17 @@ def test_run_random_reference(tmp_path, test_species_cfg, test_data_reference):
 
     assert filecmp.cmp(save_dir / "chr1.fasta", expected_dir / "chr1.fasta"), "The chr1.fasta file changed!"
     assert filecmp.cmp(save_dir / "chr2.fasta", expected_dir / "chr2.fasta"), "The chr2.fasta file changed!"
+
+
+def test_run_random_reference_diploid(tmp_path, test_diploid_species_cfg, test_data_reference):
+    cfg = OmegaConf.create({"paths": {"ref_dir": str(tmp_path)}, "reference": {"species": test_diploid_species_cfg}})
+    run_reference_step(cfg)
+    save_dir = ru.ref_chromosomes_path(ru.get_species_root(Path(cfg.paths.ref_dir), cfg.reference.species))
+    expected_dir = ru.ref_chromosomes_path(ru.get_species_root(test_data_reference, cfg.reference.species))
+
+    assert filecmp.cmp(
+        save_dir / "chr1_MATERNAL.fasta", expected_dir / "chr1_MATERNAL.fasta"
+    ), "The chr1_MATERNAL.fasta file changed!"
+    assert filecmp.cmp(
+        save_dir / "chr1_PATERNAL.fasta", expected_dir / "chr1_PATERNAL.fasta"
+    ), "The chr1_PATERNAL.fasta file changed!"

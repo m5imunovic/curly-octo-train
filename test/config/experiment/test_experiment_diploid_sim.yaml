@@ -1,0 +1,18 @@
+scenario:
+  name: test_scenario_diploid_sim.json # can be with or without .json
+
+profiles:
+  test: pf1 #
+  train: #
+  val: #
+
+experiment_id: ${now:%y%m%d_%H%M}
+max_workers: 1
+timeout_in_minutes: 10
+
+keep:
+  artifacts_path: "eval"
+  # either matches as fnmatch.fnmatch(path, pattern) or pathlib.Path(path).name == pattern
+  reads: ["*.fastq"]
+  assemblies: ["mult.info", "full_asm.json", "graph.gfa"]
+  graph: ["*.idmap", "*.hashmap"]
