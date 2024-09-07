@@ -1,0 +1,10 @@
+{
+  "chromosomes": {
+    "chr1_MATERNAL": 103000,
+    "chr1_PATERNAL": 101000
+  },
+  "created": "2024-07-20 22:40:26",
+  "gc_content": 0.44,
+  "name": "test_diploid_species",
+  "seed": 1
+}

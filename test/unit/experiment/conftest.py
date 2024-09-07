@@ -45,6 +45,15 @@ def test_experiment_sim_cfg(test_cfg_root):
 
 
 @pytest.fixture(scope="session")
+def test_experiment_diploid_sim_cfg(test_cfg_root):
+    test_experiment_config_dir = test_cfg_root
+    overrides = ["experiment=test_experiment_diploid_sim"]
+    with initialize_config_dir(version_base=None, config_dir=str(test_experiment_config_dir), job_name="test_exp"):
+        cfg = compose(config_name="test_config_sim.yaml", overrides=overrides)
+        return cfg
+
+
+@pytest.fixture(scope="session")
 def test_experiment_sampler_cfg(test_cfg_root):
     test_experiment_config_dir = test_cfg_root
     with initialize_config_dir(version_base=None, config_dir=str(test_experiment_config_dir), job_name="test_exp"):

@@ -39,6 +39,18 @@ def test_schedule_run_sim_timeouts(test_cfg_root, test_experiment_sim_cfg, test_
         assert jobs_completed == 0
 
 
+def test_schedule_run_diploid_sim(test_cfg_root, test_experiment_diploid_sim_cfg, test_scenarios_root, tmpdir):
+    test_experiment_diploid_sim_cfg.paths.exp_dir = str(tmpdir)
+    test_experiment_diploid_sim_cfg.paths.datasets_dir = str(tmpdir)
+    with mock.patch("experiment.experiment_utils.get_scenario_root", return_value=test_scenarios_root), mock.patch(
+        "utils.path_helpers.get_config_root", return_value=test_cfg_root
+    ):
+        run(test_experiment_diploid_sim_cfg)
+
+    dataset_root_path = Path(tmpdir) / "unittest_dataset"
+    assert dataset_root_path.exists()
+
+
 def test_schedule_run_sim_creates_expected_outputs(test_cfg_root, test_experiment_sim_cfg, test_scenarios_root, tmpdir):
     test_experiment_sim_cfg.paths.exp_dir = str(tmpdir)
     test_experiment_sim_cfg.paths.datasets_dir = str(tmpdir)
