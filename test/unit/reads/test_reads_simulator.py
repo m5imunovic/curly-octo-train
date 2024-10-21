@@ -66,7 +66,6 @@ def test_simulator_generates_expected_commands(test_pbsim3_pf_cfg, fake_vendor_r
         f"ln -s {profile_path} {profile_path.name}",
         f"ln -s {stats_path} {stats_path.name}",
         f"{simulator_exe} --depth 25 --strategy wgs --method sample --sample-profile-id pf1 --seed {SEED} --prefix sim --genome {fake_sample_profile.genome[0]}",
-        f"rm {cfg.params.long.prefix}_0001.maf",
         f"rm {cfg.params.long.prefix}_0001.ref",
         f"rm {profile_path.name}",
         f"rm {stats_path.name}",

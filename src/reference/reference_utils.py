@@ -26,6 +26,14 @@ def is_hg002_reference(species: DictConfig) -> bool:
     return "hg002" in species["release"]
 
 
+def is_mPanTro3_reference(species: DictConfig) -> bool:
+    return "mPanTro3" in species["release"]
+
+
+def is_repeat_reference(species: DictConfig) -> bool:
+    return "repeat" in species["release"]
+
+
 @typechecked
 def get_species_root(reference_root: Path, species: DictConfig) -> Path:
     if is_random_reference(species):

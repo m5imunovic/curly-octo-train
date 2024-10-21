@@ -1,4 +1,3 @@
-import json
 from pathlib import Path
 
 import numpy as np
@@ -83,23 +82,22 @@ def generate_haplotypes(sequence, mutation_rate, p_choices):
     return haplotype1, haplotype2
 
 
-def run(cfg):
-    fasta_file = Path(cfg.chromosome_path)
+def get_repeat_sequence(cfg, output_path):
+    fasta_file = Path(cfg.chr_src_path)
     assert fasta_file.exists(), f"{fasta_file} does not exists"
-    seed = cfg.seed
+    seed = cfg.chr_src_seed
     np.random.seed(seed)
-    output_path = Path(cfg.output_path)
+    output_path = Path(output_path)
     chromosome_path = output_path / "chromosomes"
     chromosome_path.mkdir(parents=True, exist_ok=True)
 
-    with open(output_path / "species_info.json", "w") as f:
-        json.dump(cfg, f, indent=4)
-
     sequence_len = cfg.sequence_len
-    mutation_rates = cfg.mutation_rates
+    mr = cfg.mutation_rates
+    mutation_rates = np.arange(mr.start, mr.stop, mr.step)
     p_choices = cfg.p_choices
     # Step 1: Select a random sequence of ~1Mb
     for idx, mutation_rate in enumerate(mutation_rates):
+        print(f"Generating {idx+1} of {len(mutation_rates)}")
         sequence = select_random_sequence(fasta_file, sequence_len)
 
         # Step 2: Add repeats to the sequence
@@ -117,21 +115,3 @@ def run(cfg):
             f.write(f">{name_pat}\n")
             f.write(haplotype2[0])
             f.write("\n")
-
-
-class AttrDict(dict):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.__dict__ = self
-
-
-if __name__ == "__main__":
-    cfg = {
-        "chromosome_path": "/data/references/homo_sapiens/chm13_v2/chromosomes/chr10.fasta",
-        "mutation_rates": np.arange(0.001, 0.0105, 0.001).tolist(),
-        "seed": 400,
-        "sequence_len": 1000000,
-        "p_choices": (0.5, 0.25, 0.25),
-        "output_path": "/data/references/repeat_species/v1/",
-    }
-    run(AttrDict(cfg))

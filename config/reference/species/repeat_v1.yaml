@@ -1,2 +1,14 @@
-name: repeat_species
-release: "v1" # either chm13_v2 or chm13_v1_1
+name: homo_sapiens
+release: "repeat_v1"
+
+mutation_rates:
+  start: 0.001
+  stop: 0.0105
+  step: 0.001
+chr_src_path: ${paths.ref_dir}/homo_sapiens/chm13_v2/chromosomes/chr10.fasta
+chr_src_seed: 400
+p_choices: [0.5, 0.25, 0.25] # DELETE INSERT MUTATE probabilities
+sequence_len: 1000000 # starting sequence length for chromosome
+
+keep_metadata: false
+store_artifacts: false

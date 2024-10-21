@@ -78,7 +78,6 @@ class PbSim3(RSimulator):
         cmds.extend(
             [
                 f"{self.simulator_exec} {option_params} {reference_params}",
-                f"rm {prefix}_0001.maf",
                 f"rm {prefix}_0001.ref",
             ]
         )

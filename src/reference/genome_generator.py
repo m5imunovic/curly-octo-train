@@ -11,7 +11,10 @@ import utils.path_helpers as ph
 from reference.bed_genome_generator import run as bed_run
 from reference.chm13 import get_chm13_reference
 from reference.hg002 import get_hg002_reference
+
+# from reference.pan_troglodytes import get_pan_tro3_reference
 from reference.random_genome import get_random_reference
+from reference.repeat_sequence import get_repeat_sequence
 
 logger = logging.getLogger(__name__)
 
@@ -41,6 +44,10 @@ def run(cfg):
             get_chm13_reference(species_path, species)
         elif ru.is_hg002_reference(species):
             get_hg002_reference(species_path, species)
+        # elif ru.is_mPanTro3_reference(species):
+        #    get_pan_tro3_reference(species_path, species)
+        elif ru.is_repeat_reference(species):
+            get_repeat_sequence(cfg.reference.species, species_path)
         else:
             raise ValueError(f"Unsupported reference {species}")
 
@@ -51,6 +58,7 @@ def run(cfg):
     except Exception as e:
         shutil.rmtree(species_path)
         msg = f"Error while generating reference genome for species `{species.name}`: {e}"
+        logger.error(msg)
         return None
 
     return species_path
