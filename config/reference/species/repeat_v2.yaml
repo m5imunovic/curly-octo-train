@@ -1,0 +1,14 @@
+name: homo_sapiens
+release: "repeat_v2"
+
+mutation_rates:
+  start: 0.001
+  stop: 0.0105
+  step: 0.001
+chr_src_path: ${paths.ref_dir}/homo_sapiens/chm13_v2/chromosomes/chr9.fasta
+chr_src_seed: 500
+p_choices: [0.33, 0.45, 0.22] # DELETE INSERT MUTATE probabilities
+sequence_len: 1500000 # starting sequence length for chromosome
+
+keep_metadata: false
+store_artifacts: false
