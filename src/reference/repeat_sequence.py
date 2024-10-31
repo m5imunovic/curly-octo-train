@@ -3,6 +3,8 @@ from pathlib import Path
 import numpy as np
 from Bio import SeqIO
 
+from reference.repeat_sequence_complex import generate_repeat_sequence_complex
+
 
 def select_random_sequence(fasta_file, seq_length=1_000_000):
     """Function to select random sequence of ~1Mb from the reference FASTA file."""
@@ -14,7 +16,7 @@ def select_random_sequence(fasta_file, seq_length=1_000_000):
     return record.seq[start:end]
 
 
-def add_repeats(sequence, chunk_low=5000, chunk_hi=6000, range_low=1000, range_hi=3000):
+def add_repeats(sequence, chunk_low=5000, chunk_hi=6000, range_low=1000, range_hi=3000, rep_low=1, rep_hi=5):
     """Introduce repeats of 1-3Kb every 5-6Kb."""
     new_sequence = []
     start = 0
@@ -33,7 +35,9 @@ def add_repeats(sequence, chunk_low=5000, chunk_hi=6000, range_low=1000, range_h
         # Add a random repeat of the last 1-3Kb from the current chunk
         repeat_length = np.random.randint(range_low, range_hi)
         repeat = chunk[-repeat_length:]
-        new_sequence.append(str(repeat))
+        rep_cnt = np.random.randint(rep_low, rep_hi)
+        for rep in range(rep_cnt):
+            new_sequence.append(str(repeat))
 
         start += chunk_size
 
@@ -91,6 +95,7 @@ def get_repeat_sequence(cfg, output_path):
     chromosome_path = output_path / "chromosomes"
     chromosome_path.mkdir(parents=True, exist_ok=True)
 
+    mode = cfg.mode
     sequence_len = cfg.sequence_len
     mr = cfg.mutation_rates
     mutation_rates = np.arange(mr.start, mr.stop, mr.step)
@@ -101,9 +106,13 @@ def get_repeat_sequence(cfg, output_path):
         sequence = select_random_sequence(fasta_file, sequence_len)
 
         # Step 2: Add repeats to the sequence
-        modified_sequence = add_repeats(sequence)
+        if mode == "simple":
+            modified_sequence = add_repeats(sequence)
+        elif mode == "complex":
+            modified_sequence = generate_repeat_sequence_complex(str(sequence))
 
         # Step 3: Generate two haplotypes with random mutations
+        print("Generating haplotypes...")
         haplotype1, haplotype2 = generate_haplotypes(modified_sequence, mutation_rate, p_choices)
         name_mat = f"chr{idx+1}_MATERNAL"
         with open((chromosome_path / name_mat).with_suffix(".fasta"), "w") as f:

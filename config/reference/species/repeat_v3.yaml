@@ -1,7 +1,7 @@
 name: homo_sapiens
-release: "repeat_v1"
+release: "repeat_v3"
 
-mode: simple
+mode: complex
 
 p_choices: [0.5, 0.25, 0.25] # DELETE INSERT MUTATE probabilities
 mutation_rates:
@@ -9,8 +9,8 @@ mutation_rates:
   stop: 0.0105
   step: 0.001
 
-chr_src_path: ${paths.ref_dir}/homo_sapiens/chm13_v2/chromosomes/chr10.fasta
-chr_src_seed: 400
+chr_src_path: ${paths.ref_dir}/homo_sapiens/chm13_v2/chromosomes/chr8.fasta
+chr_src_seed: 800
 sequence_len: 1000000 # starting sequence length for chromosome
 
 keep_metadata: false
