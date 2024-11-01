@@ -1,3 +1,5 @@
+import os
+from concurrent.futures import ProcessPoolExecutor, as_completed
 from pathlib import Path
 
 import numpy as np
@@ -86,23 +88,12 @@ def generate_haplotypes(sequence, mutation_rate, p_choices):
     return haplotype1, haplotype2
 
 
-def get_repeat_sequence(cfg, output_path):
-    fasta_file = Path(cfg.chr_src_path)
-    assert fasta_file.exists(), f"{fasta_file} does not exists"
-    seed = cfg.chr_src_seed
-    np.random.seed(seed)
-    output_path = Path(output_path)
-    chromosome_path = output_path / "chromosomes"
-    chromosome_path.mkdir(parents=True, exist_ok=True)
-
-    mode = cfg.mode
-    sequence_len = cfg.sequence_len
-    mr = cfg.mutation_rates
-    mutation_rates = np.arange(mr.start, mr.stop, mr.step)
-    p_choices = cfg.p_choices
-    # Step 1: Select a random sequence of ~1Mb
+def generate(fi, fasta_file, const_args):
+    mutation_rates, sequence_len, mode, p_choices, chromosome_path = const_args
+    offset = fi * len(mutation_rates)
     for idx, mutation_rate in enumerate(mutation_rates):
         print(f"Generating {idx+1} of {len(mutation_rates)}")
+        # Step 1: Select a random sequence of ~1Mb
         sequence = select_random_sequence(fasta_file, sequence_len)
 
         # Step 2: Add repeats to the sequence
@@ -114,13 +105,49 @@ def get_repeat_sequence(cfg, output_path):
         # Step 3: Generate two haplotypes with random mutations
         print("Generating haplotypes...")
         haplotype1, haplotype2 = generate_haplotypes(modified_sequence, mutation_rate, p_choices)
-        name_mat = f"chr{idx+1}_MATERNAL"
+        name_mat = f"chr{offset + idx + 1}_MATERNAL"
         with open((chromosome_path / name_mat).with_suffix(".fasta"), "w") as f:
             f.write(f">{name_mat}\n")
             f.write(haplotype1[0])
             f.write("\n")
-        name_pat = f"chr{idx+1}_PATERNAL"
+        name_pat = f"chr{offset + idx + 1}_PATERNAL"
         with open((chromosome_path / name_pat).with_suffix(".fasta"), "w") as f:
             f.write(f">{name_pat}\n")
             f.write(haplotype2[0])
             f.write("\n")
+
+
+def get_repeat_sequence(cfg, output_path):
+    fasta_path = Path(cfg.chr_src_path)
+    assert fasta_path.exists(), f"{fasta_path} does not exists"
+    if fasta_path.is_file():
+        fasta_files = [fasta_path]
+    else:
+        # filter fasta files
+        fasta_files = list(fasta_path.glob("*.fasta")) + list(fasta_path.glob("*.fa"))
+        if "include" in cfg:
+            fasta_files = [fasta_file for fasta_file in fasta_files if fasta_file.name in cfg.include]
+        if "exclude" in cfg:
+            fasta_files = [fasta_file for fasta_file in fasta_files if fasta_file.name not in cfg.exclude]
+
+    seed = cfg.chr_src_seed
+    np.random.seed(seed)
+    output_path = Path(output_path)
+    chromosome_path = output_path / "chromosomes"
+    chromosome_path.mkdir(parents=True, exist_ok=True)
+
+    mode = cfg.mode
+    sequence_len = cfg.sequence_len
+    mr = cfg.mutation_rates
+    mutation_rates = np.arange(mr.start, mr.stop, mr.step)
+    p_choices = cfg.p_choices
+    num_cores = os.cpu_count() - 1
+    print("Start execution")
+    results = []
+    const_args = (mutation_rates, sequence_len, mode, p_choices, chromosome_path)
+    with ProcessPoolExecutor(max_workers=num_cores) as executor:
+        futures = [executor.submit(generate, fi, fasta_file, const_args) for fi, fasta_file in enumerate(fasta_files)]
+        for future in as_completed(futures):
+            results.append(future.result())
+
+    print("Done")
