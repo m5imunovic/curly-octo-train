@@ -45,13 +45,13 @@ def parse_gfa(path: Path, k: int = 501, skip_links: bool = True) -> tuple:
             if line.startswith("S"):
                 _, sid, seq, kc = line.strip().split()
                 # LJA stores an id of forward and revese strand together separated by underline
-                kc = int(kc[len("KC:i:") :])
+                kc = float(kc[len("KC:i:") :])
                 ln = len(seq)
 
                 split_id = sid.split("_")
                 fw = split_id[0]
                 hash_fw = hashlib.sha1(seq.encode("utf-8"), usedforsecurity=False).hexdigest()
-                segments[fw] = {"hash": hash_fw, "kc": float(kc / (ln - k)), "ln": ln}
+                segments[fw] = {"hash": hash_fw, "kc": kc, "ln": ln}
 
                 has_rc = len(split_id) == 2
                 if has_rc:

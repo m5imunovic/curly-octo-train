@@ -22,7 +22,7 @@ fi
 
 NUM_PROCESSORS=8
 
-SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+#SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 pushd "$VENDOR_DIR" || exit
 echo "------------------------------> ENTER PBSIM3 INSTALL <------------------------------"
@@ -51,11 +51,12 @@ if [ ! -d "LJA" ]; then
     git clone https://github.com/AntonBankevich/LJA.git
     pushd "LJA/" || exit
     git fetch
-    git checkout -t origin/experimental
-    git checkout c8cdeaf629c78adcde0603f3e4fa4241eedf9e2e
-    git apply "$SCRIPT_DIR/lja_eval.patch"
+    git checkout -t origin/experimental_ml
+    # git checkout c8cdeaf629c78adcde0603f3e4fa4241eedf9e2e
+    #git apply "$SCRIPT_DIR/lja_eval.patch"
     cmake .
     make -j $NUM_PROCESSORS lja
+    make -j $NUM_PROCESSORS mlgraph
     make -j $NUM_PROCESSORS jumboDBG
     make -j $NUM_PROCESSORS align_and_print
     popd || exit # "LJA"
