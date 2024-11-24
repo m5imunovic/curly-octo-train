@@ -58,9 +58,13 @@ def custom_parse_dot(path: Path, k: int = 501, verify=True) -> nx.MultiDiGraph:
                 start = start.strip('"')
                 stop = stop.strip('"')
                 # label and attributes
-                l_label = l_meta.removesuffix(' color="black"').removeprefix("label=").strip('"')
                 # print(f"{l_label=}")
-                l_label = l_label.split(" labeltooltip=")[0]
+                if "labeltooltip=" in l_meta:
+                    l_label = l_meta.removesuffix(' color="black"').removeprefix("label=").strip('"')
+                    l_label = l_label.split(" labeltooltip=")[0]
+                else:
+                    l_label = l_meta.removesuffix(' color="black" ').removeprefix("label=").strip('"')
+
                 # print(f"{l_label=}")
                 edge_id, _, trunc_size_cov = l_label.strip('"').split(" ")
                 trunc_size, cov = trunc_size_cov.split("(")
