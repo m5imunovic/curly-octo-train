@@ -19,7 +19,7 @@ def parse_mult_info(mult_info_path: Path) -> dict:
     with open(mult_info_path) as handle:
         for line in handle:
             name, multiplicity = line.strip().split()
-            mult_info[name] = int(multiplicity)
+            mult_info[name] = round(float(multiplicity))
 
     return mult_info
 

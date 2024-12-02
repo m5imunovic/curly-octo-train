@@ -16,9 +16,6 @@
         {
           "chromosomes": [
             {
-              "name": "chr1"
-            },
-            {
               "name": "chr2"
             }
           ],

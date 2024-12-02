@@ -6,10 +6,7 @@
         {
           "chromosomes": [
             {
-              "name": "chr1_PATERNAL"
-            },
-            {
-              "name": "chr1_MATERNAL"
+              "name": "chr1"
             }
           ],
           "count": 1,
