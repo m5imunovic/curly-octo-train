@@ -1,7 +1,7 @@
 scenario:
   name: random_scenario #  can be with or without .json
 
-experiment_id: ${now:%y%m%d_%H%M}
+experiment_id: ${now:%y%m%d_%H%M%S}
 max_workers: 1
 timeout_in_minutes: 120
 

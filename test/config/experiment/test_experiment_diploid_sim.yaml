@@ -6,7 +6,7 @@ profiles:
   train: #
   val: #
 
-experiment_id: ${now:%y%m%d_%H%M}
+experiment_id: ${now:%y%m%d_%H%M%S}
 max_workers: 1
 timeout_in_minutes: 10
 
