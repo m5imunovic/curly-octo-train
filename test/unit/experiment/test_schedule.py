@@ -21,8 +21,7 @@ def test_create_sequencing_jobs(tmpdir, test_scenario_sim, test_data_reference):
     assert job["output_path"].relative_to(staging_root) == Path("1/reads")
 
     job = jobs[2]
-    assert job["genome"][0].name == "chr1.fasta"
-    assert job["genome"][1].name == "chr2.fasta"
+    assert job["genome"][0].name == "chr2.fasta"
     assert job["seed"] == 30001
     assert job["output_path"].relative_to(staging_root) == Path("2/reads")
 

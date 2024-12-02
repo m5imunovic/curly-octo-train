@@ -70,7 +70,7 @@ def custom_parse_dot(path: Path, k: int = 501, verify=True) -> nx.MultiDiGraph:
                 trunc_size, cov = trunc_size_cov.split("(")
                 # print(f"{l_id=}, {l_meta=}")
                 cov = float(cov.strip(")"))
-                edge_len = int(trunc_size) + k
+                edge_len = int(trunc_size)
                 attrs = {"kc": cov, "ln": edge_len}
                 # add edge to multidigraph
                 g.add_edge(start, stop, key=edge_id, **attrs)
