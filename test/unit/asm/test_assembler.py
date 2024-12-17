@@ -15,6 +15,7 @@ def assembler_cfg(tmp_dir: Path):
             "asm": {
                 "name": "LJA",
                 "params": None,
+                "max_retries": 2,
             },
             "paths": {
                 "ref_dir": str(tmp_dir / "ref"),
@@ -41,3 +42,19 @@ def test_assembler_overwrite_data(mock_install, mock_run, tmp_path):
         run_assembler(cfg, **kwargs)
 
         assert mock_run.call_count == 1
+
+
+@mock.patch.object(LaJolla, "run")
+@mock.patch.object(LaJolla, "_install")
+def test_assembler_raises_error(mock_install, mock_run, tmp_path):
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        mock_run.side_effect = [Exception("Run throws exception"), "Second attempt succeeds"]
+        cfg = assembler_cfg(tmp_dir=Path(tmp_dir))
+
+        kwargs = {"reads": tmp_path, "output_path": tmp_path}
+
+        mock_install.return_value = tmp_path
+        mock_run.return_value = True
+        run_assembler(cfg, **kwargs)
+
+        assert mock_run.call_count == 2

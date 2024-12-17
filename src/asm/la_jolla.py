@@ -105,7 +105,6 @@ class LaJolla(assembler.Assembler):
 
         exec = "lja" if "exec" not in self.cfg else self.cfg["exec"]
         asm_executable = self.assembler_root / exec
-        # TODO: handle reads through config
         reads_cmd_params = " ".join([f"--reads {str(read_file)}" for read_file in reads])
         cmds = [f"{asm_executable} {option_params} {reads_cmd_params}"]
 
@@ -114,7 +113,10 @@ class LaJolla(assembler.Assembler):
         return cmds, eval_cmds_path
 
     @typechecked
-    def run(self, genome: list[Path], reads: list[Path], output_path: Path, *args, **kwargs):
+    def run(self, genome: list[Path], reads: list[Path] | None, output_path: Path, *args, **kwargs):
+        if reads is None:
+            assert "artifacts" in kwargs, "Input read files cannot be inferred"
+            reads = [artifact for artifact in kwargs["artifacts"] if artifact.suffix in self.read_suff]
         commands, eval_cmds_path = self._construct_exec_cmd(genome, reads, output_path)
         logger.info(f"Save eval commands to {eval_cmds_path}")
 

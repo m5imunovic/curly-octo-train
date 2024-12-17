@@ -24,3 +24,5 @@ keep:
   ]
 exec: mlgraph # name of the executable to use (jumboDBG/mlgraph or lja)
 full_asm: full_asm # execute LJA so that we have all the files for comparison and save in this dir
+max_retries: 2
+read_suffix_filter: [".fq", ".fastq"]
