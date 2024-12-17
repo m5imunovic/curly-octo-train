@@ -74,11 +74,9 @@ class PbSim3(RSimulator):
             cmds.append(f"ln -s {profile_file} {profile_file.name}")
             cmds.append(f"ln -s {stats_file} {stats_file.name}")
 
-        prefix = self.cfg.params.long.prefix
         cmds.extend(
             [
                 f"{self.simulator_exec} {option_params} {reference_params}",
-                f"rm {prefix}_0001.ref",
             ]
         )
 

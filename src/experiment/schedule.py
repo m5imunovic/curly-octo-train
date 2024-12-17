@@ -19,7 +19,6 @@ from asm.assembler import run as assembly_task
 from experiment.scenario_schema import Scenario, collect_all_species_defs, load_scenario
 from experiment.dataset_summary import create_entries_summary, entries_summary_to_csv
 from graph.db_graph import run as graph_task
-from reads.rsimulator import READ_FILE
 from reads.simulate_reads import run as sequencing_task
 from reference.genome_generator import ensure_references_exist
 
@@ -66,8 +65,8 @@ def create_assembly_jobs(read_jobs: list) -> list:
             [
                 {
                     "genome": read_job["genome"],
-                    # TODO: should be dynamic fastq name based on the reads config or (better) returned from the reads job
-                    "reads": [read_job["output_path"] / READ_FILE],
+                    # find out during runtime based on read_suffix_filter config option in assembler, default [".fq", ".fastq"]
+                    "reads": None,
                     "output_path": read_job["output_path"].parent / "assemblies",
                 }
             ]
@@ -102,10 +101,10 @@ def run_sequencing_jobs(cfg: DictConfig, jobs: list) -> dict:
     return produced_files
 
 
-def run_assembly_jobs(cfg: DictConfig, jobs: list) -> dict:
+def run_assembly_jobs(cfg: DictConfig, jobs: list, previous_step_files) -> dict:
     produced_files = {}
-    for job in jobs:
-        produced_files = assembly_task(cfg, **job)
+    for job, prev_files in zip(jobs, previous_step_files):
+        produced_files = assembly_task(cfg, **job, **prev_files)
 
     return produced_files
 
@@ -276,7 +275,7 @@ def run(cfg: DictConfig):
         def create_sample(sequencing_job, assembly_job, graph_job):
             step_files = {}
             step_files["reads"] = run_sequencing_jobs(cfg, [sequencing_job])
-            step_files["assemblies"] = run_assembly_jobs(cfg, [assembly_job])
+            step_files["assemblies"] = run_assembly_jobs(cfg, [assembly_job], [step_files["reads"]])
             step_files["graph"] = run_graph_jobs(cfg, [graph_job])
             return step_files
 
