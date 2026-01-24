@@ -11,6 +11,7 @@ import utils.path_helpers as ph
 from reference.bed_genome_generator import run as bed_run
 from reference.chm13 import get_chm13_reference
 from reference.hg002 import get_hg002_reference
+from reference.i002c import get_i002c_reference
 
 # from reference.pan_troglodytes import get_pan_tro3_reference
 from reference.random_genome import get_random_reference
@@ -44,6 +45,8 @@ def run(cfg):
             get_chm13_reference(species_path, species)
         elif ru.is_hg002_reference(species):
             get_hg002_reference(species_path, species)
+        elif ru.is_i002c_reference(species):
+            get_i002c_reference(species_path, species)
         # elif ru.is_mPanTro3_reference(species):
         #    get_pan_tro3_reference(species_path, species)
         elif ru.is_repeat_reference(species):
