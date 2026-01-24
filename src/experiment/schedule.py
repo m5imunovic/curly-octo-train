@@ -188,7 +188,7 @@ def run_cleanup_job(step_files: dict):
             logger.info(f"Cleaning up {job} {group} files")
             for f in files:
                 if f.exists():
-                    logger.info(f"Removing {f}")
+                    logger.debug(f"Removing {f}")
                     f.unlink(missing_ok=True)
                 else:
                     logger.warning(f"File {f} not found")

@@ -26,6 +26,10 @@ def is_hg002_reference(species: DictConfig) -> bool:
     return "hg002" in species["release"]
 
 
+def is_i002c_reference(species: DictConfig) -> bool:
+    return "i002c" in species["release"]
+
+
 def is_mPanTro3_reference(species: DictConfig) -> bool:
     return "mPanTro3" in species["release"]
 
